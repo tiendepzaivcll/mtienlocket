@@ -63,8 +63,11 @@ Nhóm biến để API khởi động ở production:
 - `NODE_ENV=production`
 - `FIREBASE_API_KEY`: API key của Firebase project mà luồng đăng nhập thực tế sử dụng.
 - `FIREBASE_AUTH_API_BASE=https://www.googleapis.com/identitytoolkit/v3/relyingparty`
-- `FIREBASE_SECURETOKEN_API_BASE=https://securetoken.googleapis.com/v1`
+- `FIREBASE_SECURETOKEN_API_BASE=https://securetoken.googleapis.com`
 - `LOCKET_API_BASE`: base URL thật của API upstream, lấy từ cấu hình hợp lệ của hệ thống.
+
+Source gọi `verifyPassword` dưới base URL Auth ở trên và tự thêm `v1/token` khi
+làm mới phiên. Vì vậy không thêm `/v1` vào `FIREBASE_SECURETOKEN_API_BASE`.
 
 Các biến để quản trị và kết nối dịch vụ:
 
