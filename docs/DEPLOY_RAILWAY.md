@@ -78,8 +78,18 @@ Các biến để quản trị và kết nối dịch vụ:
 - `STORAGE_INTERNAL_TOKEN`: cùng giá trị đã đặt ở service storage.
 - `API_BASE_URL`: URL HTTPS của chính service API sau khi Generate Domain.
 
-Xem `apps/main/api/.env.example` cho các cấu hình bổ sung. Nếu dùng lưu cấu hình
-quản trị/App Check bằng Firestore, cần cấu hình tài khoản dịch vụ Firebase tương ứng.
+Xem `apps/main/api/.env.example` cho các cấu hình bổ sung. Các REST client hiện tại dùng
+`FIREBASE_APPCHECK_API_BASE=https://firebaseappcheck.googleapis.com` và
+`FIREBASE_FIRESTORE_API_BASE=https://firestore.googleapis.com/v1/projects/PROJECT-NGUON/databases`.
+Thay `PROJECT-NGUON` bằng project Firebase upstream đúng; không lấy project quản trị mới
+để thay cho cấu hình đăng nhập Locket.
+
+Bạn có thể tạo Firebase project riêng cho dữ liệu quản trị. Bật Firestore Database,
+rồi vào Project settings → Service accounts → Firebase Admin SDK → Generate new private key.
+Điền các trường JSON `project_id`, `client_email`, `private_key` tương ứng vào
+`FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` của service API.
+Đây là tài khoản dịch vụ cho dữ liệu quản trị, tách biệt với `FIREBASE_API_KEY` dùng
+đăng nhập tài khoản Locket. Không đưa private key vào frontend hoặc GitHub.
 Giá trị App Check hợp lệ có thể được bổ sung qua trang quản trị sau khi khởi động.
 
 **Không tự tạo Firebase project khác rồi cho rằng tài khoản Locket cũ sẽ đăng nhập
@@ -97,8 +107,8 @@ Import cùng repository vào Vercel, chọn framework Vite và **Root Directory*
 - `VITE_BASE_API_URL`, `VITE_BETA_API_URL`, `VITE_AUTH_API_URL`,
   `VITE_DATA_API_URL`, `VITE_PAYMENT_API_URL`: URL HTTPS service API của bạn.
 - `VITE_STORAGE_API_URL`: URL HTTPS service storage của bạn.
-- Các biến Firebase trình duyệt và dịch vụ bổ sung theo `.env.production.example`,
-  chỉ dùng thông tin công khai dành cho frontend.
+- Các biến dịch vụ bổ sung theo `.env.production.example` nếu có sử dụng tính năng tương ứng.
+  Client hiện tại không đọc các biến `VITE_FIREBASE_*`; các biến đó chỉ xuất hiện ở giao diện cũ `web`.
 
 Biến `VITE_*` được đóng vào bản build; đổi giá trị cần build/deploy lại frontend.
 Sau khi có domain frontend, cập nhật `CORS_ORIGINS` ở API/storage và CORS của bucket.
