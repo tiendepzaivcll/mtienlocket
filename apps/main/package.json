@@ -1,0 +1,16 @@
+{
+  "name": "main",
+  "private": true,
+  "scripts": {
+    "start": "npm run start:api & npm run start:client",
+    "dev": "npm run dev:api & npm run dev:client",
+    "dev:api": "cd api && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "dev:web": "npm run dev:client",
+    "test": "npm --prefix api test && npm --prefix client test",
+    "start:api": "cd api && npm run start",
+    "start:client": "cd client && npm run start",
+    "start:web": "npm run start:client",
+    "install-all": "cd api && npm install && cd ../client && npm install"
+  }
+}

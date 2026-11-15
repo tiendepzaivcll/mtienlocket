@@ -1,0 +1,49 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "description": "T97 Self Hosted API",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "cross-env NODE_ENV=development nodemon app.js",
+    "test": "node --test tests/*.test.js",
+    "smoke": "node scripts/smoke.js",
+    "deploy": "cross-env NODE_ENV=production node app.js"
+  },
+  "author": "T97",
+  "license": "ISC",
+  "dependencies": {
+    "@ffprobe-installer/ffprobe": "^2.1.2",
+    "axios": "^1.13.6",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "crypto-js": "^4.2.0",
+    "date-fns": "^3.6.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "ffmpeg-static": "^5.3.0",
+    "ffprobe-static": "^3.1.0",
+    "firebase": "^10.12.2",
+    "firebase-admin": "^12.0.0",
+    "fluent-ffmpeg": "^2.1.3",
+    "form-data": "^4.0.6",
+    "heic-convert": "^2.1.0",
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
+    "mime": "^4.0.3",
+    "multer": "^1.4.5-lts.1",
+    "node-request-context": "^1.0.5",
+    "sharp": "^0.34.5",
+    "socket.io": "^4.8.3",
+    "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "nodemon": "^3.1.4"
+  },
+  "overrides": {
+    "ms": "^2.1.3",
+    "debug": "^4.3.6"
+  }
+}

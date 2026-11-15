@@ -1,0 +1,54 @@
+{
+  "name": "Locket.io.vn",
+  "short_name": "Locket",
+  "description": "Chia sẻ khoảnh khắc trực tiếp ngay từ trình duyệt",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/icon-app/android-chrome-192x192 (0).png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-app/android-chrome-192x192 (0).png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-app/android-chrome-192x192 (0).png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icon-app/android-chrome-192x192 (0).png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "categories": ["productivity", "photo"],
+  "shortcuts": [
+    {
+      "name": "Đăng ảnh",
+      "short_name": "Đăng ảnh",
+      "description": "Đăng ảnh lên Locket",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/icon-app/android-chrome-192x192 (0).png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

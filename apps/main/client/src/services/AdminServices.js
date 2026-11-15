@@ -1,0 +1,76 @@
+import axios from "axios";
+import { CONFIG } from "@/config";
+
+const ADMIN_TOKEN_KEY = "t97_admin_token";
+
+const adminApi = axios.create({
+  baseURL: `${CONFIG.api.baseUrl}/admin`,
+  timeout: 35000,
+});
+
+adminApi.interceptors.request.use((config) => {
+  const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export const getAdminToken = () => localStorage.getItem(ADMIN_TOKEN_KEY);
+export const getAppCheckSettings = async () => (await adminApi.get("/app-check")).data.data;
+export const saveAppCheckSettings = async (data) => (await adminApi.put("/app-check", data)).data.data;
+export const checkAppCheckSettings = async () => (await adminApi.post("/app-check/check")).data;
+export const getAiFilterSettings = async () => (await adminApi.get("/ai-filter")).data.data;
+export const saveAiFilterSettings = async (modelId) => (
+  await adminApi.put("/ai-filter", { modelId })
+).data;
+export const listCaptionPresets = async () => (await adminApi.get("/caption-presets")).data.data || [];
+export const saveCaptionPreset = async (data) => (await adminApi.put("/caption-presets", data)).data.data;
+export const deleteCaptionPreset = async (sectionId, presetId) => (
+  await adminApi.delete(`/caption-presets/${encodeURIComponent(presetId)}`, {
+    params: { section: sectionId },
+  })
+).data.data;
+
+export const adminLogin = async (password) => {
+  const res = await adminApi.post("/login", { password });
+  const token = res.data?.token;
+  if (token) {
+    localStorage.setItem(ADMIN_TOKEN_KEY, token);
+  }
+  return res.data;
+};
+
+export const adminLogout = () => {
+  localStorage.removeItem(ADMIN_TOKEN_KEY);
+};
+
+export const listApprovedUsers = async () => {
+  const res = await adminApi.get("/approved-users");
+  return res.data?.data || [];
+};
+
+export const addApprovedUser = async ({
+  username,
+  note,
+  role,
+  aiFilterEnabled,
+}) => {
+  const res = await adminApi.post("/approved-users", {
+    username,
+    note,
+    role,
+    aiFilterEnabled,
+  });
+  return res.data?.data;
+};
+
+export const updateApprovedUser = async (username, data) => {
+  const res = await adminApi.patch(`/approved-users/${encodeURIComponent(username)}`, data);
+  return res.data;
+};
+
+export const deleteApprovedUser = async (username) => {
+  const res = await adminApi.delete(`/approved-users/${encodeURIComponent(username)}`);
+  return res.data;
+};

@@ -1,0 +1,20 @@
+@keyframes t97-ai-scan-sweep {
+  0% {
+    transform: translate3d(0, -8rem, 0);
+  }
+
+  100% {
+    transform: translate3d(0, calc(100% + 8rem), 0);
+  }
+}
+
+.t97-ai-scan-sweep {
+  animation: t97-ai-scan-sweep 2s ease-in-out infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t97-ai-scan-sweep {
+    animation-duration: 3.5s;
+  }
+}

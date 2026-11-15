@@ -1,0 +1,112 @@
+import React, { useState } from "react";
+
+const getCleanIcon = (icon) => {
+  if (typeof icon === "string") return icon;
+  if (icon && typeof icon === "object") {
+    if (icon.data && typeof icon.data === "string") return icon.data;
+    if (icon.emoji && typeof icon.emoji === "string") return icon.emoji;
+    if (icon.value && typeof icon.value === "string") return icon.value;
+    try {
+      const str = JSON.stringify(icon);
+      if (str && !str.includes("[object")) return str;
+    } catch {}
+  }
+  return "";
+};
+
+const ThemesCustomes = ({ title = "Chọn preset", presets = [], onSelect }) => {
+  const [expanded, setExpanded] = useState(false);
+  const isLoading = !presets || presets.length === 0;
+
+  // Giới hạn hiển thị nếu chưa mở rộng
+  // const displayedPresets = expanded ? presets : presets.slice(0, 4);
+  const displayedPresets = presets;
+
+  return (
+    <div className="px-4">
+      {title && (
+        <h2 className="text-md font-semibold text-primary mb-2">{title}</h2>
+      )}
+      <div className="flex flex-wrap gap-4 pt-2 pb-5 justify-start">
+        {isLoading ? (
+          <>
+            <button
+              className="flex flex-row whitespace-nowrap items-center justify-center py-2 px-4 btn h-auto w-auto rounded-3xl font-semibold"
+            >
+              <img
+                src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExaTJyaDUyNWkzYjBqaGwycDZ0cWpudmhqbjVkdnBub3hlYXZkMHJ5OSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3gAO9yx102EYTUG5E6/giphy.gif"
+                alt=""
+                className="w-6 h-6"
+              />
+              <span className="text-base">Caption</span>
+            </button>
+          </>
+        ) : (
+          // <BouncyLoader color="orange" size={30} />
+          displayedPresets.map((preset, index) => {
+            // Extract clean properties to avoid prototype chain issues
+            const cleanIcon = getCleanIcon(preset.icon);
+            const cleanCaption = (typeof preset.caption === "string" ? preset.caption : "") || 
+                                (typeof preset.preset_caption === "string" ? preset.preset_caption : "") || 
+                                "";
+
+            // Render icon by type
+            let iconNode = null;
+            if (preset.icon && typeof preset.icon === 'object') {
+              if (preset.icon.type === 'emoji') {
+                iconNode = <span>{preset.icon.data} </span>;
+              } else if (preset.icon.type === 'svg' || preset.icon.type === 'gif') {
+                iconNode = <img src={preset.icon.data} alt="icon" className="inline w-5 h-5 mr-1 align-middle" />;
+              }
+            } else if (typeof preset.icon === 'string' && preset.icon.trim()) {
+              iconNode = <span>{preset.icon} </span>;
+            }
+
+            return (
+              <button
+                key={preset.overlay_id || preset.preset_id || preset.id || `preset-${index}`}
+                className="flex flex-col whitespace-nowrap items-center space-y-1 py-2 px-4 btn h-auto w-auto rounded-3xl font-semibold justify-center"
+                style={{
+                  background: `linear-gradient(to bottom, ${
+                    preset.top || preset.color_top
+                  }, ${preset.color_bot || preset.color_bottom})`,
+                  color: preset.color_text || preset.text_color,
+                }}
+                onClick={() =>
+                  onSelect(
+                    preset.preset_id || preset.overlay_id || preset.id,
+                    cleanIcon,
+                    preset.top || preset.color_top,
+                    preset.color_bot || preset.color_bottom,
+                    cleanCaption,
+                    preset.color_text || preset.text_color,
+                    preset.type,
+                    preset.background || [
+                      preset.top || preset.color_top,
+                      preset.color_bot || preset.color_bottom,
+                    ]
+                  )
+                }
+              >
+                <span className="text-base">
+                  {iconNode}
+                  {cleanCaption || "Caption"}
+                </span>
+              </button>
+            );
+          })
+        )}
+      </div>
+      {/* {!isLoading && presets.length > 4 && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="text-primary font-semibold underline mb-4"
+        >
+          {expanded ? "Thu gọn" : "Xem thêm"}
+        </button>
+      )} */}
+    </div>
+  );
+};
+
+export default React.memo(ThemesCustomes);
