@@ -207,6 +207,11 @@ const emitVersionJson = {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "VITE_");
+  const allowedHosts = [
+    "t97.io.vn",
+    "healthcheck.railway.app",
+    process.env.RAILWAY_PUBLIC_DOMAIN,
+  ].filter(Boolean);
   const storageTarget = (env.VITE_STORAGE_API_URL || "http://localhost:5003")
     .trim().replace(/\/+$/, "");
   return {
@@ -219,7 +224,7 @@ export default defineConfig(({ mode }) => {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   server: {
     host: true,
-    allowedHosts: ["t97.io.vn"],
+    allowedHosts,
     proxy: {
       "/storage-api": {
         target: storageTarget,
@@ -238,7 +243,7 @@ export default defineConfig(({ mode }) => {
   },
   preview: {
     host: true,
-    allowedHosts: ["t97.io.vn"],
+    allowedHosts,
   },
   plugins: [
     disableLocalServiceWorker,
