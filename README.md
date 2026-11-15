@@ -65,6 +65,10 @@ npm run build
 
 Xem từng file `.env.example` để biết các biến bắt buộc và tuỳ chọn.
 
+## Triển khai
+
+Xem [hướng dẫn Railway, Vercel và Cloudflare R2](./docs/DEPLOY_RAILWAY.md).
+
 ## Bảo mật khi bàn giao
 
 - Tạo secret mới cho từng môi trường.

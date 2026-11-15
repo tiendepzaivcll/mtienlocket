@@ -14,8 +14,8 @@ COPY . .
 # Biến môi trường mặc định, có thể override từ docker-compose
 ENV NODE_ENV=production
 
-# API lắng nghe trên cổng 5001 (theo .env.example)
-EXPOSE 5001
+# API mặc định dùng cổng 5000; Railway có thể ghi đè qua biến PORT.
+EXPOSE 5000
 
 # Chạy ứng dụng Express
 CMD ["node", "app.js"]

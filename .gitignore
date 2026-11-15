@@ -10,6 +10,7 @@ node_modules/
 **/logs/
 **/uploads/
 **/dist/
+**/stats.html
 coverage/
 *.log
 

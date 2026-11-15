@@ -1,9 +1,9 @@
 const {
-  s3,
+  getS3Client,
   PutObjectCommand,
   getSignedUrl,
 } = require("../../config/r2-storage");
-const constants = require("../constants/storageConfig");
+const { getStorageConfig, StorageConfigurationError } = require("../../config/storage-env");
 const { getTodayFolder } = require("../utils/getDayFolder");
 const { logSuccess, logInfo, logWarning } = require("../utils/logEventUtils");
 
@@ -23,12 +23,11 @@ const ALLOWED_MIME_TYPES = [
 ];
 //API chuẩn V3
 exports.generatePresignedUrlV3 = async (req, res) => {
-  const { filename, contentType, size, uploadedAt, type } = req.body;
+  const { filename, contentType, type } = req.body || {};
 
-  logInfo("generatePresignedUrlV2", `📩 Tạo URL presigned`, req.body);
   const { uid } = req.user;
 
-  if (!filename || !type) {
+  if (typeof filename !== "string" || !filename || typeof type !== "string" || !type) {
     return res.status(400).json({
       status: "error",
       message: "Request body must include 'filename' and 'type'",
@@ -53,17 +52,21 @@ exports.generatePresignedUrlV3 = async (req, res) => {
 
   const folderName = getTodayFolder();
   const safeFilename = filename.replace(/[^a-zA-Z0-9._-]/g, "");
+  if (!safeFilename || safeFilename === "." || safeFilename === "..") {
+    return res.status(400).json({ error: "Invalid filename" });
+  }
   const filePath = `LocketCloud/${folderName}/${safeType}/${uid}/${safeFilename}`; // => path trên R2
 
   try {
+    const config = getStorageConfig();
     // 2️⃣ nếu chưa tồn tại thì mới generate URL
     const command = new PutObjectCommand({
-      Bucket: constants.BUCKET_NAME,
+      Bucket: config.bucket,
       Key: filePath,
       ContentType: contentType,
     });
 
-    const url = await getSignedUrl(s3, command, { expiresIn: 300 });
+    const url = await getSignedUrl(getS3Client(), command, { expiresIn: 300 });
 
     logSuccess("GeneratedPresignedUrlV2", "✅ URL thành công", filePath);
 
@@ -73,18 +76,21 @@ exports.generatePresignedUrlV3 = async (req, res) => {
         url,
         expiresIn: 300, // 5 phút
         key: filePath,
-        publicURL: `${constants.MEDIA_URL}/${filePath}`,
+        publicURL: `${config.mediaUrl}/${filePath}`,
       },
       message: "Presigned URL generated successfully",
       meta: {
-        note: "Use this URL only once — it will expire in 5 minutes!",
+        note: "This upload URL expires in 5 minutes.",
         uk: "null because this is not a user-specific action",
         me: "u not admin",
         u: uid,
       },
     });
   } catch (err) {
-    console.error("❌ Presigned V2 error:", err);
+    if (err instanceof StorageConfigurationError) {
+      return res.status(503).json({ status: "error", errorCode: err.code, message: err.message });
+    }
+    console.error("❌ Presigned V2 error:", err.name);
 
     return res.status(500).json({
       status: "error",

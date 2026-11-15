@@ -7,17 +7,14 @@ const {
   HeadObjectCommand,
 } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const { getStorageConfig } = require("./storage-env");
 
 let _s3 = null;
 const getS3Client = () => {
   if (!_s3) {
-    const accessKeyId = process.env.R2_ACCESS_KEY || "";
-    const secretAccessKey = process.env.R2_SECRET_KEY || "";
-    if (!accessKeyId || !secretAccessKey) {
-      console.error("❌ R2 credentials missing: R2_ACCESS_KEY or R2_SECRET_KEY not set");
-    }
+    const { endpoint, accessKeyId, secretAccessKey } = getStorageConfig(process.env, { requireMedia: false });
     _s3 = new S3Client({
-      endpoint: process.env.R2_ENDPOINT,
+      endpoint,
       region: "auto",
       credentials: {
         accessKeyId,
@@ -31,7 +28,9 @@ const getS3Client = () => {
 };
 
 module.exports = {
-  get s3() { return getS3Client(); },
+  // Keep importing routes and the health endpoint independent of R2 setup.
+  s3: { send: (command) => getS3Client().send(command) },
+  getS3Client,
   PutObjectCommand,
   DeleteObjectCommand,
   ListObjectsV2Command,

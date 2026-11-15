@@ -8,7 +8,7 @@
     "start": "npm --prefix apps/main/client run preview -- --host 0.0.0.0 --port ${PORT:-4173}",
     "dev": "npm --prefix apps/main/client run dev",
     "build": "npm --prefix apps/main/client ci && npm --prefix apps/main/client run build",
-    "test": "npm --prefix apps/main/api test && npm --prefix apps/main/client test",
+    "test": "npm --prefix apps/main/api test && npm --prefix apps/main/client test && npm --prefix apps/main/storage test",
     "lint": "npm --prefix apps/main/client run lint",
     "preview": "npm --prefix apps/main/client run preview --",
     "build:goldonblack": "npm --prefix apps/main/client run build:goldonblack",

@@ -6,6 +6,10 @@ const deleteFileFromStorageR2 = async (filePath) => {
   if (!services.storageUrl) {
     return { success: false, error: "STORAGE_API_URL chưa được cấu hình; bỏ qua dọn file R2." };
   }
+  const internalToken = String(process.env.STORAGE_INTERNAL_TOKEN || "").trim();
+  if (!internalToken) {
+    return { success: false, error: "STORAGE_INTERNAL_TOKEN chưa được cấu hình; bỏ qua dọn file R2." };
+  }
   try {
     const res = await axios.post(
       `${services.storageUrl}/api/delete`,
@@ -13,8 +17,7 @@ const deleteFileFromStorageR2 = async (filePath) => {
       {
         headers: {
           "Content-Type": "application/json",
-          // Nếu có auth token nội bộ giữa servers:
-          // Authorization: `Bearer ${YOUR_INTERNAL_SECRET_TOKEN}`,
+          "x-storage-token": internalToken,
         },
       },
     );
