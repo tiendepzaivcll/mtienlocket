@@ -1,5 +1,7 @@
 import { PUBLIC_API } from "@/config/apiConfig";
 import { instanceBaseData } from "@/libs";
+import axios from "axios";
+import { CONFIG } from "@/config";
 
 /**
  * Lấy danh sách hoặc chi tiết bài viết.
@@ -68,14 +70,15 @@ export const getListCelebrity = async () => {
     return null;
   }
 };
-export const getNotifications = async () => {
-  try {
-    const res = await instanceBaseData.get(PUBLIC_API.notifications);
-    return res;
-  } catch (error) {
-    console.error("🚨 Lỗi khi gọi API:", error.message);
-    return null;
+export const getNotifications = async ({ signal } = {}) => {
+  const response = await axios.get(`${CONFIG.api.baseUrl}/${PUBLIC_API.notifications}`, {
+    timeout: 15000,
+    signal,
+  });
+  if (!Array.isArray(response.data?.notifications)) {
+    throw new Error("Không đọc được danh sách thông báo.");
   }
+  return response;
 };
 
 export const GetListInfoPlans = async () => {

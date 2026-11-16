@@ -3,10 +3,15 @@ const adminController = require("../controllers/admin.controller.js");
 const appCheckAdmin = require("../controllers/appCheckAdmin.controller.js");
 const captionPresetAdmin = require("../controllers/captionPresetAdmin.controller.js");
 const aiFilterAdmin = require("../controllers/aiFilterAdmin.controller.js");
+const notifications = require("../controllers/notification.controller.js");
 
 const router = Router();
 
 router.post("/login", adminController.login);
+router.get("/notifications", adminController.verifyAdmin.bind(adminController), notifications.list);
+router.post("/notifications", adminController.verifyAdmin.bind(adminController), notifications.create);
+router.patch("/notifications/:id", adminController.verifyAdmin.bind(adminController), notifications.update);
+router.delete("/notifications/:id", adminController.verifyAdmin.bind(adminController), notifications.remove);
 router.get("/app-check", adminController.verifyAdmin.bind(adminController), appCheckAdmin.get);
 router.put("/app-check", adminController.verifyAdmin.bind(adminController), appCheckAdmin.save);
 router.post("/app-check/check", adminController.verifyAdmin.bind(adminController), appCheckAdmin.check);

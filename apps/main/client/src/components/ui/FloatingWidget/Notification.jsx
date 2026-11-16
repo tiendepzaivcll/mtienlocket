@@ -1,16 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import "./styles.css";
 import { Bell, X } from "lucide-react";
 import { TbPinned } from "react-icons/tb";
 import { getNotifications } from "@/services";
 
-const highlightWords = ["Server01", "Telegram", "Discord", "Messenger"];
-
-function parseMessage(text, highlightWords = []) {
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
-  const parts = text.split(urlRegex);
+function parseMessage(text = "") {
+  const parts = String(text).split(/(https?:\/\/[^\s]+)/g);
   return parts.map((part, i) => {
-    if (urlRegex.test(part)) {
+    if (/^https?:\/\//i.test(part)) {
       return (
         <a
           key={i}
@@ -24,41 +21,7 @@ function parseMessage(text, highlightWords = []) {
       );
     }
 
-    let lastIndex = 0;
-    const elements = [];
-
-    highlightWords.forEach((word) => {
-      const lowerPart = part.toLowerCase();
-      const lowerWord = word.toLowerCase();
-
-      let startIndex = 0;
-      while (true) {
-        const index = lowerPart.indexOf(lowerWord, startIndex);
-        if (index === -1) break;
-
-        if (index > lastIndex) {
-          elements.push(part.substring(lastIndex, index));
-        }
-        elements.push(
-          <strong
-            key={`${i}-${index}`}
-            className="text-red-500 font-semibold bg-red-50 px-1 py-0.5 rounded"
-          >
-            {part.substring(index, index + word.length)}
-          </strong>
-        );
-
-        lastIndex = index + word.length;
-        startIndex = lastIndex;
-      }
-    });
-
-    if (elements.length === 0) {
-      return <React.Fragment key={i}>{part}</React.Fragment>;
-    }
-
-    elements.push(part.substring(lastIndex));
-    return <React.Fragment key={i}>{elements}</React.Fragment>;
+    return <React.Fragment key={i}>{part}</React.Fragment>;
   });
 }
 
@@ -69,18 +32,27 @@ const FloatingNotification = () => {
   const [isShaking, setIsShaking] = useState(true);
   const [showNewNotificationAlert, setShowNewNotificationAlert] =
     useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const mountedRef = useRef(false);
+  const requestRef = useRef(null);
+  const alertTimerRef = useRef(null);
+  const modalTimerRef = useRef(null);
+  const signatureRef = useRef("");
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
+      requestRef.current?.abort();
+      const request = new AbortController();
+      requestRef.current = request;
+      setIsLoading(true);
       try {
-        const res = await getNotifications();
-        const data = Array.isArray(res.data.notifications)
-          ? res.data.notifications
-          : [];
+        const res = await getNotifications({ signal: request.signal });
+        if (!mountedRef.current || request.signal.aborted) return;
+        const data = res.data.notifications;
 
         const formatted = data.map((item) => ({
           ...item,
-          time: new Date(item.created_at).toLocaleString(),
+          time: new Date(item.created_at).toLocaleString("vi-VN"),
           createdAt: new Date(item.created_at).getTime(),
         }));
 
@@ -93,22 +65,47 @@ const FloatingNotification = () => {
           return b.createdAt - a.createdAt;
         });
 
-        if (formatted.length > 0) {
+        const signature = formatted.map((item) => `${item.id}:${item.updated_at || item.created_at}`).join("|");
+        if (formatted.length > 0 && signature !== signatureRef.current) {
           setShowNewNotificationAlert(true);
-          setTimeout(() => setShowNewNotificationAlert(false), 3000);
+          clearTimeout(alertTimerRef.current);
+          alertTimerRef.current = setTimeout(() => setShowNewNotificationAlert(false), 3000);
         }
-
+        signatureRef.current = signature;
         setNotifications(formatted);
+        setLoadError("");
       } catch (err) {
-        console.error("Lỗi khi lấy thông báo:", err);
+        if (mountedRef.current && !request.signal.aborted) {
+          setLoadError("Không tải được thông báo mới. Bạn có thể thử lại.");
+        }
+      } finally {
+        if (mountedRef.current && requestRef.current === request) setIsLoading(false);
       }
-    };
-
-    fetchNotifications();
-
-    const timer = setTimeout(() => setIsShaking(false), 2000);
-    return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    fetchNotifications();
+    const refreshVisible = () => {
+      if (document.visibilityState !== "hidden") fetchNotifications();
+    };
+    const interval = setInterval(refreshVisible, 60000);
+    window.addEventListener("focus", refreshVisible);
+    window.addEventListener("mtien-notifications-updated", refreshVisible);
+    document.addEventListener("visibilitychange", refreshVisible);
+    const timer = setTimeout(() => setIsShaking(false), 2000);
+    return () => {
+      mountedRef.current = false;
+      requestRef.current?.abort();
+      clearTimeout(timer);
+      clearTimeout(alertTimerRef.current);
+      clearTimeout(modalTimerRef.current);
+      clearInterval(interval);
+      window.removeEventListener("focus", refreshVisible);
+      window.removeEventListener("mtien-notifications-updated", refreshVisible);
+      document.removeEventListener("visibilitychange", refreshVisible);
+    };
+  }, [fetchNotifications]);
 
   // Lock scroll khi mở modal
   useEffect(() => {
@@ -120,13 +117,17 @@ const FloatingNotification = () => {
 
   // Mở modal với animation
   const openModal = () => {
+    clearTimeout(modalTimerRef.current);
+    fetchNotifications();
+    setShowNewNotificationAlert(false);
     setShowModal(true);
-    setTimeout(() => setAnimate(true), 10);
+    modalTimerRef.current = setTimeout(() => setAnimate(true), 10);
   };
 
   const closeModal = () => {
+    clearTimeout(modalTimerRef.current);
     setAnimate(false);
-    setTimeout(() => setShowModal(false), 300);
+    modalTimerRef.current = setTimeout(() => setShowModal(false), 300);
   };
 
   return (
@@ -172,6 +173,9 @@ const FloatingNotification = () => {
           onClick={closeModal}
         >
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mtien-notifications-title"
             className={`relative w-full max-w-lg bg-base-100 rounded-3xl shadow-2xl overflow-hidden 
               transform transition-all duration-300 
               ${
@@ -185,11 +189,13 @@ const FloatingNotification = () => {
                 <div className="p-2 bg-base-100/70 rounded-full">
                   <Bell className="w-6 h-6" />
                 </div>
-                <h2 className="text-xl font-bold">
+                <h2 id="mtien-notifications-title" className="text-xl font-bold">
                   Thông báo
                 </h2>
               </div>
               <button
+                type="button"
+                aria-label="Đóng thông báo"
                 onClick={closeModal}
                 className="p-2 rounded-full bg-base-100/70"
               >
@@ -199,7 +205,8 @@ const FloatingNotification = () => {
 
             {/* Content */}
             <div className="max-h-[50vh] overflow-y-auto">
-              {notifications.length === 0 ? (
+              {loadError && <div className="m-4 rounded-xl bg-error/10 p-3 text-sm" role="alert"><p>{loadError}</p><button type="button" className="btn btn-ghost btn-sm mt-2" disabled={isLoading} onClick={fetchNotifications}>Thử tải lại thông báo</button></div>}
+              {isLoading && notifications.length === 0 ? <p className="px-6 py-12 text-center text-sm opacity-70" role="status">Đang tải thông báo…</p> : notifications.length === 0 && !loadError ? (
                 <div className="flex flex-col items-center justify-center py-12 px-6">
                   <div className="w-16 h-16 bg-base-100 rounded-full flex items-center justify-center mb-4">
                     <Bell className="w-8 h-8 text-base-content/70" />
@@ -221,7 +228,7 @@ const FloatingNotification = () => {
                     >
                       {item.title && (
                         <div className="relative flex items-center justify-between mb-2">
-                          <h3 className="font-semibold text-base-content text-base leading-snug">
+                          <h3 className="min-w-0 break-words font-semibold text-base-content text-base leading-snug [overflow-wrap:anywhere]">
                             {item.title}
                           </h3>
 
@@ -240,8 +247,8 @@ const FloatingNotification = () => {
                           )}
                         </div>
                       )}
-                      <div className="text-base-content text-sm leading-relaxed whitespace-pre-line mb-3">
-                        {parseMessage(item.message, highlightWords)}
+                      <div className="mb-3 whitespace-pre-line break-words text-sm leading-relaxed text-base-content [overflow-wrap:anywhere]">
+                        {parseMessage(item.message)}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-base-content/80">
                         <svg
@@ -255,7 +262,7 @@ const FloatingNotification = () => {
                             clipRule="evenodd"
                           />
                         </svg>
-                        {item.time}
+                        <span>Admin {item.author || "MTIEN"} · {item.time}</span>
                       </div>
                     </div>
                   ))}

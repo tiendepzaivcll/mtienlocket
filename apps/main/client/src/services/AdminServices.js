@@ -74,3 +74,35 @@ export const deleteApprovedUser = async (username) => {
   const res = await adminApi.delete(`/approved-users/${encodeURIComponent(username)}`);
   return res.data;
 };
+
+export const listAdminNotifications = async () => {
+  const response = await adminApi.get("/notifications");
+  if (!Array.isArray(response.data?.data)) {
+    throw new Error("Máy chủ trả về danh sách thông báo không hợp lệ.");
+  }
+  return response.data.data;
+};
+
+const readAdminNotification = (response) => {
+  const item = response.data?.data;
+  if (!item || typeof item.id !== "string" || !item.id ||
+      typeof item.title !== "string" || typeof item.message !== "string") {
+    throw new Error("Máy chủ trả về thông báo không hợp lệ. Hãy tải lại danh sách để kiểm tra.");
+  }
+  return item;
+};
+
+export const createAdminNotification = async (data) => {
+  const response = await adminApi.post("/notifications", data);
+  return readAdminNotification(response);
+};
+
+export const updateAdminNotification = async (id, data) => {
+  const response = await adminApi.patch(`/notifications/${encodeURIComponent(id)}`, data);
+  return readAdminNotification(response);
+};
+
+export const deleteAdminNotification = async (id) => {
+  const response = await adminApi.delete(`/notifications/${encodeURIComponent(id)}`);
+  return response.data;
+};
