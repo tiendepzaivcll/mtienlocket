@@ -45,16 +45,16 @@ const manifestForPlugIn = {
   registerType: "autoUpdate",
 
   includeAssets: [
-    "mtien-mark.svg",
-    "mtien-favicon-32x32.png",
-    "mtien-apple-touch-icon.png",
-    "mtien-icon-maskable-512x512.png",
+    "locket-pro-icon-512x512.png",
+    "locket-pro-favicon-32x32.png",
+    "locket-pro-apple-touch-icon.png",
+    "locket-pro-icon-maskable-512x512.png",
   ],
 
   manifest: {
-    name: "MTIEN",
-    short_name: "MTIEN",
-    description: "MTIEN - Chia sẻ khoảnh khắc trên Locket",
+    name: "LOCKET-PRO",
+    short_name: "LOCKET-PRO",
+    description: "LOCKET-PRO - Chia sẻ khoảnh khắc trên Locket. Admin: MTIEN.",
     display: "standalone",
     background_color: "#101614",
     theme_color: "#101614",
@@ -63,25 +63,25 @@ const manifestForPlugIn = {
     orientation: "portrait",
     icons: [
       {
-        src: "/mtien-icon-192x192.png",
+        src: "/locket-pro-icon-192x192.png",
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/mtien-icon-512x512.png",
+        src: "/locket-pro-icon-512x512.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/mtien-apple-touch-icon.png",
+        src: "/locket-pro-apple-touch-icon.png",
         sizes: "180x180",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/mtien-icon-maskable-512x512.png",
+        src: "/locket-pro-icon-maskable-512x512.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "any maskable",

@@ -15,13 +15,14 @@ const LoadingPageMain = ({ isLoading }) => {
       {/* Logo */}
       <div>
         <img
-          src="/mtien-mark.svg"
-          alt="MTIEN"
+          src="/locket-pro-icon-192x192.png"
+          alt="LOCKET-PRO"
           loading="lazy"
           className="w-20 h-20 shadow-md rounded-2xl loading-bounce-y"
         />
       </div>
-      <h1 className="text-xl font-semibold">MTIEN đang tải.</h1>
+      <h1 className="text-xl font-semibold">LOCKET-PRO</h1>
+      <p className="text-sm font-medium">Quản trị bởi MTIEN</p>
       <p className="text-sm opacity-70 animate-pulse">
         Chuẩn bị những khoảnh khắc của bạn…
       </p>

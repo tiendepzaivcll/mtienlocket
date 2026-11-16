@@ -46,3 +46,9 @@
 .mtien-login-links>a:hover{color:var(--mt-mint)}
 @media(max-width:1024px){.mtien-login-layout{gap:55px;min-height:710px}.mtien-login-aside h2{font-size:32px}.mtien-login-form-section h1{font-size:32px}}
 @media(max-width:760px){.mtien-login-layout{display:block;padding-top:42px;padding-bottom:47px;min-height:0}.mtien-login-aside{display:none}.mtien-login-form-section{max-width:420px}.mtien-login-welcome{margin-bottom:25px}.mtien-login-form-section h1{font-size:33px}.mtien-login-subtitle{font-size:13px}.mtien-login-method{margin-top:25px}.mtien-field input{font-size:16px}.mtien-login-form{gap:21px}}
+.locket-pro-login-brand{display:flex;flex-direction:column;gap:3px}
+.locket-pro-login-brand>strong{color:var(--mt-text);font-size:18px;letter-spacing:-.5px;font-weight:750}
+.locket-pro-login-brand>span{color:var(--mt-muted);font-size:11px;letter-spacing:.3px}
+.locket-pro-login-brand b{color:var(--mt-mint);font-weight:650}
+.mtien-login-note strong{color:var(--mt-mint);font-weight:650}
+.mtien-login-welcome>img{width:76px;height:76px;object-fit:contain;border-radius:14px}

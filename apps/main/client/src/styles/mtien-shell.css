@@ -89,3 +89,10 @@
   .mtien-footer nav { gap: 18px; }
   .mtien-footer p { width: 100%; }
 }
+.mtien-footer-identity > .mtien-admin-credit { color: #a3ada6; }
+.mtien-admin-credit strong { color: #b2f5cf; font-weight: 600; }
+.mtien-menu-brand-copy { display: flex; flex-direction: column; gap: 4px; }
+.mtien-menu-brand-copy > span:first-child { font-size: 18px; letter-spacing: -0.5px; white-space: nowrap; }
+.mtien-menu-admin { color: #a3ada6; font-size: 11px; line-height: 1.35; font-weight: 400; letter-spacing: 0; }
+.mtien-menu-admin strong { color: #b2f5cf; font-weight: 600; }
+.mtien-menu-close { flex-shrink: 0; }

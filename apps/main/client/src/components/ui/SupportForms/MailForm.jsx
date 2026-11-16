@@ -3,7 +3,7 @@ import React, { useState } from "react";
 
 const MailForm = () => {
   const [email] = useState(CONTACT_CONFIG.supportEmail);
-  const [subject] = useState("Góp ý về website MTIEN");
+  const [subject] = useState("Góp ý về website LOCKET-PRO");
   const [body, setBody] = useState("");
 
   const handleSendEmail = () => {
@@ -18,7 +18,7 @@ const MailForm = () => {
       {/* Form Gửi Email */}
       <fieldset className="p-4 border rounded-lg shadow-lg w-full bg-base-100">
         <legend className="font-semibold text-lg">
-          📧 Gửi góp ý cho MTIEN
+          📧 Gửi góp ý cho admin MTIEN
         </legend>
 
         {/* Email (readonly text) */}

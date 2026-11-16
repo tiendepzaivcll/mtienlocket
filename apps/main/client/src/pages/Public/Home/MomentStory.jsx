@@ -13,7 +13,7 @@ export default function MomentStory({ compact = false }) {
   const next = (direction) => setIndex((value) => (value + direction + moments.length) % moments.length);
   return (
     <div className={`mtien-story ${compact ? "mtien-story-compact" : ""}`}>
-      <div className="mtien-story-heading"><span>MỖI NGÀY, MỘT CHÚT GẦN NHAU</span><span>MTIEN / {String(index + 1).padStart(2, "0")}</span></div>
+      <div className="mtien-story-heading"><span>MỖI NGÀY, MỘT CHÚT GẦN NHAU</span><span>LOCKET-PRO / {String(index + 1).padStart(2, "0")}</span></div>
       <div className="mtien-story-photo">
         <img src={`/images/mtien/${moment.image}`} alt={moment.alt} width="1000" height="1000" fetchPriority={compact ? "auto" : "high"} />
         <span className="mtien-story-time">{moment.time}</span>

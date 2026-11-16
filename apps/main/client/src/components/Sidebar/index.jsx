@@ -170,12 +170,15 @@ const Sidebar = () => {
         className="mtien-menu-panel"
         role="dialog"
         aria-modal="true"
-        aria-label="Menu MTIEN"
+        aria-label="Menu LOCKET-PRO"
       >
         <div className="mtien-menu-top">
           <Link to="/" onClick={() => setIsSidebarOpen(false)}>
-            <img src="/mtien-mark.svg" alt="" width="30" height="30" />
-            MTIEN.
+            <img src="/locket-pro-icon-192x192.png" alt="" width="30" height="30" />
+            <span className="mtien-menu-brand-copy">
+              <span>LOCKET-PRO</span>
+              <span className="mtien-menu-admin">Quản trị bởi <strong>MTIEN</strong></span>
+            </span>
           </Link>
           <button
             ref={closeRef}
@@ -218,7 +221,7 @@ const Sidebar = () => {
           onClose={() => setIsSidebarOpen(false)}
         />
         <p className="mtien-menu-copyright">
-          © {startYear}{currentYear > startYear && `–${currentYear}`} MTIEN
+          © {startYear}{currentYear > startYear && `–${currentYear}`} LOCKET-PRO
         </p>
       </div>
     </>, document.body

@@ -26,8 +26,8 @@ export const authRoutes = [
 
   { path: "/download", component: AddToHomeScreenGuide, title: `Thêm ứng dụng vào màn hình chính | ${APP_NAME}` },
 
-  { path: "/pricing", component: PricingPage, title: `MTIEN Full Access | ${APP_NAME}` },
-  { path: "/pricing/:planId", component: PricingPage, title: `MTIEN Full Access | ${APP_NAME}` },
+  { path: "/pricing", component: PricingPage, title: `LOCKET-PRO Full Access | ${APP_NAME}` },
+  { path: "/pricing/:planId", component: PricingPage, title: `LOCKET-PRO Full Access | ${APP_NAME}` },
 
   { path: "/profile", component: Profile, title: `Hồ sơ | ${APP_NAME}` },
   { path: "/postmoments", component: PostMoments, title: `Đăng Moment Mới | ${APP_NAME}` },

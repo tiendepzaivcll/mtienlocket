@@ -41,7 +41,7 @@ export default function PlanDetailPage() {
       if (coupon) {
         const data = await services.CheckCoupon(coupon, planData.id);
         if (!data.valid) {
-          SonnerWarning("Thông báo từ MTIEN", data.message);
+          SonnerWarning("Thông báo từ LOCKET-PRO", data.message);
           setCoupon("");
           setDiscountAmount("");
           setCouponStatus(null);

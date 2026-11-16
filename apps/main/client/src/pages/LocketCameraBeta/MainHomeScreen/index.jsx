@@ -3,6 +3,7 @@ import { useApp } from "@/context/AppContext";
 import { CalendarClock, LoaderCircle, X } from "lucide-react";
 import { usePostStore } from "@/stores";
 import { formatRestoreDate } from "@/utils/streakRestoreFlow";
+import "../branding.css";
 
 import HeaderHome from "./Layout/HeaderHome";
 import BottomMenu from "../BottomHomeScreen/Layout/BottomMenu";
@@ -80,6 +81,7 @@ export default function MainHomeScreen() {
     setFriendHistoryOpen,
   } = navigation;
   const { selectedFile } = post;
+  const hasRestoreSelection = usePostStore((state) => Boolean(state.restoreFlow.selectedDate));
 
   return (
     <>
@@ -101,6 +103,11 @@ export default function MainHomeScreen() {
           isFriendHistoryOpen={isFriendHistoryOpen}
           selectedFile={selectedFile}
         />
+        {!selectedFile && !isBottomOpen && !hasRestoreSelection && (
+          <div className="locket-pro-camera-identity" aria-label="LOCKET-PRO, Admin MTIEN">
+            <strong>LOCKET-PRO</strong><span>Admin <b>MTIEN</b></span>
+          </div>
+        )}
         <RestoreFlowBanner />
         <div
           className={`w-full h-full flex flex-1 flex-col transition-all duration-500 justify-center items-center ${

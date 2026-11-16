@@ -2,9 +2,9 @@ export function setPWAIcon(iconName = "default", path = "pwa-icons") {
   const base = window.location.origin;
 
   const manifest = {
-    name: "MTIEN",
-    short_name: "MTIEN",
-    description: "MTIEN - Đăng ảnh & Video lên Locket",
+    name: "LOCKET-PRO",
+    short_name: "LOCKET-PRO",
+    description: "LOCKET-PRO - Chia sẻ khoảnh khắc trên Locket. Admin: MTIEN.",
     display: "standalone",
     background_color: "#101614",
     theme_color: "#101614",

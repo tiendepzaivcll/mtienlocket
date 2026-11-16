@@ -38,8 +38,8 @@ export const publicRoutes = [
   { path: "/locket-beta", component: LocketCameraBeta, title: `Locket Camera Beta | ${APP_NAME}` },
 
   { path: "/privacy", component: PrivacyPolicy, title: `Chính sách riêng tư | ${APP_NAME}` },
-  { path: "/pricing", component: PricingPage, title: `MTIEN Full Access | ${APP_NAME}` },
-  { path: "/pricing/:planId", component: PricingPage, title: `MTIEN Full Access | ${APP_NAME}` },
+  { path: "/pricing", component: PricingPage, title: `LOCKET-PRO Full Access | ${APP_NAME}` },
+  { path: "/pricing/:planId", component: PricingPage, title: `LOCKET-PRO Full Access | ${APP_NAME}` },
   { path: "/tools", component: ToolsLocket, title: `Công cụ mở rộng | ${APP_NAME}` },
 
   { path: "/settings", component: Settings, title: `Cài đặt | ${APP_NAME}` },

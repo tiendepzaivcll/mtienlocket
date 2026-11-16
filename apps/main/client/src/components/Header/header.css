@@ -24,3 +24,20 @@
 }
 .mtien-header-cta,.mtien-menu-trigger{flex-shrink:0;white-space:nowrap}
 @media(max-width:360px){.mtien-header-inner{gap:8px}.mtien-wordmark{font-size:18px;gap:6px}.mtien-wordmark img{width:26px;height:26px}.mtien-header-cta{font-size:12px;padding-inline:10px}.mtien-header-actions{gap:7px}}
+.mtien-brand-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.mtien-brand-name { font-size: 20px; line-height: 1.15; white-space: nowrap; }
+.mtien-brand-admin { color: #a3ada6; font-size: 10px; line-height: 1.3; font-weight: 500; letter-spacing: 0.2px; white-space: nowrap; }
+.mtien-brand-admin strong { color: #c5e9d3; font-weight: 600; }
+@media (max-width: 760px) { .mtien-header-nav { display: none; } }
+@media (max-width: 640px) { .mtien-brand-name { font-size: 17px; } .mtien-header .mtien-wordmark { gap: 8px; } }
+@media (max-width: 380px) {
+  .mtien-header-inner { width: calc(100% - 28px); gap: 8px; }
+  .mtien-header .mtien-wordmark { gap: 6px; }
+  .mtien-header .mtien-wordmark img { width: 24px; height: 24px; }
+  .mtien-brand-name { font-size: 16px; letter-spacing: -0.6px; }
+  .mtien-header-cta { font-size: 12px; padding-inline: 11px; }
+  .mtien-header-cta svg { display: none; }
+  .mtien-header-actions { gap: 7px; }
+}
+.mtien-brand-admin{font-size:11px}
+.mtien-header .mtien-wordmark img{border-radius:8px;object-fit:contain}

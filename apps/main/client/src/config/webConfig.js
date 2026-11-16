@@ -100,10 +100,10 @@ export const CONFIG = {
   },
 
   app: {
-    name: "MTIEN", // Tên app hiển thị
+    name: "LOCKET-PRO", // Tên app hiển thị
     author: "T97",
     shortname: "t97",
-    fullName: "MTIEN - Chia sẻ khoảnh khắc trên Locket", // Tên đầy đủ
+    fullName: "LOCKET-PRO - Chia sẻ khoảnh khắc trên Locket", // Tên đầy đủ
     clientVersion: "Beta2.5.5.2.6", // Version client
     apiVersion: "v2.2.1", // Version API
     buildVersion: import.meta.env.VITE_BUILD_COMMIT || "local",

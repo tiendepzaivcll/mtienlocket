@@ -15,9 +15,12 @@ const Header = () => {
   return (
     <header className="mtien-header">
       <div className="mtien-header-inner">
-        <Link to="/" className="mtien-wordmark" aria-label="MTIEN — Trang chủ">
-          <img src="/mtien-mark.svg" alt="" width="34" height="34" />
-          <span>MTIEN<span className="mtien-wordmark-dot">.</span></span>
+        <Link to="/" className="mtien-wordmark" aria-label="LOCKET-PRO — Trang chủ, quản trị bởi MTIEN">
+          <img src="/locket-pro-icon-192x192.png" alt="" width="34" height="34" />
+          <span className="mtien-brand-copy">
+            <span className="mtien-brand-name">LOCKET<span className="mtien-wordmark-dot">-PRO</span></span>
+            <span className="mtien-brand-admin">Admin <strong>MTIEN</strong></span>
+          </span>
         </Link>
         <nav className="mtien-header-nav" aria-label="Điều hướng chính">
           <NavLink to="/" end>Trang chủ</NavLink>

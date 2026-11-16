@@ -21,14 +21,15 @@ export default function Home() {
     <div className="mtien-home">
       <section className="mtien-hero mtien-container" aria-labelledby="mtien-hero-title">
         <div className="mtien-hero-copy">
-          <div className="mtien-eyebrow"><span /> MỘT GÓC NHỎ CHO KHOẢNH KHẮC CỦA BẠN</div>
-          <h1 id="mtien-hero-title">Chạm một cái.<br /><span>Gần nhau hơn.</span></h1>
+          <div className="mtien-eyebrow"><span /> KHOẢNH KHẮC CỦA BẠN, DẤU ẤN CỦA BẠN</div>
+          <h1 id="mtien-hero-title"><span className="locket-pro-hero-name">LOCKET-PRO</span><br /><span>Gần nhau hơn.</span></h1>
           <p>Không cần một ngày thật đặc biệt. Một tấm ảnh, một câu chuyện nhỏ cũng đủ để gửi tới người bạn quan tâm.</p>
+          <div className="locket-pro-owner"><img className="locket-pro-owner-avatar" src="/locket-pro-icon-192x192.png" width="48" height="48" alt="Logo MTIEN Locket Camera" /><div>Quản trị bởi <strong>MTIEN</strong><Link to="/contact">Liên hệ admin <ArrowRight size={13} /></Link></div></div>
           <div className="mtien-hero-actions">
-            <Link to={destination} className="mtien-button mtien-button-primary">{isAuth ? "Mở Locket" : "Bắt đầu với MTIEN"}<ArrowRight size={19} /></Link>
+            <Link to={destination} className="mtien-button mtien-button-primary">{isAuth ? "Mở Locket" : "Trải nghiệm LOCKET-PRO"}<ArrowRight size={19} /></Link>
             <Link to="/download" className="mtien-button mtien-button-quiet"><Smartphone size={18} />Thêm vào màn hình</Link>
           </div>
-          <a className="mtien-discover" href="#cach-su-dung"><ArrowDown size={15} /> Một chút về MTIEN</a>
+          <a className="mtien-discover" href="#cach-su-dung"><ArrowDown size={15} /> Khám phá LOCKET-PRO</a>
         </div>
         <MomentStory />
       </section>

@@ -96,7 +96,7 @@ const Login = () => {
 
       SonnerSuccess(
         "Đăng nhập thành công!",
-        `Xin chào ${authUser?.displayName || authUser?.username || "người dùng"}!`
+        `Xin chào ${authUser?.displayName || authUser?.username || "người dùng"}! LOCKET-PRO · Admin MTIEN.`
       );
     } catch (error) {
       if (error?.status) {
@@ -149,14 +149,14 @@ const Login = () => {
   return (
     <div className="mtien-login">
       <div className="mtien-login-layout mtien-container">
-        <section className="mtien-login-aside" aria-label="Khoảnh khắc cùng MTIEN">
+        <section className="mtien-login-aside" aria-label="Khoảnh khắc cùng LOCKET-PRO">
           <div className="mtien-eyebrow"><span /> NHỮNG ĐIỀU NHỎ, KẾT NỐI LỚN</div>
           <h2>Một chút hôm nay.<br /><span>Gửi đến người thương.</span></h2>
           <p>Đăng nhập và tiếp tục câu chuyện của bạn.</p>
           <MomentStory compact />
         </section>
         <section className="mtien-login-form-section" aria-labelledby="mtien-login-title">
-          <div className="mtien-login-welcome"><img src="/mtien-mark.svg" width="42" height="42" alt="" /><span>GÓC NHỎ CỦA BẠN</span></div>
+          <div className="mtien-login-welcome"><img src="/locket-pro-icon-192x192.png" width="42" height="42" alt="" /><div className="locket-pro-login-brand"><strong>LOCKET-PRO</strong><span>Quản trị bởi <b>MTIEN</b></span></div></div>
           <h1 id="mtien-login-title">Chào bạn trở lại.</h1>
           <p className="mtien-login-subtitle">Dùng tài khoản Locket của bạn để tiếp tục.</p>
           <div className="mtien-login-method" role="group" aria-label="Phương thức đăng nhập">
@@ -186,7 +186,7 @@ const Login = () => {
             </button>
             <div className="mtien-server-status"><StatusServer /></div>
           </form>
-          <div className="mtien-login-note"><LockKeyhole size={15} /><p>Đăng nhập bằng tài khoản bạn đang dùng trên ứng dụng Locket.</p></div>
+          <div className="mtien-login-note"><LockKeyhole size={15} /><p>Đăng nhập bằng tài khoản bạn đang dùng trên ứng dụng Locket. Website được quản trị bởi <strong>MTIEN</strong>.</p></div>
           <div className="mtien-login-links"><Link to="/">Về trang chủ</Link><span>·</span><Link to="/privacy">Quyền riêng tư</Link></div>
         </section>
       </div>
