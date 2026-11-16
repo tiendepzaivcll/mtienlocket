@@ -2,11 +2,21 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Camera, Check, Download, LoaderCircle, RefreshCcw, RotateCcw, Square, Timer } from "lucide-react";
 import { useApp } from "@/context/AppContext";
-import { capturePhotoboothFrame, composePhotoboothGrid } from "@/utils/photobooth";
+import { capturePhotoboothFrame, composePhotoboothGrid, getPhotoboothGrid } from "@/utils/photobooth";
+import { PHOTOBOOTH_FRAMES } from "@/data/photoboothFrames";
 import { usePhotoboothCamera } from "./usePhotoboothCamera";
 import "./styles.css";
 
 const emptyPhotos = () => Array(4).fill(null);
+const defaultLayout = getPhotoboothGrid();
+const defaultPhotoRegions = defaultLayout.tiles.map(({ x, y, width, height }) => ({
+  x: x / defaultLayout.size, y: y / defaultLayout.size,
+  width: width / defaultLayout.size, height: height / defaultLayout.size,
+}));
+const regionStyle = ({ x, y, width, height }) => ({
+  left: `${x * 100}%`, top: `${y * 100}%`,
+  width: `${width * 100}%`, height: `${height * 100}%`,
+});
 
 export default function Photobooth() {
   const navigate = useNavigate();
@@ -23,6 +33,15 @@ export default function Photobooth() {
   const [result, setResult] = useState(null);
   const [composing, setComposing] = useState(false);
   const [composeVersion, setComposeVersion] = useState(0);
+  const [selectedFrameId, setSelectedFrameId] = useState("none");
+  const [frameAsset, setFrameAsset] = useState({ id: "none", status: "ready", message: "" });
+  const [frameRetryVersion, setFrameRetryVersion] = useState(0);
+  const [thumbnailFailures, setThumbnailFailures] = useState({});
+  const selectedFrame = PHOTOBOOTH_FRAMES.find((frame) => frame.id === selectedFrameId) || PHOTOBOOTH_FRAMES[0];
+  const photoRegions = selectedFrame.photoRegions || defaultPhotoRegions;
+  const frameIsReady = !selectedFrame.src || (frameAsset.id === selectedFrame.id && frameAsset.status === "ready");
+  const frameIsLoading = Boolean(selectedFrame.src && (frameAsset.id !== selectedFrame.id || frameAsset.status === "loading"));
+  const frameError = selectedFrame.src && frameAsset.id === selectedFrame.id && frameAsset.status === "error" ? frameAsset.message : "";
   const mountedRef = useRef(false);
   const runRef = useRef(0);
   const busyRef = useRef(false);
@@ -32,6 +51,9 @@ export default function Photobooth() {
   const complete = count === 4;
   const nextIndex = photos.findIndex((photo) => !photo);
   const camera = usePhotoboothCamera({ enabled: !complete });
+  const canUseResult = Boolean(complete && frameIsReady && !error && !composing &&
+    result?.frameId === selectedFrame.id && result?.photos === photos &&
+    result?.composeVersion === composeVersion && result?.frameRetryVersion === frameRetryVersion);
 
   const cancelCapture = useCallback(() => {
     runRef.current += 1;
@@ -67,20 +89,48 @@ export default function Photobooth() {
   }, [cancelCapture]);
 
   useEffect(() => {
+    if (!selectedFrame.src) {
+      setFrameAsset({ id: selectedFrame.id, status: "ready", message: "" });
+      return undefined;
+    }
+    let cancelled = false;
+    const image = new Image();
+    setFrameAsset({ id: selectedFrame.id, status: "loading", message: "" });
+    const fail = () => {
+      if (!cancelled) setFrameAsset({ id: selectedFrame.id, status: "error", message: "Không tải được khung này. Hãy thử lại hoặc chọn khung khác." });
+    };
+    const timeout = setTimeout(fail, 15000);
+    image.onload = () => {
+      clearTimeout(timeout);
+      if (cancelled) return;
+      if (!image.naturalWidth || !image.naturalHeight) { fail(); return; }
+      setFrameAsset({ id: selectedFrame.id, status: "ready", message: "" });
+    };
+    image.onerror = () => { clearTimeout(timeout); fail(); };
+    image.src = selectedFrame.src;
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+      image.onload = null;
+      image.onerror = null;
+    };
+  }, [selectedFrame, frameRetryVersion]);
+
+  useEffect(() => {
     setResult(null);
     setError("");
-    if (!photos.every(Boolean)) {
+    if (!photos.every(Boolean) || !frameIsReady) {
       setComposing(false);
       return undefined;
     }
     let cancelled = false;
     let url;
     setComposing(true);
-    composePhotoboothGrid(photos.map((photo) => photo.url))
+    composePhotoboothGrid(photos.map((photo) => photo.url), { frame: selectedFrame.src ? selectedFrame : null })
       .then((file) => {
         if (cancelled) return;
         url = URL.createObjectURL(file);
-        setResult({ file, url });
+        setResult({ file, url, frameId: selectedFrame.id, photos, composeVersion, frameRetryVersion });
       })
       .catch((cause) => {
         if (!cancelled) setError(cause.message || "Không ghép được ảnh. Hãy thử lại.");
@@ -90,7 +140,7 @@ export default function Photobooth() {
       cancelled = true;
       if (url) URL.revokeObjectURL(url);
     };
-  }, [photos, composeVersion]);
+  }, [photos, composeVersion, selectedFrame, frameIsReady, frameRetryVersion]);
 
   const wait = (milliseconds, id) => new Promise((resolve) => {
     const handle = setTimeout(() => {
@@ -188,8 +238,22 @@ export default function Photobooth() {
     setError("");
   };
 
+  const chooseFrame = (id) => {
+    if (busyRef.current || running || id === selectedFrameId) return;
+    setResult(null);
+    setError("");
+    setSelectedFrameId(id);
+  };
+
+  const retryFrame = () => {
+    setResult(null);
+    setFrameAsset({ id: selectedFrame.id, status: "loading", message: "" });
+    setThumbnailFailures((previous) => ({ ...previous, [selectedFrame.id]: false }));
+    setFrameRetryVersion((version) => version + 1);
+  };
+
   const useOnLocket = () => {
-    if (!result?.file) return;
+    if (!canUseResult || !result?.file) return;
     const file = result.file;
     // The post preview owns a fresh URL; gallery cleanup cannot revoke it.
     const previewUrl = URL.createObjectURL(file);
@@ -215,9 +279,9 @@ export default function Photobooth() {
 
         <div className="photobooth-layout">
           <section className="photobooth-stage" aria-label="Khung Photobooth chia bốn ô">
-            <div className="photobooth-grid" data-testid="photobooth-grid">
+            <div className={`photobooth-grid${selectedFrame.src ? " has-frame" : ""}`} data-testid="photobooth-grid" data-frame={selectedFrame.id} aria-label={`Khung ${selectedFrame.name}`} aria-busy={frameIsLoading}>
               {photos.map((photo, index) => (
-                <div key={index} className={`photobooth-cell ${index === nextIndex ? "is-current" : ""}`} data-testid={`photobooth-cell-${index + 1}`}>
+                <div key={index} className={`photobooth-cell ${index === nextIndex ? "is-current" : ""}`} style={regionStyle(photoRegions[index])} data-testid={`photobooth-cell-${index + 1}`}>
                   {photo ? <img src={photo.url} alt={`Ảnh Photobooth ô ${index + 1}`} /> : index === nextIndex ? (
                     <><video ref={camera.attachVideoRef} autoPlay playsInline muted className={camera.facingMode === "user" ? "is-mirrored" : ""} aria-label={`Camera đang chụp ô ${index + 1}`} />{!camera.isReady && <div className="photobooth-placeholder"><Camera size={25} /><span>{camera.isStarting ? "Đang mở camera…" : "Chờ camera"}</span></div>}</>
                   ) : <div className="photobooth-placeholder"><Camera size={22} /><span>Chờ chụp</span></div>}
@@ -227,10 +291,11 @@ export default function Photobooth() {
                   {flash === index && <div className="photobooth-flash" aria-hidden="true" />}
                 </div>
               ))}
+              {selectedFrame.src && <img key={`${selectedFrame.id}-${frameRetryVersion}`} className={`photobooth-frame-overlay${frameIsReady ? " is-ready" : ""}`} src={selectedFrame.src} alt="" aria-hidden="true" draggable="false" onError={() => setFrameAsset({ id: selectedFrame.id, status: "error", message: "Không tải được khung này. Hãy thử lại hoặc chọn khung khác." })} />}
             </div>
             <div className="photobooth-stage-meta"><span><span className={complete ? "photobooth-dot is-complete" : "photobooth-dot"} />{complete ? "Đủ bốn khoảnh khắc" : `Đang ở ô ${nextIndex + 1}`}</span><span aria-live="polite">{count}/4 ảnh</span></div>
             <div className="photobooth-stage-controls">
-            {complete ? <div className="photobooth-result-actions"><div className="photobooth-complete"><Check size={18} /><span>{composing ? "Đang ghép bốn ảnh…" : "Khung hình của bạn đã sẵn sàng."}</span></div><button type="button" className="photobooth-primary" disabled={!result || composing} onClick={useOnLocket}>Dùng ảnh này trên Locket<ArrowRight size={18} /></button>{result && <a className="photobooth-secondary" href={result.url} download={result.file.name}><Download size={17} />Lưu ảnh ghép</a>}<p className="photobooth-hint">Thêm caption và chọn bạn bè ở bước đăng Locket.</p></div> : <>
+            {complete ? <div className="photobooth-result-actions"><div className="photobooth-complete"><Check size={18} /><span>{frameIsLoading ? "Đang tải khung ảnh…" : composing ? "Đang ghép bốn ảnh…" : canUseResult ? "Khung hình của bạn đã sẵn sàng." : "Chưa thể tạo ảnh ghép."}</span></div><button type="button" className="photobooth-primary" disabled={!canUseResult} onClick={useOnLocket}>Dùng ảnh này trên Locket<ArrowRight size={18} /></button>{canUseResult && <a className="photobooth-secondary" href={result.url} download={result.file.name}><Download size={17} />Lưu ảnh ghép</a>}<p className="photobooth-hint">Thêm caption và chọn bạn bè ở bước đăng Locket.</p></div> : <>
               <button type="button" className="photobooth-primary" disabled={!running && (!camera.isReady || busy)} onClick={running ? () => { cancelCapture(); setMessage("Đã dừng. Bạn có thể tiếp tục các ô còn lại."); } : mode === "automatic" ? captureAutomatic : captureManual}>{running ? <><Square size={17} />Dừng chụp</> : busy || camera.isStarting ? <><LoaderCircle size={18} className="photobooth-spinner" />Đang chuẩn bị…</> : <><Camera size={19} />{mode === "automatic" ? `Bắt đầu chụp ${4 - count} ảnh` : `Chụp ô ${nextIndex + 1}`}</>}</button>
               <button type="button" className="photobooth-secondary" disabled={running || busy || camera.isStarting} onClick={camera.flipCamera}><RefreshCcw size={17} />Đổi camera</button>
             </>}
@@ -248,7 +313,26 @@ export default function Photobooth() {
             </div>
             <p className="photobooth-mode-description">{mode === "manual" ? "Tạo dáng rồi bấm chụp cho từng ô. Chụp đủ bốn tấm để hoàn thành khung hình." : "Bấm bắt đầu một lần. Máy sẽ đếm ngược 3 giây trước mỗi tấm và lần lượt chụp đủ bốn ô."}</p>
 
-            {(camera.error || error) && <div className="photobooth-error" role="alert"><p>{error || camera.error}</p>{camera.error && <button type="button" onClick={camera.startCamera} disabled={camera.isStarting}>Thử mở camera</button>}{complete && error && <button type="button" onClick={() => setComposeVersion((value) => value + 1)}>Ghép lại ảnh</button>}</div>}
+            <section className="photobooth-frames" aria-labelledby="photobooth-frames-title">
+              <div className="photobooth-frames-heading"><h3 id="photobooth-frames-title">CHỌN KHUNG ẢNH</h3><span>{selectedFrame.name}</span></div>
+              <div className="photobooth-frame-options" role="group" aria-label="Khung ảnh Photobooth">
+                {PHOTOBOOTH_FRAMES.map((frame) => (
+                  <button type="button" className="photobooth-frame-option" key={frame.id} aria-pressed={selectedFrame.id === frame.id} disabled={running || busy} onClick={() => chooseFrame(frame.id)}>
+                    <span className="photobooth-frame-thumbnail" aria-hidden="true">
+                      {(frame.photoRegions || defaultPhotoRegions).map((region, index) => <span className="photobooth-frame-mini-photo" key={index} style={regionStyle(region)} />)}
+                      {frame.src && !thumbnailFailures[frame.id] && <img src={frame.src} alt="" loading="lazy" onError={() => setThumbnailFailures((previous) => ({ ...previous, [frame.id]: true }))} />}
+                      {thumbnailFailures[frame.id] && <span className="photobooth-frame-thumbnail-error">Chưa tải được</span>}
+                      {selectedFrame.id === frame.id && <span className="photobooth-frame-selected"><Check size={12} /></span>}
+                    </span>
+                    <span className="photobooth-frame-name">{frame.name}</span>
+                  </button>
+                ))}
+              </div>
+              <p className="photobooth-frame-help">Đổi khung bất cứ lúc nào, không cần chụp lại ảnh.</p>
+              {frameIsLoading && <p className="photobooth-frame-loading" role="status"><LoaderCircle size={13} className="photobooth-spinner" />Đang tải khung ảnh…</p>}
+            </section>
+
+            {(camera.error || error || frameError) && <div className="photobooth-error" role="alert"><p>{frameError || error || camera.error}</p>{camera.error && <button type="button" onClick={camera.startCamera} disabled={camera.isStarting}>Thử mở camera</button>}{frameError && <button type="button" onClick={retryFrame}>Thử tải lại khung</button>}{complete && error && !frameError && <button type="button" onClick={() => setComposeVersion((value) => value + 1)}>Ghép lại ảnh</button>}</div>}
 
           </section>
         </div>

@@ -111,3 +111,91 @@ test("odd output size keeps all four tiles in bounds with the exact requested ga
   assert.equal(a.x, 4);
   assert.throws(() => getPhotoboothGrid({ size: 20, gap: 8, border: 8 }));
 });
+
+const framedSources = ["blob:frame-one", "blob:frame-two", "blob:frame-three", "blob:frame-four"];
+const sampleFrame = () => ({
+  id: "dark-sparkle",
+  src: "/images/photobooth/frames/dark-sparkle.png",
+  photoRegions: [
+    { x: 0.05, y: 0.05, width: 0.4, height: 0.3 },
+    { x: 0.55, y: 0.05, width: 0.4, height: 0.3 },
+    { x: 0.05, y: 0.55, width: 0.4, height: 0.3 },
+    { x: 0.55, y: 0.55, width: 0.4, height: 0.3 },
+  ],
+});
+
+test("selected frame uses its exact rectangular openings and draws decoration above all four photos", async () => {
+  const h = canvasHarness();
+  const images = framedSources.map((src) => ({ src, width: 1000, height: 1000 }));
+  const overlay = { width: 1536, height: 1536, src: sampleFrame().src };
+  const file = await composePhotoboothGrid(framedSources, {
+    ...h, frame: sampleFrame(),
+    loadImage: async (src) => images[framedSources.indexOf(src)],
+    loadFrameImage: async (src) => { assert.equal(src, overlay.src); return overlay; },
+  });
+  const draws = h.calls.filter(([method]) => method === "drawImage");
+  assert.deepEqual(draws.slice(0, 4), [
+    ["drawImage", images[0], 0, 125, 1000, 750, 96, 96, 768, 576],
+    ["drawImage", images[1], 0, 125, 1000, 750, 1056, 96, 768, 576],
+    ["drawImage", images[2], 0, 125, 1000, 750, 96, 1056, 768, 576],
+    ["drawImage", images[3], 0, 125, 1000, 750, 1056, 1056, 768, 576],
+  ]);
+  assert.deepEqual(draws[4], ["drawImage", overlay, 0, 0, 1920, 1920]);
+  assert.equal(h.calls.some(([method]) => method === "scale"), false, "overlay must not cause photos to mirror again");
+  assert.equal(file.type, "image/jpeg");
+});
+
+test("composition waits for the selected overlay and never silently exports without it", async () => {
+  const h = canvasHarness();
+  let finishOverlay;
+  const overlayPromise = new Promise((resolve) => { finishOverlay = resolve; });
+  const composition = composePhotoboothGrid(framedSources, {
+    ...h, frame: sampleFrame(),
+    loadImage: async () => ({ width: 1000, height: 1000 }),
+    loadFrameImage: () => overlayPromise,
+  });
+  await Promise.resolve();
+  assert.equal(h.calls.length, 0, "no drawing or JPEG export before overlay finishes loading");
+  finishOverlay({ width: 1536, height: 1536 });
+  await composition;
+  assert.equal(h.calls.filter(([method]) => method === "drawImage").length, 5);
+});
+
+test("missing or failed overlay rejects before exporting any unframed result", async () => {
+  for (const loadFrameImage of [
+    async () => { throw new Error("frame download failed"); },
+    async () => ({ naturalWidth: 0, naturalHeight: 0 }),
+    async () => null,
+  ]) {
+    const h = canvasHarness();
+    await assert.rejects(composePhotoboothGrid(framedSources, {
+      ...h, frame: sampleFrame(), loadFrameImage,
+      loadImage: async () => ({ width: 1000, height: 1000 }),
+    }));
+    assert.equal(h.calls.length, 0);
+  }
+});
+
+test("frame metadata rejects unapproved assets and missing, overlapping or out-of-bounds openings", async () => {
+  const original = sampleFrame();
+  const invalidFrames = [
+    { ...original, src: "https://example.com/frame.png" },
+    { ...original, id: "unknown" },
+    { ...original, id: "blue-sky" },
+    { ...original, photoRegions: original.photoRegions.slice(0, 3) },
+    { ...original, photoRegions: original.photoRegions.map((region, i) => i ? region : { ...region, x: -0.01 }) },
+    { ...original, photoRegions: original.photoRegions.map((region, i) => i ? region : { ...region, width: 1 }) },
+    { ...original, photoRegions: original.photoRegions.map((region, i) => i ? region : { ...region, height: 0 }) },
+    { ...original, photoRegions: original.photoRegions.map((region, i) => i ? region : { ...region, x: NaN }) },
+    { ...original, photoRegions: original.photoRegions.map((region, i) => i ? region : original.photoRegions[1]) },
+  ];
+  for (const frame of invalidFrames) {
+    const h = canvasHarness();
+    await assert.rejects(composePhotoboothGrid(framedSources, {
+      ...h, frame,
+      loadImage: async () => ({ width: 1000, height: 1000 }),
+      loadFrameImage: async () => ({ width: 1536, height: 1536 }),
+    }));
+    assert.equal(h.calls.length, 0);
+  }
+});
