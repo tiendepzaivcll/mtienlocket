@@ -1,23 +1,26 @@
-/* styles.css */
-.gradient-text {
-  font-family: "LoveHouse", sans-serif;
-  font-size: 1.8rem;
-  background: linear-gradient(45deg, #ff0000, #1a53ff, #ea01ff, #fcfc00);
-  background-clip: text;
-  color: transparent;
-  font-weight: bold;
-  background-size: 400% 400%;
-  animation: gradient 3s ease infinite;
-  margin-bottom: -7px;
+.mtien-header { position: fixed; inset: 0 0 auto; z-index: 50; height: 76px; background: rgba(17, 20, 19, 0.94); color: #f2f5f3; border-bottom: 1px solid #303a33; backdrop-filter: blur(18px); }
+.mtien-header-inner { width: min(1200px, calc(100% - 64px)); height: 100%; margin-inline: auto; display: flex; align-items: center; justify-content: space-between; gap: 28px; }
+.mtien-wordmark { display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; color: #f2f5f3; text-decoration: none; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.8px; }
+.mtien-wordmark img { flex-shrink: 0; }
+.mtien-wordmark-dot { color: #b2f5cf; }
+.mtien-header-nav { display: flex; align-items: center; gap: 30px; }
+.mtien-header-nav a { color: #a3ada6; text-decoration: none; font-size: 14px; font-weight: 500; transition: color 160ms; }
+.mtien-header-nav a:hover, .mtien-header-nav a.active { color: #f2f5f3; }
+.mtien-header-actions { display: flex; align-items: center; gap: 12px; }
+.mtien-header-cta { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 10px 18px; border-radius: 12px; background: #b2f5cf; color: #112219; text-decoration: none; font-size: 13px; font-weight: 700; transition: background 160ms; }
+.mtien-header-cta:hover { background: #cbf9de; }
+.mtien-menu-trigger { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; padding: 0; border: 1px solid #303a33; border-radius: 12px; background: transparent; color: #f2f5f3; cursor: pointer; transition: background 160ms; }
+.mtien-menu-trigger:hover { background: #202622; }
+.mtien-header a:focus-visible, .mtien-header button:focus-visible { outline: 2px solid #b2f5cf; outline-offset: 4px; }
+@media (max-width: 640px) {
+  .mtien-header { height: 68px; }
+  .mtien-header-inner { width: calc(100% - 36px); gap: 12px; }
+  .mtien-wordmark { font-size: 20px; gap: 8px; }
+  .mtien-wordmark img { width: 30px; height: 30px; }
+  .mtien-header-nav { display: none; }
+  .mtien-header-actions { gap: 8px; }
+  .mtien-header-cta { min-height: 40px; padding: 9px 12px; }
+  .mtien-menu-trigger { width: 40px; height: 40px; }
 }
-@keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
+.mtien-header-cta,.mtien-menu-trigger{flex-shrink:0;white-space:nowrap}
+@media(max-width:360px){.mtien-header-inner{gap:8px}.mtien-wordmark{font-size:18px;gap:6px}.mtien-wordmark img{width:26px;height:26px}.mtien-header-cta{font-size:12px;padding-inline:10px}.mtien-header-actions{gap:7px}}

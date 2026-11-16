@@ -1,0 +1,51 @@
+.mtien-home,.mtien-login,.mtien-auth-home{--mt-bg:#111413;--mt-surface:#191d1b;--mt-surface-soft:#202622;--mt-text:#f2f5f3;--mt-muted:#a3ada6;--mt-mint:#b2f5cf;--mt-line:#303a33;background:var(--mt-bg);color:var(--mt-text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.mtien-container{max-width:1232px;margin:0 auto;padding-left:40px;padding-right:40px}
+.mtien-hero{display:grid;grid-template-columns:1.12fr 1fr;gap:74px;align-items:center;padding-top:80px;padding-bottom:88px;min-height:740px}
+.mtien-eyebrow{display:flex;align-items:center;gap:9px;color:var(--mt-muted);font-size:10px;line-height:1.6;font-weight:650;letter-spacing:1.6px}
+.mtien-eyebrow>span{height:6px;width:6px;background:var(--mt-mint);border-radius:50%;flex-shrink:0}
+.mtien-hero h1{margin:25px 0 24px;font-size:clamp(44px,5.7vw,74px);font-weight:650;line-height:1.09;letter-spacing:-3.8px}
+.mtien-hero h1>span{color:var(--mt-mint)}
+.mtien-hero-copy>p{color:var(--mt-muted);font-size:16px;line-height:1.85;max-width:425px;margin:0}
+.mtien-hero-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:33px}
+.mtien-button{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:49px;padding:13px 21px;border:1px solid transparent;border-radius:9px;font-size:13px;font-weight:650;text-decoration:none;transition:background .2s,transform .2s;cursor:pointer;line-height:1.5}
+.mtien-button:focus-visible,.mtien-discover:focus-visible,.mtien-story button:focus-visible{outline:2px solid var(--mt-mint);outline-offset:5px}
+.mtien-button-primary{background:var(--mt-mint);color:#15251b}
+.mtien-button-primary:hover{background:#d1ffe3;transform:translateY(-1px)}
+.mtien-button-quiet{border-color:var(--mt-line);color:var(--mt-text);background:transparent}
+.mtien-button-quiet:hover{background:var(--mt-surface-soft)}
+.mtien-discover{margin-top:49px;display:inline-flex;align-items:center;gap:9px;color:var(--mt-muted);font-size:12px;text-decoration:none}
+.mtien-discover:hover{color:var(--mt-mint)}
+.mtien-story{min-width:0;width:100%;max-width:470px;margin-left:auto}
+.mtien-story-heading{display:flex;justify-content:space-between;gap:12px;margin-bottom:15px;font-size:9px;font-weight:600;letter-spacing:1px;color:var(--mt-muted)}
+.mtien-story-heading>span:last-child{white-space:nowrap;color:var(--mt-mint)}
+.mtien-story-photo{position:relative;aspect-ratio:1/1.05;background:var(--mt-surface);border-radius:120px 12px 12px 12px;isolation:isolate;overflow:hidden}
+.mtien-story-photo::after{content:"";position:absolute;inset:55% 0 0;background:linear-gradient(transparent,rgba(0,0,0,.6));z-index:-1}
+.mtien-story-photo>img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;z-index:-2}
+.mtien-story-time{position:absolute;top:24px;right:23px;color:#fff;font-size:12px;font-weight:500;letter-spacing:1.5px;text-shadow:0 1px 6px #000}
+.mtien-photo-caption{position:absolute;left:20px;bottom:24px;display:flex;gap:9px;align-items:center;max-width:calc(100% - 40px);font-size:13px;font-weight:550;background:rgba(17,20,19,.88);color:#fff;backdrop-filter:blur(10px);padding:12px 16px;border-radius:8px}
+.mtien-photo-caption>svg{color:var(--mt-mint);flex-shrink:0}
+.mtien-story-stamp{position:absolute;right:22px;bottom:91px;text-align:right;color:#fff;font-size:18px;line-height:1.2;letter-spacing:-.5px;transform:rotate(-6deg);text-shadow:0 1px 8px rgba(0,0,0,.35)}
+.mtien-story-stamp b{font-weight:650}
+.mtien-story-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px}
+.mtien-story-bottom>div:first-child>span{font-size:11px;color:var(--mt-text);font-weight:600}
+.mtien-story-bottom p{font-size:11px;color:var(--mt-muted);margin:4px 0 0;line-height:1.6}
+.mtien-story-controls{display:flex;gap:7px;flex-shrink:0}
+.mtien-story-controls button{width:36px;height:36px;border:1px solid var(--mt-line);background:transparent;color:var(--mt-text);display:grid;place-items:center;border-radius:50%;cursor:pointer;transition:background .2s}
+.mtien-story-controls button:hover{background:var(--mt-surface-soft);color:var(--mt-mint)}
+.mtien-intro{padding-top:70px;padding-bottom:75px;border-top:1px solid var(--mt-line);scroll-margin-top:90px}
+.mtien-section-heading{display:flex;gap:45px;justify-content:space-between;align-items:end;margin-bottom:42px}
+.mtien-section-heading h2{font-size:38px;font-weight:550;letter-spacing:-1.5px;line-height:1.2;margin:18px 0 0}
+.mtien-section-heading>p{max-width:345px;color:var(--mt-muted);font-size:14px;line-height:1.85;margin:0}
+.mtien-features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.mtien-feature{padding:28px;background:var(--mt-surface);border:1px solid #252e28;border-radius:12px}
+.mtien-feature-top{display:flex;justify-content:space-between;align-items:center;color:var(--mt-mint);margin-bottom:34px}
+.mtien-feature-top>span{font-size:11px;font-weight:500;letter-spacing:1px;color:var(--mt-muted)}
+.mtien-feature h3{font-size:17px;font-weight:600;letter-spacing:-.4px;margin:0 0 12px}
+.mtien-feature p{font-size:13px;color:var(--mt-muted);line-height:1.85;margin:0}
+.mtien-final-cta{display:flex;justify-content:space-between;align-items:center;gap:30px;padding-top:48px;padding-bottom:68px}
+.mtien-final-cta h2{font-size:32px;font-weight:550;letter-spacing:-1.1px;margin:15px 0 0;line-height:1.25}
+@media(min-width:1450px){.mtien-hero{min-height:790px;padding-top:100px;padding-bottom:110px}}
+@media(max-width:1024px){.mtien-hero{gap:38px;min-height:650px}.mtien-hero h1{font-size:55px;letter-spacing:-2.8px}.mtien-button{font-size:12px;padding:12px 16px}.mtien-hero-actions{gap:9px}.mtien-story-photo{border-top-left-radius:90px}.mtien-container{padding-left:30px;padding-right:30px}}
+@media(max-width:760px){.mtien-container{padding-left:22px;padding-right:22px}.mtien-hero{grid-template-columns:1fr;gap:42px;padding-top:46px;padding-bottom:48px;min-height:0}.mtien-hero h1{font-size:clamp(43px,8.6vw,64px);letter-spacing:-2.6px;margin-top:24px;margin-bottom:20px}.mtien-hero-copy>p{font-size:14px;max-width:440px}.mtien-eyebrow{font-size:9px;letter-spacing:1.25px}.mtien-hero-actions{margin-top:25px;gap:10px}.mtien-button{min-height:48px;font-size:12px;padding:12px 16px}.mtien-discover{display:none}.mtien-story{margin:0 auto;max-width:470px}.mtien-story-photo{aspect-ratio:1.12;border-top-left-radius:95px}.mtien-story-heading{font-size:8px}.mtien-story-bottom>div:first-child>span{font-size:12px}.mtien-story-controls button{width:42px;height:42px}.mtien-intro{padding-top:45px;padding-bottom:28px;scroll-margin-top:80px}.mtien-section-heading{display:block;margin-bottom:28px}.mtien-section-heading h2{font-size:32px;letter-spacing:-1px;margin-top:15px}.mtien-section-heading>p{font-size:13px;margin-top:20px;max-width:420px}.mtien-features{grid-template-columns:1fr;gap:12px}.mtien-feature{padding:23px}.mtien-feature-top{margin-bottom:23px}.mtien-feature h3{font-size:17px}.mtien-final-cta{display:block;padding-top:28px;padding-bottom:47px}.mtien-final-cta h2{font-size:27px}.mtien-final-cta>.mtien-button{margin-top:25px}}
+@media(prefers-reduced-motion:reduce){.mtien-home *,.mtien-login *{transition:none!important;scroll-behavior:auto!important}}
+.mtien-hero-copy{min-width:0}.mtien-auth-home .mtien-hero h1{overflow-wrap:anywhere}

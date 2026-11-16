@@ -1,159 +1,56 @@
 import "./styles.css";
-import { lazy, Suspense, useState } from "react";
-import { Download, UserPlus } from "lucide-react";
+import "./mtien-home.css";
+import { lazy, Suspense } from "react";
+import { ArrowDown, ArrowRight, Camera, Image, Smartphone, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-import { COMMUNITY_CONFIG } from "@/config";
-const StatsSection = lazy(() => import("./StatsSection"));
-const NotificationPrompt = lazy(() =>
-  import("@/components/ui/NotificationPrompt")
-);
-const FeatureCardMarquee = lazy(() => import("./FeatureCardMarquee"));
-const StepsSection = lazy(() => import("./StepsSection"));
+import { useAuthStore } from "@/stores";
+import MomentStory from "./MomentStory";
 
-const Home = () => {
-  const [loaded, setLoaded] = useState(false);
+const NotificationPrompt = lazy(() => import("@/components/ui/NotificationPrompt"));
 
+const features = [
+  { icon: Camera, number: "01", title: "Bắt lấy khoảnh khắc", text: "Chụp ngay hoặc chọn một tấm ảnh, một đoạn video có sẵn trong máy." },
+  { icon: Sparkles, number: "02", title: "Thêm một chút riêng", text: "Một dòng caption, một màu sắc. Để khoảnh khắc mang đúng chất của bạn." },
+  { icon: Image, number: "03", title: "Gửi đến người thương", text: "Chia sẻ lên Locket và giữ kết nối với những người thân quen." },
+];
+
+export default function Home() {
+  const isAuth = useAuthStore((state) => state.isAuth);
+  const destination = isAuth ? "/locket-beta" : "/login";
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen w-full text-center bg-grid bg-base-100">
-      <section className="w-full max-w-screen-2xl mx-auto px-4 pt-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-y-10 md:gap-y-0 gap-x-12 items-center min-h-[84vh]">
-          {/* LEFT */}
-          <div className="flex flex-col justify-center gap-4 md:gap-6 text-left md:pr-8">
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-base-content leading-tight tracking-tight relative h-[55px] md:h-[65px] lg:h-[70px]">
-              <span className="absolute word-rotate whitespace-nowrap text-base-content">
-                <span>Trải nghiệm</span>
-                <span>Khám phá</span>
-                <span>Sáng tạo</span>
-                <span>Chia sẻ</span>
-              </span>
-            </h1>
-
-            <h2 className="text-5xl inline-block no-select md:text-6xl lg:text-7xl font-extrabold leading-tight tracking-tight -mb-3">
-              <span className="no-select font-purrfect text-base-content">
-                Locket Camera
-              </span>
-            </h2>
-
-            <p className="text-base-content/90 text-base md:text-lg leading-relaxed">
-              Ghi lại khoảnh khắc, thêm caption cực chất và chia sẻ ngay tức thì
-              – tất cả chỉ với vài thao tác đơn giản trên <b>Locket Camera</b>.
-              Bạn có thể dùng trực tiếp trên trình duyệt hoặc thêm ứng dụng vào
-              màn hình chính để tiện lợi hơn.
-            </p>
-
-            <div className="flex flex-wrap gap-3 mt-2 animate-fade-in delay-400">
-              <Link
-                to={"/login"}
-                className="
-                  px-5 py-3
-                  rounded-full
-                  font-semibold
-                  text-base-content
-                  bg-base-100/20
-                  border border-base-content/10
-                  backdrop-blur-[2px]
-                  shadow-sm
-                  transition-all duration-300
-                  hover:-translate-y-0.5
-                  hover:shadow-md
-                  hover:bg-base-100
-                  active:scale-95
-                "
-              >
-                Đăng nhập ngay
-              </Link>
-
-              <Link
-                to={"/download"}
-                className="px-4 py-3 rotate-[1deg] gradient-effect text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300 hover:scale-105"
-              >
-                Thêm vào màn hình
-              </Link>
-            </div>
+    <div className="mtien-home">
+      <section className="mtien-hero mtien-container" aria-labelledby="mtien-hero-title">
+        <div className="mtien-hero-copy">
+          <div className="mtien-eyebrow"><span /> MỘT GÓC NHỎ CHO KHOẢNH KHẮC CỦA BẠN</div>
+          <h1 id="mtien-hero-title">Chạm một cái.<br /><span>Gần nhau hơn.</span></h1>
+          <p>Không cần một ngày thật đặc biệt. Một tấm ảnh, một câu chuyện nhỏ cũng đủ để gửi tới người bạn quan tâm.</p>
+          <div className="mtien-hero-actions">
+            <Link to={destination} className="mtien-button mtien-button-primary">{isAuth ? "Mở Locket" : "Bắt đầu với MTIEN"}<ArrowRight size={19} /></Link>
+            <Link to="/download" className="mtien-button mtien-button-quiet"><Smartphone size={18} />Thêm vào màn hình</Link>
           </div>
-
-          {/* RIGHT */}
-          <div className="flex items-center justify-center h-full w-full md:pl-6 no-select -mb-10">
-            <div className="relative transform hover:scale-105 transition-transform duration-500">
-              <img
-                src="https://cdn.locket-dio.com/v1/images/double-phone-view-locketdio.webp"
-                alt="T97 WebApp Preview"
-                loading="lazy"
-                onLoad={() => setLoaded(true)}
-                className={`
-            md:w-[380px] lg:w-[400px] h-auto object-contain 
-            drop-shadow-2xl transition-opacity duration-500 ease-in-out float-up-down
-            ${loaded ? "opacity-100" : "opacity-0"}
-          `}
-              />
-            </div>
-          </div>
+          <a className="mtien-discover" href="#cach-su-dung"><ArrowDown size={15} /> Một chút về MTIEN</a>
+        </div>
+        <MomentStory />
+      </section>
+      <section className="mtien-intro mtien-container" id="cach-su-dung" aria-labelledby="mtien-features-title">
+        <div className="mtien-section-heading">
+          <div><div className="mtien-eyebrow">TỪ BẠN, GỬI ĐẾN BẠN BÈ</div><h2 id="mtien-features-title">Đơn giản thôi.<br />Vẫn đủ để nhớ.</h2></div>
+          <p>Một không gian gọn gàng để bạn sáng tạo và chia sẻ ảnh, video lên Locket ngay trên trình duyệt.</p>
+        </div>
+        <div className="mtien-features">
+          {features.map(({ icon: Icon, number, title, text }) => (
+            <article className="mtien-feature" key={number}>
+              <div className="mtien-feature-top"><Icon size={24} strokeWidth={1.5} /><span>{number}</span></div>
+              <h3>{title}</h3><p>{text}</p>
+            </article>
+          ))}
         </div>
       </section>
-
-      <section className="w-full py-5">
-        <div className="mx-auto drop-shadow-lg">
-          <div className="text-center py-5">
-            <h2 className="text-4xl md:text-5xl font-bold text-base-content mb-4">
-              Tính năng nổi bật
-            </h2>
-            <p className="text-lg md:text-xl text-base-content/80 mb-8 max-w-2xl mx-auto">
-              Khám phá những tính năng tuyệt vời giúp bạn tạo ra và chia sẻ
-              khoảnh khắc đáng nhớ.
-            </p>
-          </div>
-          <Suspense fallback={null}>
-            <FeatureCardMarquee />
-          </Suspense>
-        </div>
+      <section className="mtien-final-cta mtien-container">
+        <div><div className="mtien-eyebrow">KHOẢNH KHẮC TIẾP THEO LÀ CỦA BẠN</div><h2>Hôm nay của bạn thế nào?</h2></div>
+        <Link to={destination} className="mtien-button mtien-button-primary">Chia sẻ một chút nhé<ArrowRight size={19} /></Link>
       </section>
-
-      <Suspense fallback={null}>
-        <StepsSection />{" "}
-      </Suspense>
-      {/* Stats Section */}
-      <Suspense fallback={null}>
-        <StatsSection />
-      </Suspense>
-
-      {/* CTA Section */}
-      <section className="py-6 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-base-content mb-6">
-            Bắt đầu hành trình sáng tạo
-          </h2>
-          <p className="text-lg md:text-xl text-base-content/80 mb-8 max-w-2xl mx-auto">
-            Cài đặt hoặc thêm T97 vào màn hình chính ngay hôm nay và khám
-            phá thế giới photography & videography đầy màu sắc!
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to={"/download"}
-              className="px-8 py-4 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold rounded-3xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
-            >
-              <Download className="w-5 h-5" />
-              Cài đặt miễn phí
-            </Link>
-            <a
-              href={COMMUNITY_CONFIG.discord}
-              target="_blank"
-              className="px-8 py-4 bg-base-100/20 backdrop-blur-[2px] border-base-content/10 border text-base-content font-bold rounded-3xl transition-all duration-300 flex items-center justify-center gap-2"
-            >
-              <UserPlus className="w-5 h-5" />
-              Tham gia Discord
-            </a>
-          </div>
-
-          <div className="mt-8 text-base-content/60 text-sm">
-            Dễ sử dụng • Không quảng cáo • Bảo mật thông tin
-          </div>
-        </div>
-      </section>
-
-      {/* 👉 Component xin thông báo */}
-      <NotificationPrompt />
+      <Suspense fallback={null}><NotificationPrompt /></Suspense>
     </div>
   );
-};
-
-export default Home;
+}

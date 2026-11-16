@@ -84,7 +84,7 @@ export default function LocketCameraBeta() {
       {/* Audio Music */}
       {postOverlay.music && <MusicPlayer music={postOverlay.music} />}
       <span className="fixed pointer-events-none z-60 bottom-3 right-4 text-xs text-gray-400 select-none">
-        © T97
+        © MTIEN
       </span>
     </>
   );

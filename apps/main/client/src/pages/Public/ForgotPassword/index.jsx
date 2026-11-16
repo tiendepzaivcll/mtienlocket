@@ -33,7 +33,7 @@ const ForgotPassword = () => {
       await forgotPassword(email);
 
       SonnerSuccess(
-        "Thông báo từ T97",
+        "Thông báo từ MTIEN",
         "Link đặt lại mật khẩu đã được gửi đến email của bạn!",
       );
 

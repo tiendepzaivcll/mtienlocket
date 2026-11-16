@@ -28,10 +28,10 @@ export default function PricingPage() {
             <CheckCircle2 className="h-6 w-6 flex-shrink-0" />
             <div>
               <h1 className="text-2xl font-bold text-base-content">
-                T97 Full Access đã được bật
+                MTIEN Full Access đã được bật
               </h1>
               <p className="mt-1 text-sm text-base-content/75">
-                T97 là tên app chính thức. Mọi member hiện được dùng toàn bộ
+                MTIEN là tên app chính thức. Mọi member hiện được dùng toàn bộ
                 tính năng cao nhất.
               </p>
             </div>

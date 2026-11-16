@@ -19,7 +19,7 @@ export default function NewsDetailPage() {
 
   useEffect(() => {
     if (news?.title) {
-      document.title = `${news.title} | T97 - Đăng ảnh & Video lên Locket`;
+      document.title = `${news.title} | MTIEN - Đăng ảnh & Video lên Locket`;
       const url = window.location.origin + location.pathname;
       const link =
         document.querySelector("link[rel='canonical']") ||

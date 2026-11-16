@@ -48,7 +48,7 @@ export default function Contact() {
         {/* Header */}
         <div className="text-center mb-10 animate-fadeIn">
           <h1 className="text-4xl md:text-5xl font-extrabold text-base-content drop-shadow-sm">
-            Cộng đồng T97
+            Cộng đồng MTIEN
           </h1>
           <p className="mt-3 text-base-content/70 text-lg">
             Kết nối với cộng đồng và cập nhật các thông tin mới nhất từ{" "}
@@ -95,7 +95,7 @@ export default function Contact() {
 
         {/* Footer */}
         <div className="text-center mt-10 text-sm text-base-content/60 animate-fadeIn">
-          © 2025 T97. Made with ❤️ by Đào Văn Đôi
+          © 2025 MTIEN. Made with ❤️ by Đào Văn Đôi
         </div>
       </div>
     </div>

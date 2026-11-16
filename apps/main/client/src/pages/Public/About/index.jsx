@@ -11,10 +11,10 @@ export default function AboutT97() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-3">
-            Giới thiệu về <span className="text-purple-600">T97</span>
+            Giới thiệu về <span className="text-purple-600">MTIEN</span>
           </h1>
           <p className="text-lg text-base-content/80 max-w-2xl mx-auto">
-            T97 — nền tảng mở rộng dành cho Locket Widget, giúp bạn chia
+            MTIEN — nền tảng mở rộng dành cho Locket Widget, giúp bạn chia
             sẻ ảnh và video trực tiếp với giao diện hiện đại, nhanh chóng và
             tiện lợi.
           </p>
@@ -30,15 +30,15 @@ export default function AboutT97() {
           </div>
         </div>
 
-        {/* What is T97 */}
+        {/* What is MTIEN */}
         <div className="bg-base-300 rounded-3xl shadow-md p-5 mb-8">
-          <h2 className="text-2xl font-bold mb-4">T97 là gì?</h2>
+          <h2 className="text-2xl font-bold mb-4">MTIEN là gì?</h2>
           <p className="text-base-content/80 leading-relaxed mb-3">
-            - T97 là nền tảng web được thiết kế để mở rộng khả năng của
-            ứng dụng Locket Widget. Với T97, bạn có thể dễ dàng tải lên
+            - MTIEN là nền tảng web được thiết kế để mở rộng khả năng của
+            ứng dụng Locket Widget. Với MTIEN, bạn có thể dễ dàng tải lên
             và chia sẻ ảnh, video từ máy tính hoặc bất kỳ thiết bị nào có trình
             duyệt web. <br />- Là một dự án cá nhân, hoạt động độc lập. Không
-            liên kết với bên thứ ba nào khác ngoài T97.
+            liên kết với bên thứ ba nào khác ngoài MTIEN.
           </p>
           <p className="text-base-content/80 leading-relaxed text-sm">
             *Không cần cài đặt ứng dụng, không cần chuyển file phức tạp — chỉ
@@ -66,13 +66,13 @@ export default function AboutT97() {
               <h3 className="text-xl font-semibold">Câu chuyện</h3>
             </div>
             <p className="text-base-content/80 leading-relaxed">
-              “T97” được tạo ra từ nhu cầu thực tế:
+              “MTIEN” được tạo ra từ nhu cầu thực tế:
               <br />• Làm sao để chia sẻ ảnh từ máy tính hoặc điện thoại lên
               Locket Widget mà không cần mua gói Locket Gold? <br />• Làm sao để
               đổi màu caption theo sở thích cá nhân? <br />• Làm sao để truy cập
               các tính năng ẩn của Locket?
               <br />
-              Từ những câu hỏi đó, T97 ra đời như một giải pháp mở rộng,
+              Từ những câu hỏi đó, MTIEN ra đời như một giải pháp mở rộng,
               giúp người dùng tận hưởng trọn vẹn trải nghiệm Locket — không giới
               hạn bởi thiết bị hay nền tảng.
             </p>
@@ -137,7 +137,7 @@ export default function AboutT97() {
             </h3>
 
             <p className="text-gray-600 text-sm leading-relaxed mb-2">
-              Mặc dù T97 được xây dựng với nền tảng web hiện đại, mình
+              Mặc dù MTIEN được xây dựng với nền tảng web hiện đại, mình
               vẫn gặp không ít khó khăn trong quá trình phát triển và tối ưu để
               mọi người có thể sử dụng mượt mà nhất.
             </p>
@@ -150,7 +150,7 @@ export default function AboutT97() {
               Tuy vậy, mình luôn theo dõi phản hồi, tối ưu từng phần, và cố gắng
               mang lại trải nghiệm tốt nhất trên nhiều thiết bị nhất có thể — từ
               điện thoại cũ đến laptop hiện đại. Đây là hành trình lâu dài,
-              nhưng cũng chính là động lực để T97 ngày càng hoàn thiện
+              nhưng cũng chính là động lực để MTIEN ngày càng hoàn thiện
               hơn.
             </p>
           </div>
@@ -160,9 +160,8 @@ export default function AboutT97() {
               👥 Cộng đồng & Cảm ơn
             </h3>
             <p className="text-gray-600 text-sm leading-relaxed mb-2">
-              T97 được phát triển bởi T97 — người yêu công nghệ và đam mê
-              sáng tạo. Tôi luôn lắng nghe phản hồi từ cộng đồng để không ngừng
-              hoàn thiện sản phẩm.
+              MTIEN được tùy biến từ mã nguồn T97. Xin cảm ơn tác giả gốc và
+              cộng đồng đã đóng góp để sản phẩm ngày càng hoàn thiện.
             </p>
             <p className="text-gray-600 text-sm leading-relaxed mb-2">
               Xin gửi lời cảm ơn chân thành đến cộng đồng{" "}
@@ -170,7 +169,7 @@ export default function AboutT97() {
               ích, giúp mình hiểu rõ hơn và phát triển dự án này.
             </p>
             <p className="text-gray-600 text-sm leading-relaxed">
-              Cảm ơn những nhà tài trợ đã đóng góp và đồng hành với "T97"
+              Cảm ơn những nhà tài trợ đã đóng góp và đồng hành với "MTIEN"
               trong suốt thời gian phát triển vừa qua.
             </p>
           </div>

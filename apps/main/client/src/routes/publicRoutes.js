@@ -36,15 +36,15 @@ export const publicRoutes = [
   { path: "/locket-beta", component: LocketCameraBeta, title: `Locket Camera Beta | ${APP_NAME}` },
 
   { path: "/privacy", component: PrivacyPolicy, title: `Chính sách riêng tư | ${APP_NAME}` },
-  { path: "/pricing", component: PricingPage, title: `T97 Full Access | ${APP_NAME}` },
-  { path: "/pricing/:planId", component: PricingPage, title: `T97 Full Access | ${APP_NAME}` },
+  { path: "/pricing", component: PricingPage, title: `MTIEN Full Access | ${APP_NAME}` },
+  { path: "/pricing/:planId", component: PricingPage, title: `MTIEN Full Access | ${APP_NAME}` },
   { path: "/tools", component: ToolsLocket, title: `Công cụ mở rộng | ${APP_NAME}` },
 
   { path: "/settings", component: Settings, title: `Cài đặt | ${APP_NAME}` },
   { path: "/devpage", component: DevPage, title: `Dev Page | ${APP_NAME}` },
   { path: "/reference", component: ReferencePage, title: `API Docs | ${APP_NAME}` },
 
-  { path: "/happy-birthday", component: BirthdayPage, title: `Chúc mừng sinh nhật T97 | ${APP_NAME}` },
+  { path: "/happy-birthday", component: BirthdayPage, title: `Chúc mừng sinh nhật MTIEN | ${APP_NAME}` },
 
   // { path: "/wt", component: WhitePage, title: `White Page for Development | ${APP_NAME}` },
   // { path: "/locket", component: LocketCameraBeta, title: `White Page for Development | ${APP_NAME}` },

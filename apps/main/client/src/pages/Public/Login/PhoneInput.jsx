@@ -23,7 +23,7 @@ const formatPhone = (value) => {
   return `+${countryCode}${grouped ? " " + grouped : ""}`;
 };
 
-export const PhoneInput = ({ value = "", onChange }) => {
+export const PhoneInput = ({ value = "", onChange, id }) => {
   const [inner, setInner] = useState(value);
   const [flag, setFlag] = useState("🇻🇳");
   const [shake, setShake] = useState(false);
@@ -86,6 +86,10 @@ export const PhoneInput = ({ value = "", onChange }) => {
       </span>
 
       <input
+        id={id}
+        name="username"
+        autoComplete="username"
+        required
         type="tel"
         value={inner}
         onChange={(e) => handleChange(e.target.value)}

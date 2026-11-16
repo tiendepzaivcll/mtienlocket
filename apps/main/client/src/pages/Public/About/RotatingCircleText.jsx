@@ -18,7 +18,7 @@ export default function RotatingCircleText() {
               textLength="500"
               spacing="auto"
             >
-              T97 • Share Moments • T97 • Share Moments •
+              MTIEN • Share Moments • MTIEN • Share Moments •
             </textPath>
           </text>
         </svg>
@@ -38,7 +38,7 @@ export default function RotatingCircleText() {
               textLength="500"
               spacing="auto"
             >
-              T97 • Modern • Convenient • Cross-Platform • Security •
+              MTIEN • Modern • Convenient • Cross-Platform • Security •
             </textPath>
           </text>
         </svg>

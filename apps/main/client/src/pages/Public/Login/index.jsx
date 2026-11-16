@@ -6,11 +6,13 @@ import { useApp } from "@/context/AppContext";
 import { Link } from "react-router-dom";
 import { SonnerError, SonnerSuccess } from "@/components/ui/SonnerToast";
 import { CONFIG } from "@/config";
-import RotatingCircleText from "./RotatingCircleText";
+import MomentStory from "../Home/MomentStory";
+import "../Home/mtien-home.css";
+import "./styles.css";
 import { ensureDBOwner } from "@/cache/configDB";
 import { useAuthStore } from "@/stores";
 import TurnstileCaptcha from "./TurnstileCaptcha";
-import { Mail, Phone } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail, Phone } from "lucide-react";
 import { loginWithEmail, loginWithPhone } from "@/services";
 import { PhoneInput } from "./PhoneInput";
 
@@ -145,175 +147,50 @@ const Login = () => {
     (CONFIG.keys.turnstileKey && !captchaToken);
 
   return (
-    <>
-      <div className="flex items-center justify-center h-[84vh] px-6">
-        <div className="relative w-full max-w-md p-6 shadow-lg overflow-hidden rounded-3xl backdrop-blur-3xl bg-base-100 border-base-300 text-base-content">
-          <RotatingCircleText />
-          <h1 className="text-3xl font-bold text-center mb-6">
-            Đăng Nhập Locket
-          </h1>
-
-          <form onSubmit={handleLogin} className="space-y-4">
-            {/* Input Email hoặc SĐT */}
-            <div className="space-y-1">
-              <label className="label flex gap-1 items-center">
-                {loginMethod === "email" ? "Email" : "Số điện thoại"}
-                <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                {loginMethod === "email" ? (
-                  <input
-                    type={"email"}
-                    value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
-                    placeholder={"example@email.com"}
-                    required
-                    className="w-full py-5 rounded-lg input input-ghost border border-base-content transition text-base font-semibold placeholder:font-normal placeholder:italic placeholder:opacity-70"
-                  />
-                ) : (
-                  <PhoneInput phone={identifier} onChange={setIdentifier} />
-                )}
-              </div>
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={toggleLoginMethod}
-                  className="text-xs text-base-content opacity-80 hover:opacity-100 underline inline-flex items-center gap-1"
-                >
-                  {loginMethod === "email" ? (
-                    <>
-                      <Phone className="w-4 h-4" />
-                      Đăng nhập bằng số điện thoại?
-                    </>
-                  ) : (
-                    <>
-                      <Mail className="w-4 h-4" />
-                      Đăng nhập bằng email?
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Input Mật khẩu */}
-            <div className="space-y-1">
-              <label className="label flex gap-1 items-center">
-                Mật khẩu
-                <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  className="w-full pr-5 rounded-lg input input-ghost border-base-content font-semibold text-base placeholder:font-normal placeholder:italic placeholder:opacity-70"
-                  placeholder="Nhập mật khẩu"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="absolute top-1/2 z-10 right-3 transform -translate-y-1/2 text-base-content opacity-70 hover:opacity-100 transition-opacity"
-                >
-                  {showPassword ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-5 h-5"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 11-4.243-4.243m4.242 4.242L9.88 9.88"
-                      />
-                    </svg>
-                  ) : (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-5 h-5"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.639 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.639 0-8.573-3.007-9.963-7.178z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                    </svg>
-                  )}
-                </button>
-              </div>
-              <div className="flex justify-end">
-                <Link
-                  to="/forgot-password"
-                  className="text-xs tracking-wide opacity-80 hover:opacity-100 underline"
-                >
-                  Quên mật khẩu?
-                </Link>
-              </div>
-            </div>
-
-            {/* Remember me & Forgot password */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <input
-                  id="rememberMe"
-                  type="checkbox"
-                  disabled
-                  className="checkbox checkbox-primary checkbox-sm"
-                  checked={rememberMe}
-                  onChange={() => setRememberMe(!rememberMe)}
-                />
-                <label
-                  htmlFor="rememberMe"
-                  className="cursor-pointer select-none text-sm"
-                >
-                  Ghi nhớ đăng nhập
-                </label>
-              </div>
-            </div>
-
-            {/* Button đăng nhập */}
-            <button
-              type="submit"
-              className={`
-                w-full btn btn-primary py-3 text-lg font-semibold rounded-lg transition flex items-center justify-center gap-2
-                ${
-                  isActiveLogin
-                    ? "bg-blue-400 cursor-not-allowed opacity-80"
-                    : ""
-                }
-              `}
-              disabled={isActiveLogin}
-            >
-              {isLoginLoading ? (
-                <>
-                  <LoadingRing size={20} stroke={3} speed={2} color="white" />
-                  Đang đăng nhập...
-                </>
+    <div className="mtien-login">
+      <div className="mtien-login-layout mtien-container">
+        <section className="mtien-login-aside" aria-label="Khoảnh khắc cùng MTIEN">
+          <div className="mtien-eyebrow"><span /> NHỮNG ĐIỀU NHỎ, KẾT NỐI LỚN</div>
+          <h2>Một chút hôm nay.<br /><span>Gửi đến người thương.</span></h2>
+          <p>Đăng nhập và tiếp tục câu chuyện của bạn.</p>
+          <MomentStory compact />
+        </section>
+        <section className="mtien-login-form-section" aria-labelledby="mtien-login-title">
+          <div className="mtien-login-welcome"><img src="/mtien-mark.svg" width="42" height="42" alt="" /><span>GÓC NHỎ CỦA BẠN</span></div>
+          <h1 id="mtien-login-title">Chào bạn trở lại.</h1>
+          <p className="mtien-login-subtitle">Dùng tài khoản Locket của bạn để tiếp tục.</p>
+          <div className="mtien-login-method" role="group" aria-label="Phương thức đăng nhập">
+            <button type="button" aria-pressed={loginMethod === "email"} onClick={() => loginMethod !== "email" && toggleLoginMethod()}><Mail size={17} />Email</button>
+            <button type="button" aria-pressed={loginMethod === "phone"} onClick={() => loginMethod !== "phone" && toggleLoginMethod()}><Phone size={17} />Số điện thoại</button>
+          </div>
+          <form onSubmit={handleLogin} className="mtien-login-form">
+            <div className="mtien-field">
+              <label htmlFor="mtien-identifier">{loginMethod === "email" ? "Email" : "Số điện thoại"}</label>
+              {loginMethod === "email" ? (
+                <input id="mtien-identifier" name="username" autoComplete="username" type="email" value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="ban@example.com" required />
               ) : (
-                "Đăng Nhập"
+                <PhoneInput id="mtien-identifier" value={identifier} onChange={setIdentifier} />
               )}
-            </button>
-
+            </div>
+            <div className="mtien-field">
+              <div className="mtien-field-label"><label htmlFor="mtien-password">Mật khẩu</label><Link to="/forgot-password">Quên mật khẩu?</Link></div>
+              <div className="mtien-password-wrap">
+                <input id="mtien-password" name="password" autoComplete="current-password" type={showPassword ? "text" : "password"} placeholder="Nhập mật khẩu Locket" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                <button type="button" className="mtien-password-toggle" onClick={togglePasswordVisibility} aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"} aria-pressed={showPassword}>{showPassword ? <EyeOff size={19} /> : <Eye size={19} />}</button>
+              </div>
+            </div>
+            <label className="mtien-remember"><input id="rememberMe" type="checkbox" disabled checked={rememberMe} onChange={() => setRememberMe(!rememberMe)} /><span>Ghi nhớ đăng nhập</span></label>
             <TurnstileCaptcha onVerify={setCaptchaToken} />
-
-            <span className="text-xs">Vui lòng chờ Server02 khởi động.</span>
-            <StatusServer />
+            <button type="submit" className="mtien-button mtien-button-primary mtien-login-submit" disabled={isActiveLogin}>
+              {isLoginLoading ? <><LoadingRing size={18} stroke={3} speed={2} color="#15251b" />Đang đăng nhập...</> : <>Đăng nhập<ArrowRight size={19} /></>}
+            </button>
+            <div className="mtien-server-status"><StatusServer /></div>
           </form>
-        </div>
+          <div className="mtien-login-note"><LockKeyhole size={15} /><p>Đăng nhập bằng tài khoản bạn đang dùng trên ứng dụng Locket.</p></div>
+          <div className="mtien-login-links"><Link to="/">Về trang chủ</Link><span>·</span><Link to="/privacy">Quyền riêng tư</Link></div>
+        </section>
       </div>
-    </>
+    </div>
   );
 };
 

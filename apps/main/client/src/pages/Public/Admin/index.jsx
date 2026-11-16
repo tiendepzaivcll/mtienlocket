@@ -223,7 +223,7 @@ export default function AdminPanel() {
               <ShieldCheck size={22} />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Admin T97</h1>
+              <h1 className="text-2xl font-bold">Admin MTIEN</h1>
               <p className="text-sm opacity-70">Quản lý username được phép dùng web.</p>
             </div>
           </div>
@@ -254,7 +254,7 @@ export default function AdminPanel() {
       <section className="mx-auto max-w-5xl space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold">Admin T97</h1>
+            <h1 className="text-2xl font-bold">Admin MTIEN</h1>
             <p className="text-sm opacity-70">
               {activeCount} username đang được phép sử dụng web.
             </p>

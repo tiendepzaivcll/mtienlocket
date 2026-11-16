@@ -1,31 +1,25 @@
-import React from "react";
+import { Link } from "react-router-dom";
 import { CONFIG } from "@/config";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-  const { startYear, buildVersion, apiVersion } = CONFIG.app;
+  const { startYear } = CONFIG.app;
 
   return (
-    <footer className="w-full bg-base-100 text-primary text-sm shadow-inner px-4 py-3">
-      <div className="max-w-screen-xl mx-auto flex flex-col md:flex-row justify-between items-center gap-1">
-        <p className="text-center md:text-left">
-          © {startYear}
-          {currentYear > startYear && `–${currentYear}`}{" "}
-          <span className="font-semibold font-lovehouse">T97</span>. All rights reserved.
-        </p>
-
-        <p className="text-center md:text-right text-xs">
-          <span className="cursor-pointer hover:text-blue-500 transition hover:underline">
-            Build {buildVersion}
-          </span>
-          <span> • </span>
-          <span className="cursor-pointer hover:text-blue-500 transition hover:underline">
-            API {apiVersion}
-          </span>
-          <span className="cursor-pointer ml-2 hidden sm:inline text-secondary hover:underline">
-            • Read more
-          </span>
-        </p>
+    <footer className="mtien-footer">
+      <div className="mtien-footer-inner">
+        <div className="mtien-footer-identity">
+          <Link to="/" className="mtien-wordmark" aria-label="MTIEN — Trang chủ">
+            <span>MTIEN<span className="mtien-wordmark-dot">.</span></span>
+          </Link>
+          <span>Những khoảnh khắc, gần nhau hơn.</span>
+        </div>
+        <nav aria-label="Thông tin và hỗ trợ">
+          <Link to="/download">Hướng dẫn</Link>
+          <Link to="/privacy">Quyền riêng tư</Link>
+          <Link to="/settings">Cài đặt</Link>
+        </nav>
+        <p>© {startYear}{currentYear > startYear && `–${currentYear}`} MTIEN</p>
       </div>
     </footer>
   );

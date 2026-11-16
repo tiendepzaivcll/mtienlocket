@@ -17,12 +17,12 @@ import { create } from "zustand";
 const fullAccessPlan = {
   plan: {
     id: "t97-full",
-    name: "T97 Full Access",
+    name: "MTIEN Full Access",
     badge: null,
   },
   plan_info: {
     id: "t97-full",
-    name: "T97 Full Access",
+    name: "MTIEN Full Access",
   },
   subscription: {
     plan_id: "t97-full",

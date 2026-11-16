@@ -100,10 +100,10 @@ export const CONFIG = {
   },
 
   app: {
-    name: "T97", // Tên app hiển thị
+    name: "MTIEN", // Tên app hiển thị
     author: "T97",
     shortname: "t97",
-    fullName: "T97 - Đăng ảnh & Video lên Locket", // Tên đầy đủ
+    fullName: "MTIEN - Chia sẻ khoảnh khắc trên Locket", // Tên đầy đủ
     clientVersion: "Beta2.5.5.2.6", // Version client
     apiVersion: "v2.2.1", // Version API
     buildVersion: import.meta.env.VITE_BUILD_COMMIT || "local",
@@ -173,11 +173,11 @@ export const CONFIG = {
     videoTutorials: {
       youtubeChannel: "https://www.youtube.com/@Locketdio",
       iosAddscreen: {
-        title: "Hướng dẫn thêm T97 vào màn hình chính trên iPhone!",
+        title: "Hướng dẫn thêm MTIEN vào màn hình chính trên iPhone!",
         url: "https://www.youtube.com/embed/iElPAnQ7lNY",
       }, // Hướng dẫn thêm trang web vào màn hình chính trên iPhone (Safari)
       androidAddscreen: {
-        title: "Hướng dẫn thêm T97 vào màn hình chính trên Android!",
+        title: "Hướng dẫn thêm MTIEN vào màn hình chính trên Android!",
         url: "https://www.youtube.com/embed/JtgfTNbKTZY",
       }, // Hướng dẫn thêm trang web vào màn hình chính trên Android (Chrome)
     },

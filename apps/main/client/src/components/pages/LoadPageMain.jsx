@@ -15,15 +15,15 @@ const LoadingPageMain = ({ isLoading }) => {
       {/* Logo */}
       <div>
         <img
-          src="/apple-touch-icon.png"
-          alt="T97"
+          src="/mtien-mark.svg"
+          alt="MTIEN"
           loading="lazy"
           className="w-20 h-20 shadow-md rounded-2xl loading-bounce-y"
         />
       </div>
-      <h1 className="text-xl font-semibold">T97 is loading.</h1>
+      <h1 className="text-xl font-semibold">MTIEN đang tải.</h1>
       <p className="text-sm opacity-70 animate-pulse">
-        Preparing your memories…
+        Chuẩn bị những khoảnh khắc của bạn…
       </p>
       <Zoomies
         size="80"

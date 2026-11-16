@@ -1,58 +1,24 @@
-import React from "react";
+import { ArrowRight, BookOpen, Camera, Settings2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import ThemeSelector from "@/components/Theme/ThemeSelector";
-import MockupiPhone from "@/components/ui/MockupiPhone";
+import { useAuthStore } from "@/stores";
+import MomentStory from "@/pages/Public/Home/MomentStory";
+import "@/pages/Public/Home/mtien-home.css";
 
-const AuthHome = () => {
-
+export default function AuthHome() {
+  const user = useAuthStore((state) => state.user);
+  const name = user?.displayName || user?.username;
   return (
-    <div className="flex flex-col items-center justify-center py-6 bg-base-200 px-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl w-full items-center">
-        <div className="text-center lg:text-left">
-          <h1 className="text-4xl font-extrabold leading-tight">
-            Chia sẻ khoảnh khắc <br /> với Locket!
-          </h1>
-          <p className="mt-4 text-lg text-base-content">
-            Lưu giữ và chia sẻ những kỷ niệm đáng nhớ của bạn với bạn bè và gia đình.
-          </p>
-          <Link
-            to="/locket"
-            className="mt-6 px-6 py-4 rounded-lg shadow btn btn-primary text-lg font-semibold hover:bg-primary-focus transition"
-          >
-            Khám phá ngay
-          </Link>
+    <div className="mtien-auth-home">
+      <section className="mtien-hero mtien-container">
+        <div className="mtien-hero-copy">
+          <div className="mtien-eyebrow"><span /> MỪNG BẠN TRỞ LẠI VỚI MTIEN</div>
+          <h1>Chào {name || "bạn"}.<br /><span>Kể chuyện hôm nay.</span></h1>
+          <p>Một tấm ảnh nhỏ, một lời nhắn dễ thương. Hôm nay bạn muốn gửi điều gì đến những người thân quen?</p>
+          <div className="mtien-hero-actions"><Link className="mtien-button mtien-button-primary" to="/locket-beta"><Camera size={18} />Mở Locket<ArrowRight size={18} /></Link><Link className="mtien-button mtien-button-quiet" to="/diary"><BookOpen size={18} />Nhật ký của bạn</Link></div>
+          <Link className="mtien-discover" to="/settings"><Settings2 size={16} />Tùy chỉnh trải nghiệm</Link>
         </div>
-        <div className="flex justify-center disable-select">
-          <MockupiPhone/>
-        </div>
-      </div>
-
-      {/* Section giới thiệu */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl w-full mt-12 mb-7">
-        <div className="p-6 bg-base-100 shadow-lg rounded-xl text-center">
-          <h2 className="text-xl font-semibold mb-3">📷 Chia sẻ dễ dàng</h2>
-          <p className="text-base-content">
-            Tải ảnh và video lên chỉ trong vài giây.
-          </p>
-        </div>
-        <div className="p-6 bg-base-100 shadow-lg rounded-xl text-center">
-          <h2 className="text-xl font-semibold mb-3">💬 Kết nối bạn bè</h2>
-          <p className="text-base-content">
-            Xem hoạt động của bạn bè theo thời gian thực.
-          </p>
-        </div>
-        <div className="p-6 bg-base-100 shadow-lg rounded-xl text-center">
-          <h2 className="text-xl font-semibold mb-3">🔒 Bảo mật an toàn</h2>
-          <p className="text-base-content">
-            Dữ liệu của bạn được bảo vệ với công nghệ tiên tiến.
-          </p>
-        </div>
-      </div>
-
-      {/* Import ThemeSelector */}
-      <ThemeSelector />
+        <MomentStory />
+      </section>
     </div>
   );
-};
-
-export default AuthHome;
+}

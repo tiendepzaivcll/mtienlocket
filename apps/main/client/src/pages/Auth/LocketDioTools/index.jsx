@@ -82,7 +82,7 @@ export default function ToolsLocket() {
     <div className="flex flex-col min-h-[84vh] w-full p-3 pb-24 md:pb-3">
       {/* Title */}
       <h1 className="text-3xl font-bold text-primary text-center">
-        🧰 ToolsLocket by T97
+        🧰 ToolsLocket by MTIEN
       </h1>
       <div className="text-sm text-center mt-1 text-base-content">
         Đăng nhập dưới tên:{" "}

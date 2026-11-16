@@ -54,7 +54,7 @@ const NotificationPrompt = () => {
 
       SonnerSuccess(
         "Đăng ký thành công",
-        "Bạn sẽ nhận được thông báo mới nhất từ T97.",
+        "Bạn sẽ nhận được thông báo mới nhất từ MTIEN.",
       );
     } catch (error) {
       console.error("Subscribe user error:", error);
@@ -66,13 +66,13 @@ const NotificationPrompt = () => {
   return (
     <div className="fixed bottom-5 right-5 z-50 max-w-sm w-[90%] sm:w-auto p-4 bg-white rounded-xl shadow-xl border border-gray-200 animate-fade-in text-sm text-gray-800 flex items-start gap-3">
       <img
-        src="/apple-touch-icon.png"
+        src="/mtien-apple-touch-icon.png"
         alt="Notification"
         className="w-12 h-12 object-contain"
       />
       <div className="flex-1">
         <p className="font-medium mb-2">
-          Bạn có muốn nhận thông báo từ T97?
+          Bạn có muốn nhận thông báo từ MTIEN?
         </p>
         <div className="flex gap-2 justify-end mt-3">
           <button

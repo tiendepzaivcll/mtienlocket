@@ -4,16 +4,16 @@ const Docs = () => {
   return (
     <div className="min-h-screen px-4 flex flex-col items-center py-5">
       <h1 className="text-3xl font-semibold mb-5">
-        Hướng Dẫn Sử Dụng Trang Web T97
+        Hướng Dẫn Sử Dụng Trang Web MTIEN
       </h1>
 
       <div className="max-w-3xl text-left mb-12">
         {/* Giới Thiệu */}
         <h2 className="text-2xl font-semibold mt-4">
-          1. Giới Thiệu Về T97
+          1. Giới Thiệu Về MTIEN
         </h2>
         <p className="text-sm leading-relaxed">
-          T97 là nền tảng WebApp giúp bạn dễ dàng tải lên, lưu trữ và
+          MTIEN là nền tảng WebApp giúp bạn dễ dàng tải lên, lưu trữ và
           chia sẻ ảnh, video với phong cách riêng biệt qua các caption tùy
           chỉnh. Chúng tôi cam kết mang đến cho bạn trải nghiệm quản lý nội dung
           thuận tiện, bảo mật và tối ưu nhất trên web.
@@ -107,20 +107,20 @@ const Docs = () => {
             trong tương lai.
           </li>
           <li>
-            <b>Người sáng lập T97 là ai?</b> T97 được vận hành bởi T97,
-            với đam mê tạo ra sản phẩm sáng tạo và hữu ích.
+            <b>MTIEN được xây dựng như thế nào?</b> MTIEN được tùy biến từ mã nguồn T97,
+            với giao diện riêng và các chức năng chia sẻ khoảnh khắc trên Locket.
           </li>
           <li>
             <b>Member hiện được dùng những gì?</b> Member được mở toàn bộ tính
-            năng cao nhất của T97, gồm đăng ảnh/video, lưu trữ và các tùy chỉnh
+            năng cao nhất của MTIEN, gồm đăng ảnh/video, lưu trữ và các tùy chỉnh
             caption nâng cao.
           </li>
           <li>
-            <b>Có cần nâng cấp gói không?</b> Không. T97 đã bỏ gói thành viên
+            <b>Có cần nâng cấp gói không?</b> Không. MTIEN đã bỏ gói thành viên
             trả phí trong app, nên member dùng trực tiếp Full Access.
           </li>
           <li>
-            <b>Trang web hỗ trợ các trình duyệt nào?</b> T97 hỗ trợ tất
+            <b>Trang web hỗ trợ các trình duyệt nào?</b> MTIEN hỗ trợ tất
             cả các trình duyệt hiện đại như Chrome, Firefox, Safari, Edge và
             trình duyệt di động Android/iOS.
           </li>
@@ -141,11 +141,11 @@ const Docs = () => {
           </li>
           <li>
             <b>Mã nguồn API?</b> Nếu bạn muốn tìm hiểu hoặc tích hợp API từ
-            T97, hãy liên hệ quản trị viên qua email để được cấp quyền
+            MTIEN, hãy liên hệ quản trị viên qua email để được cấp quyền
             hoặc tài liệu hướng dẫn.
           </li>
           <li>
-            <b>Trang web có quảng cáo không?</b> Không. T97 hoạt động
+            <b>Trang web có quảng cáo không?</b> Không. MTIEN hoạt động
             hoàn toàn không có quảng cáo để giữ trải nghiệm người dùng liền mạch và
             sạch sẽ.
           </li>
@@ -160,7 +160,7 @@ const Docs = () => {
         {/* Cam Đoan Bảo Mật */}
         <h2 className="text-2xl font-semibold mt-6">6. Chính Sách Bảo Mật</h2>
         <p className="text-sm">
-          T97 cam kết bảo mật thông tin tài khoản của bạn. Tất cả các tệp
+          MTIEN cam kết bảo mật thông tin tài khoản của bạn. Tất cả các tệp
           tin và dữ liệu mà bạn tải lên sẽ được bảo vệ bằng các biện pháp an
           toàn, và tôi không lưu trữ bất kỳ thông tin nhạy cảm nào liên quan đến
           tài khoản của bạn. Tôi luôn nỗ lực để đảm bảo rằng các thông tin cá

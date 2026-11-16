@@ -71,7 +71,7 @@ export default class ErrorBoundary extends React.Component {
               Oops! Có lỗi xảy ra rồi.
             </p>
             <p className="text-sm md:text-base opacity-80 mb-4 md:mb-6">
-              Ứng dụng web T97 đang gặp sự cố không mong muốn. Bạn có thể
+              Ứng dụng web MTIEN đang gặp sự cố không mong muốn. Bạn có thể
               thử khởi động lại hoặc gửi email t97system@icloud.com để được hỗ trợ.
             </p>
 

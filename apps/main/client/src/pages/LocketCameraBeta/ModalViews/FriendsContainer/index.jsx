@@ -47,12 +47,12 @@ const FriendsContainer = () => {
         addFriendLocal(data);
         // ✅ Hiển thị thông báo
         SonnerSuccess(
-          "Thông báo từ T97",
+          "Thông báo từ MTIEN",
           `Đã chấp nhận ${data.firstName}`,
         );
       } else {
         SonnerError(
-          "Thông báo từ T97",
+          "Thông báo từ MTIEN",
           "Không tìm thấy lời mời để chấp nhận.",
         );
       }

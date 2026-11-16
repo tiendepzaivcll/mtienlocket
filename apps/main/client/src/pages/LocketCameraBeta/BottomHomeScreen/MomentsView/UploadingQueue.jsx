@@ -14,7 +14,7 @@ const UploadingQueue = () => {
   if (uploadItems.length === 0)
     return (
       <div className="flex justify-center items-center w-full">
-        <p className="text-sm">i love T97</p>
+        <p className="text-sm">i love MTIEN</p>
       </div>
     );
 
@@ -23,7 +23,7 @@ const UploadingQueue = () => {
       <h1 className="text-base font-semibold">Ảnh/Video đang tải lên</h1>
       <p className="text-sm italic">
         Lưu ý phương tiện ở mục này sẽ bị xoá sau một khoảng thời gian nhất
-        định. Nếu bạn gặp lỗi khi tải lên, hãy thử lại hoặc hỏi cộng đồng T97.
+        định. Nếu bạn gặp lỗi khi tải lên, hãy thử lại hoặc hỏi cộng đồng MTIEN.
       </p>
       <p>
         Nếu bài đăng chưa thành công hãy click vào chúng và bấm thử lại để tiếp

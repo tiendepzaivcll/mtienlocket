@@ -58,7 +58,7 @@ const PrivacyPolicy = () => {
           <p>
             <strong>Company</strong> (referred to as either &quot;the
             Company&quot;, &quot;We&quot;, &quot;Us&quot; or &quot;Our&quot; in
-            this Agreement) refers to T97.
+            this Agreement) refers to MTIEN.
           </p>
         </li>
         <li className="mb-4">
@@ -110,9 +110,9 @@ const PrivacyPolicy = () => {
         </li>
         <li className="mb-4">
           <p>
-            <strong>Website</strong> refers to T97, accessible from{" "}
+            <strong>Website</strong> refers to MTIEN, accessible from{" "}
             <a href="/">
-              trang chủ T97
+              trang chủ MTIEN
             </a>
           </p>
         </li>

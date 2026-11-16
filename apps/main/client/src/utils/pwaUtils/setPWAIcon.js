@@ -2,10 +2,12 @@ export function setPWAIcon(iconName = "default", path = "pwa-icons") {
   const base = window.location.origin;
 
   const manifest = {
-    name: "T97",
-    short_name: "T97",
-    description: "T97 - Đăng ảnh & Video lên Locket",
+    name: "MTIEN",
+    short_name: "MTIEN",
+    description: "MTIEN - Đăng ảnh & Video lên Locket",
     display: "standalone",
+    background_color: "#101614",
+    theme_color: "#101614",
     scope: base + "/",
     start_url: base,
     orientation: "portrait",

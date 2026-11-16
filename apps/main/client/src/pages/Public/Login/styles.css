@@ -1,0 +1,48 @@
+.mtien-login-layout{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:110px;min-height:780px;padding-top:58px;padding-bottom:70px}
+.mtien-login-aside h2{font-size:38px;font-weight:550;line-height:1.2;letter-spacing:-1.6px;margin:20px 0 13px}
+.mtien-login-aside h2>span{color:var(--mt-mint)}
+.mtien-login-aside>p{color:var(--mt-muted);font-size:13px;line-height:1.8;margin:0 0 30px}
+.mtien-login-aside .mtien-story{max-width:365px;margin-left:0}
+.mtien-story-compact .mtien-story-heading,.mtien-story-compact .mtien-story-bottom{display:none}
+.mtien-story-compact .mtien-story-photo{aspect-ratio:1.2;border-top-left-radius:85px}
+.mtien-login-form-section{width:100%;max-width:410px;margin:0 auto}
+.mtien-login-welcome{display:flex;align-items:center;gap:13px;margin-bottom:27px}
+.mtien-login-welcome img{border-radius:11px}
+.mtien-login-welcome>span{color:var(--mt-muted);font-size:10px;font-weight:600;letter-spacing:1.7px}
+.mtien-login-form-section h1{font-size:35px;font-weight:600;line-height:1.2;letter-spacing:-1.6px;margin:0 0 12px}
+.mtien-login-subtitle{font-size:13px;color:var(--mt-muted);line-height:1.8;margin:0}
+.mtien-login-method{display:grid;grid-template-columns:1fr 1fr;gap:5px;background:#1c221e;border:1px solid var(--mt-line);padding:5px;border-radius:11px;margin-top:28px;margin-bottom:27px}
+.mtien-login-method>button{display:flex;align-items:center;justify-content:center;gap:9px;min-height:41px;border-radius:7px;border:0;background:transparent;color:var(--mt-muted);font-size:13px;font-weight:550;cursor:pointer}
+.mtien-login-method>button[aria-pressed=true]{background:var(--mt-mint);color:#15251b}
+.mtien-login-method>button:focus-visible,.mtien-password-toggle:focus-visible{outline:2px solid var(--mt-mint);outline-offset:4px}
+.mtien-login-form{display:flex;flex-direction:column;gap:21px}
+.mtien-field>label,.mtien-field-label>label{color:var(--mt-text);font-size:12px;font-weight:550;display:block;margin-bottom:10px}
+.mtien-field-label{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.mtien-field-label>a{font-size:11px;color:var(--mt-muted);text-decoration:none}
+.mtien-field-label>a:hover{color:var(--mt-mint)}
+.mtien-field input{display:block;background:var(--mt-surface);border:1px solid var(--mt-line);border-radius:9px;color:var(--mt-text);width:100%;height:51px;min-height:51px;padding:0 15px;outline:none;font-size:14px;font-weight:400;box-shadow:none}
+.mtien-field input::placeholder{color:#7d8a81;font-style:normal;opacity:1;font-weight:400}
+.mtien-field input:focus{outline:2px solid var(--mt-mint);outline-offset:2px;border-color:transparent}
+.mtien-field input[type=tel]{padding-left:44px}
+.mtien-field .relative>span{font-size:17px}
+.mtien-password-wrap{position:relative}
+.mtien-password-wrap>input{padding-right:50px}
+.mtien-password-toggle{position:absolute;right:3px;top:3px;width:45px;height:45px;display:grid;place-items:center;background:none;border:0;border-radius:7px;color:var(--mt-muted);cursor:pointer}
+.mtien-password-toggle:hover{color:var(--mt-mint)}
+.mtien-remember{display:flex;align-items:center;gap:9px;color:var(--mt-muted);font-size:12px;line-height:1.5}
+.mtien-remember input{width:15px;height:15px;accent-color:var(--mt-mint);flex-shrink:0}
+.mtien-login-submit{width:100%;font-size:14px;min-height:51px}
+.mtien-login-submit:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.mtien-server-status{display:flex;justify-content:center;min-height:20px;margin-top:-6px}
+.mtien-server-status>div{font-size:11px}
+.mtien-server-status .text-green-600{color:var(--mt-mint)}
+.mtien-server-status .text-orange-600{color:#f3c88d}
+.mtien-server-status .text-red-600{color:#ff9b9b}
+.mtien-login-note{display:flex;align-items:start;gap:9px;border-top:1px solid var(--mt-line);padding-top:22px;margin-top:25px;color:var(--mt-muted)}
+.mtien-login-note>svg{margin-top:3px;flex-shrink:0;color:var(--mt-mint)}
+.mtien-login-note p{font-size:11px;line-height:1.8;margin:0}
+.mtien-login-links{display:flex;justify-content:center;align-items:center;gap:15px;margin-top:26px;color:var(--mt-muted);font-size:11px}
+.mtien-login-links>a{text-decoration:none;color:inherit}
+.mtien-login-links>a:hover{color:var(--mt-mint)}
+@media(max-width:1024px){.mtien-login-layout{gap:55px;min-height:710px}.mtien-login-aside h2{font-size:32px}.mtien-login-form-section h1{font-size:32px}}
+@media(max-width:760px){.mtien-login-layout{display:block;padding-top:42px;padding-bottom:47px;min-height:0}.mtien-login-aside{display:none}.mtien-login-form-section{max-width:420px}.mtien-login-welcome{margin-bottom:25px}.mtien-login-form-section h1{font-size:33px}.mtien-login-subtitle{font-size:13px}.mtien-login-method{margin-top:25px}.mtien-field input{font-size:16px}.mtien-login-form{gap:21px}}

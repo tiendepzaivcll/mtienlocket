@@ -25,12 +25,12 @@ const IncomingFriendRequests = () => {
         setFriends((previous) => previous.filter((friend) => friend.uid !== uid));
         // ✅ Hiển thị thông báo
         SonnerSuccess(
-          "Thông báo từ T97",
+          "Thông báo từ MTIEN",
           `Đã chấp nhận ${data.firstName}`
         );
       } else {
         SonnerError(
-          "Thông báo từ T97",
+          "Thông báo từ MTIEN",
           "Không tìm thấy lời mời để chấp nhận."
         );
       }

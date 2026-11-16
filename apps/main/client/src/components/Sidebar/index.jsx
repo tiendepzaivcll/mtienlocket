@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -31,10 +31,38 @@ const Sidebar = () => {
   const { navigation } = useApp();
   const { isSidebarOpen, setIsSidebarOpen } = navigation;
 
+  const drawerRef = useRef(null);
+  const closeRef = useRef(null);
+
   useEffect(() => {
-    document.body.classList.toggle("overflow-hidden", isSidebarOpen);
-    return () => document.body.classList.remove("overflow-hidden");
-  }, [isSidebarOpen]);
+    if (!isSidebarOpen) return;
+    const previousFocus = document.activeElement;
+    document.body.classList.add("overflow-hidden");
+    closeRef.current?.focus();
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") setIsSidebarOpen(false);
+      if (event.key !== "Tab") return;
+      const controls = drawerRef.current?.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled])',
+      );
+      if (!controls?.length) return;
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.classList.remove("overflow-hidden");
+      document.removeEventListener("keydown", handleKeyDown);
+      if (previousFocus?.isConnected) previousFocus.focus();
+    };
+  }, [isSidebarOpen, setIsSidebarOpen]);
 
   const currentYear = new Date().getFullYear();
   const { startYear } = CONFIG.app;
@@ -120,85 +148,73 @@ const Sidebar = () => {
 
   const menuSections = user ? userMenuSections : guestMenuSections;
 
+  if (!isSidebarOpen) return null;
+
   return createPortal(
     <>
-      {/* Overlay */}
-      <div
-        className={`fixed h-screen z-[1000] inset-0 bg-base-100/10 backdrop-blur-[2px] transition-opacity duration-500 ${
-          isSidebarOpen
-            ? "opacity-100 pointer-events-auto"
-            : "opacity-0 pointer-events-none"
-        }`}
+      <button
+        type="button"
+        className="mtien-menu-overlay"
         onClick={() => setIsSidebarOpen(false)}
+        aria-label="Đóng menu"
+        tabIndex={-1}
       />
-
-      {/* Sidebar */}
       <div
-        className={`fixed z-[1001] top-0 right-0 h-full w-64 shadow-xl transition-all duration-500 bg-base-100 flex flex-col ${
-          isSidebarOpen
-            ? "opacity-100 translate-x-0"
-            : "opacity-0 translate-x-full"
-        }`}
+        ref={drawerRef}
+        id="mtien-navigation-drawer"
+        className="mtien-menu-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu MTIEN"
       >
-        {/* Header */}
-        <div className="flex justify-between items-center py-3 px-2 border-b border-base-300 flex-shrink-0">
-          <Link to="/" className="flex items-center gap-1">
-            <span className="text-lg pl-2 font-semibold gradient-text select-none">
-              Menu
-            </span>
+        <div className="mtien-menu-top">
+          <Link to="/" onClick={() => setIsSidebarOpen(false)}>
+            <img src="/mtien-mark.svg" alt="" width="30" height="30" />
+            MTIEN.
           </Link>
-          <ThemeToggle />
           <button
+            ref={closeRef}
+            type="button"
             onClick={() => setIsSidebarOpen(false)}
-            className="p-2 rounded-md transition cursor-pointer btn"
+            className="mtien-menu-close"
+            aria-label="Đóng menu"
           >
-            <X size={24} />
+            <X size={20} aria-hidden="true" />
           </button>
         </div>
-
-        {/* Navigation Menu */}
-        <div className="flex-1 overflow-y-auto">
-          <ul className="menu text-base-content w-full py-2 text-md font-semibold">
-            {menuSections.map((section) => (
-              <li key={section.title}>
-                <h2 className="menu-title flex items-center justify-between">
-                  <span>{section.title}</span>
-                  {section.badge && <div>{section.badge}</div>}
-                </h2>
-                <ul>
-                  {section.items.map((item) => (
-                    <MenuItem
-                      key={item.to}
-                      to={item.to}
-                      icon={item.icon}
-                      badge={item.badge}
-                      locked={accessRole === "celebrity" && item.to !== "/tools"}
-                      onClick={() => setIsSidebarOpen(false)}
-                    >
-                      {item.text}
-                    </MenuItem>
-                  ))}
-                </ul>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Auth Button */}
+        <nav className="mtien-menu-scroll" aria-label="Toàn bộ điều hướng">
+          {menuSections.map((section) => (
+            <section className="mtien-menu-section" key={section.title}>
+              <h2>{section.title}</h2>
+              <ul>
+                {section.items.map((item) => (
+                  <MenuItem
+                    key={item.to}
+                    to={item.to}
+                    icon={item.icon}
+                    badge={item.badge}
+                    locked={accessRole === "celebrity" && item.to !== "/tools"}
+                    onClick={() => setIsSidebarOpen(false)}
+                  >
+                    {item.text}
+                  </MenuItem>
+                ))}
+              </ul>
+            </section>
+          ))}
+          <div className="mtien-menu-theme">
+            <span>Giao diện Locket</span>
+            <ThemeToggle />
+          </div>
+        </nav>
         <AuthButton
           user={user}
           onLogout={handleLogout}
           onClose={() => setIsSidebarOpen(false)}
         />
-
-        <div>
-          <p className="text-center text-xs pb-2 text-base-content/70">
-            © {startYear}
-            {currentYear > startYear && `–${currentYear}`}{" "}
-            <span className="font-semibold font-lovehouse">T97</span>. All
-            rights reserved.
-          </p>
-        </div>
+        <p className="mtien-menu-copyright">
+          © {startYear}{currentYear > startYear && `–${currentYear}`} MTIEN
+        </p>
       </div>
     </>, document.body
   );

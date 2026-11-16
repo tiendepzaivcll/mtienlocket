@@ -1,56 +1,30 @@
-import React, { lazy, Suspense } from "react";
+import { lazy, Suspense } from "react";
 import { useLocation } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import "@/styles/mtien-shell.css";
 
 const FloatingActions = lazy(() => import("@/components/ui/FloatingWidget"));
 const CropImageStudio = lazy(() => import("@/features/EditorStudio/CropImageStudio"));
 
 const DefaultLayout = ({ children }) => {
   const location = useLocation();
-
-  // Ẩn floating
-  const hiddenFloatingRoutes = ["/tools"];
-  const shouldHideFloating = hiddenFloatingRoutes.some((path) =>
-    location.pathname.startsWith(path),
-  );
-
-  // Chỉ hiện crop ở các route này
-  const cropRoutes = ["/postmoments", "/restore-streak"];
-  const shouldShowCrop = cropRoutes.some((path) =>
+  const shouldHideFloating = location.pathname.startsWith("/tools");
+  const shouldShowFloating = !shouldHideFloating &&
+    !["/", "/login", "/home"].includes(location.pathname);
+  const shouldShowCrop = ["/postmoments", "/restore-streak"].some((path) =>
     location.pathname.startsWith(path),
   );
 
   return (
-    <>
+    <div className="mtien-shell">
       <Header />
-      <div className="h-16 bg-base-200" />
-      <main className="overflow-hidden bg-base-200 text-base-content relative">
-        <div className="relative z-10">{children}</div>
-      </main>
-
+      <div className="mtien-header-spacer" aria-hidden="true" />
+      <main className="mtien-content">{children}</main>
       {!shouldHideFloating && <Footer />}
-
       <Suspense fallback={null}>
         {shouldShowCrop && <CropImageStudio />}
-        {!shouldHideFloating && <FloatingActions />}
-      </Suspense>
-    </>
-  );
-
-  return (
-    <div className="grid grid-rows-[auto_1fr_auto]">
-      <Header />
-
-      <main className="overflow-hidden bg-base-200 text-base-content relative">
-        <div className="relative z-10">{children}</div>
-      </main>
-
-      {!shouldHideFloating && <Footer />}
-
-      <Suspense fallback={null}>
-        {shouldShowCrop && <CropImageStudio />}
-        {!shouldHideFloating && <FloatingActions />}
+        {shouldShowFloating && <FloatingActions />}
       </Suspense>
     </div>
   );

@@ -1,40 +1,46 @@
 import "./header.css";
-import { Menu } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowUpRight, Menu } from "lucide-react";
+import { Link, NavLink } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
+import { useAuthStore } from "@/stores";
 
 const Header = () => {
   const { navigation } = useApp();
-
-  const { setIsSidebarOpen } = navigation;
+  const user = useAuthStore((state) => state.user);
+  const accessRole = useAuthStore((state) => state.accessRole);
+  const destination = user
+    ? accessRole === "celebrity" ? "/tools#celebrity" : "/locket-beta"
+    : "/login";
 
   return (
-    <>
-      <header className="fixed top-0 z-50 shadow-md bg-base-100 navbar flex items-center justify-between px-6 py-3 text-base-content border-base-300">
-        <Link to="/" className="flex items-center gap-2" aria-label="Trang chủ">
-          <span className="font-semibold gradient-text disable-select">
-            T97
-          </span>
-          <img
-            src="/images/locket-dio.png"
-            alt="Locket icon"
-            className="w-7 h-7 object-contain -ml-1 disable-select"
-            draggable="false"
-          />
+    <header className="mtien-header">
+      <div className="mtien-header-inner">
+        <Link to="/" className="mtien-wordmark" aria-label="MTIEN — Trang chủ">
+          <img src="/mtien-mark.svg" alt="" width="34" height="34" />
+          <span>MTIEN<span className="mtien-wordmark-dot">.</span></span>
         </Link>
-
-        <div className="flex items-center gap-2">
-          {/* <ThemeDropdown /> */}
+        <nav className="mtien-header-nav" aria-label="Điều hướng chính">
+          <NavLink to="/" end>Trang chủ</NavLink>
+          <NavLink to="/download">Hướng dẫn</NavLink>
+        </nav>
+        <div className="mtien-header-actions">
+          <Link to={destination} className="mtien-header-cta">
+            {user ? "Mở Locket" : "Đăng nhập"}
+            <ArrowUpRight size={17} aria-hidden="true" />
+          </Link>
           <button
-            onClick={() => setIsSidebarOpen(true)}
-            className="p-2 rounded-md transition cursor-pointer btn"
+            type="button"
+            onClick={() => navigation.setIsSidebarOpen(true)}
+            className="mtien-menu-trigger"
             aria-label="Mở menu"
+            aria-expanded={navigation.isSidebarOpen}
+            aria-controls="mtien-navigation-drawer"
           >
-            <Menu size={28} strokeWidth={2} />
+            <Menu size={22} aria-hidden="true" />
           </button>
         </div>
-      </header>
-    </>
+      </div>
+    </header>
   );
 };
 

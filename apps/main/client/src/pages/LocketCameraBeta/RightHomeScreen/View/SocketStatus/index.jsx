@@ -32,7 +32,7 @@ const SocketStatus = ({ isConnected, connectionInfo, reconnect }) => {
           <div className={`status ${statusClass}`}></div>
         </div>
         <span className={isConnected ? "text-success" : "text-error"}>
-          {isConnected ? "Connected to T97 Service" : "Disconnected"}
+          {isConnected ? "Connected to MTIEN Service" : "Disconnected"}
         </span>
         <Activity className="h-4 w-4 opacity-60" />
       </button>

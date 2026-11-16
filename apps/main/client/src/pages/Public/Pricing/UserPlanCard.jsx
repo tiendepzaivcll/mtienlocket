@@ -136,7 +136,7 @@ export const UserPlanCard = React.memo(({ userPlan, onRefresh, loading }) => {
           {isFree ? (
             <div className="flex items-center justify-between">
               <span className="font-semibold text-amber-600">
-                🌟 T97 Membership
+                🌟 MTIEN Membership
               </span>
               <span className="text-sm font-medium text-amber-500">
                 Gói miễn phí
@@ -146,7 +146,7 @@ export const UserPlanCard = React.memo(({ userPlan, onRefresh, loading }) => {
             <>
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-amber-600">
-                  🌟 T97 Membership
+                  🌟 MTIEN Membership
                 </span>
                 <span className="text-sm font-medium text-gray-700">
                   {timeLeft}
