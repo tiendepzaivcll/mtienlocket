@@ -9,6 +9,7 @@ const NewsDetailPage = React.lazy(() => import("@/pages/Public/NewsDetailPage"))
 const AuthHome = React.lazy(() => import("../pages/Auth/Home"));
 const Profile = React.lazy(() => import("../pages/Auth/Profile"));
 const PostMoments = React.lazy(() => import("../pages/Auth/PostMoments"));
+const Photobooth = React.lazy(() => import("../pages/Auth/Photobooth"));
 const Settings = React.lazy(() => import("../pages/Public/Settings"));
 const DevPage = React.lazy(() => import("../pages/Public/DevPage"));
 const AddToHomeScreenGuide = React.lazy(() => import("../pages/Public/AddToScreen"));
@@ -31,6 +32,7 @@ export const authRoutes = [
 
   { path: "/profile", component: Profile, title: `Hồ sơ | ${APP_NAME}` },
   { path: "/postmoments", component: PostMoments, title: `Đăng Moment Mới | ${APP_NAME}` },
+  { path: "/photobooth", component: Photobooth, title: `Photobooth 4 ô | ${APP_NAME}` },
   { path: "/restore-streak", component: RestoreStreak, title: `Khôi phục chuỗi Locket | ${APP_NAME}` },
   { path: "/tools", component: ToolsLocket, title: `Công cụ mở rộng | ${APP_NAME}` },
   { path: "/diary", component: DiaryPage, title: `Nhật ký Locket | ${APP_NAME}` },

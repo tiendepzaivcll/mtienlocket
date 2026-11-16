@@ -36,6 +36,7 @@ const MediaPreview = () => {
     setDeviceId,
   } = camera;
   const cameraInitialized = useRef(false);
+  const cameraRequestId = useRef(0);
   const lastCameraMode = useRef(cameraMode);
 
   const cameraFrame = useUIStore((s) => s.cameraFrame);
@@ -75,6 +76,7 @@ const MediaPreview = () => {
     SonnerWarning("Tính năng trả phí", "Liên hệ admin để sử dụng");
   };
   const stopCamera = () => {
+    cameraRequestId.current += 1;
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
@@ -86,6 +88,7 @@ const MediaPreview = () => {
   };
 
   const startCamera = async () => {
+    let requestId = cameraRequestId.current;
     try {
       if (
         cameraInitialized.current &&
@@ -120,11 +123,17 @@ const MediaPreview = () => {
         };
       }
 
+      requestId = ++cameraRequestId.current;
       const stream = await navigator.mediaDevices.getUserMedia({
         video: videoConstraints,
         audio: false,
       });
 
+      // A route change can finish before the native camera request resolves.
+      if (requestId !== cameraRequestId.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
       streamRef.current = stream;
       cameraInitialized.current = true;
       lastCameraMode.current = cameraMode;
@@ -133,8 +142,10 @@ const MediaPreview = () => {
         videoRef.current.srcObject = stream;
       }
     } catch {
-      setCameraActive(false);
-      cameraInitialized.current = false;
+      if (requestId === cameraRequestId.current) {
+        setCameraActive(false);
+        cameraInitialized.current = false;
+      }
     }
   };
 

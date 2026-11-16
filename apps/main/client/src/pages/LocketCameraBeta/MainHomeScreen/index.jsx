@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from "react";
+import { Link } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
-import { CalendarClock, LoaderCircle, X } from "lucide-react";
+import { CalendarClock, Camera, LoaderCircle, X } from "lucide-react";
 import { usePostStore } from "@/stores";
 import { formatRestoreDate } from "@/utils/streakRestoreFlow";
 import "../branding.css";
@@ -161,7 +162,18 @@ export default function MainHomeScreen() {
               }
             `}
             >
-              <HistoryArrow setIsBottomOpen={setIsBottomOpen} />
+              <div className="flex items-center justify-center gap-6">
+                <HistoryArrow setIsBottomOpen={setIsBottomOpen} />
+                {!selectedFile && !isBottomOpen && !hasRestoreSelection && (
+                  <Link
+                    to="/photobooth"
+                    className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-base-content/20 bg-base-100 px-3 py-2 text-xs font-semibold text-base-content transition-colors hover:bg-base-200"
+                  >
+                    <Camera className="h-4 w-4" aria-hidden="true" />
+                    Photobooth 4 ô
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         </div>
