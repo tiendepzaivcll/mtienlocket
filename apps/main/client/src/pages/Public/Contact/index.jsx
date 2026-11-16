@@ -1,102 +1,25 @@
-import React from "react";
-import "./styles.css";
-import { COMMUNITY_CONFIG, CONFIG } from "@/config";
+import { ArrowUpRight, Mail, MessageCircle } from "lucide-react";
+import { CONTACT_CONFIG } from "@/config";
 
 export default function Contact() {
-  const avatarUrl = CONFIG.app.myInfo.avatarUrl;
-  const fullName = CONFIG.app.myInfo.fullName;
-
-  const communityLinks = [
-    {
-      name: "Discord",
-      icon: (
-        <img
-          src="https://img.icons8.com/?size=100&id=D2NqKl85S8Ye&format=png"
-          alt="Discord"
-          className="w-8 h-8"
-        />
-      ),
-      url: COMMUNITY_CONFIG.discord,
-    },
-    {
-      name: "Telegram",
-      icon: (
-        <img
-          src="https://img.icons8.com/?size=100&id=oWiuH0jFiU0R&format=png"
-          alt="Telegram"
-          className="w-8 h-8"
-        />
-      ),
-      url: COMMUNITY_CONFIG.telegram,
-    },
-    {
-      name: "Messenger",
-      icon: (
-        <img
-          src="https://cdn-icons-png.flaticon.com/128/5968/5968771.png"
-          alt="Messenger"
-          className="w-8 h-8"
-        />
-      ),
-      url: COMMUNITY_CONFIG.messenger,
-    },
+  const contacts = [
+    { label: "Email", value: CONTACT_CONFIG.supportEmail, href: `mailto:${CONTACT_CONFIG.supportEmail}`, icon: Mail, action: "Gửi email" },
+    { label: "Zalo", value: CONTACT_CONFIG.supportNumber, href: CONTACT_CONFIG.zaloUrl, icon: MessageCircle, action: "Nhắn Zalo", external: true },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-base-200 to-base-300 py-10 px-4">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-10 animate-fadeIn">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-base-content drop-shadow-sm">
-            Cộng đồng MTIEN
-          </h1>
-          <p className="mt-3 text-base-content/70 text-lg">
-            Kết nối với cộng đồng và cập nhật các thông tin mới nhất từ{" "}
-            <span className="font-semibold">{fullName}</span>.
-          </p>
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Profile */}
-          <div className="bg-base-100 w-full flex flex-col items-center justify-start p-6 rounded-2xl shadow-lg hover:shadow-xl transition duration-300 transform hover:-translate-y-1 animate-slideUp">
-            <img
-              src={avatarUrl}
-              alt="Đào Văn Đôi"
-              className="w-28 h-28 rounded-full object-cover border-4 border-base-300 mb-4 shadow-md hover:scale-105 transition duration-300"
-            />
-            <h2 className="text-xl font-bold">Đào Văn Đôi</h2>
-            <p className="mt-1 text-sm text-base-content/70">
-              Full-stack Developer
-            </p>
-          </div>
-
-          {/* Contact Info & Social */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Community Links */}
-            <div className="bg-base-100 p-6 rounded-2xl shadow-lg hover:shadow-xl transition duration-300 animate-slideUp delay-200">
-              <h3 className="text-lg font-semibold mb-4">Liên kết cộng đồng</h3>
-              <div className="grid grid-cols-3 gap-4 text-center">
-                {communityLinks.map((link) => (
-                  <a
-                    key={link.name}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex flex-col items-center p-3 rounded-lg bg-base-200 hover:bg-base-300 transition transform hover:-translate-y-1 hover:scale-105 shadow-sm hover:shadow-md"
-                  >
-                    {link.icon}
-                    <span className="text-xs mt-2">{link.name}</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center mt-10 text-sm text-base-content/60 animate-fadeIn">
-          © 2025 MTIEN. Made with ❤️ by Đào Văn Đôi
-        </div>
+    <div className="max-w-4xl mx-auto px-6 py-14 md:py-20 min-h-[65vh]">
+      <p className="text-xs tracking-[0.18em] font-semibold text-primary mb-5">MTIEN / HỖ TRỢ</p>
+      <h1 className="text-3xl md:text-5xl font-semibold tracking-tight text-base-content">Liên hệ admin.</h1>
+      <p className="text-base-content/70 mt-5 max-w-lg leading-relaxed">Bạn cần hỗ trợ tài khoản hoặc gặp vấn đề khi sử dụng MTIEN? Liên hệ admin qua email hoặc Zalo bên dưới nhé.</p>
+      <div className="grid sm:grid-cols-2 gap-5 mt-10">
+        {contacts.map(({ label, value, href, icon: Icon, action, external }) => (
+          <a key={label} href={href} target={external ? "_blank" : undefined} rel={external ? "noopener noreferrer" : undefined} className="group flex flex-col gap-5 p-7 rounded-xl border border-base-300 bg-base-100 text-base-content transition-colors hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">
+            <div className="flex items-center justify-between"><Icon size={25} strokeWidth={1.5} className="text-primary" aria-hidden="true" /><span className="text-xs text-base-content/60">{label}</span></div>
+            <p className="font-semibold text-base break-all">{value}</p>
+            <span className="inline-flex items-center gap-2 text-sm text-primary mt-2">{action}<ArrowUpRight size={16} aria-hidden="true" /></span>
+          </a>
+        ))}
       </div>
     </div>
   );

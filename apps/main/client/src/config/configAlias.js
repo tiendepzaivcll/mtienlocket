@@ -26,13 +26,13 @@ export const CAMERA_CONFIG = {
 };
 
 export const COMMUNITY_CONFIG = {
-  discord: CONFIG.app.community.discord,
-  messenger: CONFIG.app.community.messenger,
-  telegram: CONFIG.app.community.telegram,
+  zalo: CONFIG.app.community.zalo,
 };
 
 export const CONTACT_CONFIG = {
   supportEmail: CONFIG.app.contact.supportEmail,
+  supportNumber: CONFIG.app.contact.supportNumber,
+  zaloUrl: CONFIG.app.contact.zaloUrl,
 };
 
 export const MYBANK_CONFIG = {

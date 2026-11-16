@@ -17,7 +17,7 @@ import {
   Globe,
   PlayCircle,
 } from "lucide-react";
-import { EMBEDVIDEO_CONFIG } from "@/config";
+import { CONTACT_CONFIG, EMBEDVIDEO_CONFIG } from "@/config";
 const SettingAppIcon = lazy(() => import("./SettingAppIcon"));
 
 const AddToHomeScreenGuide = () => {
@@ -369,7 +369,7 @@ const AddToHomeScreenGuide = () => {
 
         {/* Footer */}
         <div className="text-center mt-8 text-gray-500">
-          <p className="text-sm">Cần hỗ trợ? Liên hệ: t97system@icloud.com</p>
+          <p className="text-sm">Cần hỗ trợ? <a href={`mailto:${CONTACT_CONFIG.supportEmail}`} className="underline">{CONTACT_CONFIG.supportEmail}</a> hoặc <a href={CONTACT_CONFIG.zaloUrl} target="_blank" rel="noopener noreferrer" className="underline">Zalo {CONTACT_CONFIG.supportNumber}</a>.</p>
         </div>
       </div>
     </div>

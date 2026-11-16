@@ -333,7 +333,7 @@ class ApiController {
           data: {
             approved: false,
             username: userInfo?.username || null,
-            contact: process.env.ADMIN_CONTACT || "t97system@icloud.com",
+            contact: process.env.ADMIN_CONTACT || "tienmanh6811@gmail.com",
           },
         });
       }

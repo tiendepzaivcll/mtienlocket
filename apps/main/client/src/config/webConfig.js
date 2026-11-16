@@ -143,13 +143,12 @@ export const CONFIG = {
       loadMoreLimit: 50, // Số lượng messages tải thêm mỗi lần
     },
     contact: {
-      supportEmail: "t97system@icloud.com",
-      supportNumber: "1800-123-456",
+      supportEmail: "tienmanh6811@gmail.com",
+      supportNumber: "0359153413",
+      zaloUrl: "https://zalo.me/0359153413",
     },
     community: {
-      discord: "https://t.me/T97system",
-      telegram: "https://t.me/T97system",
-      messenger: "https://m.me/cm/AbYPtgRiGe2fInEf",
+      zalo: "https://zalo.me/0359153413",
     },
     bankInfo: {
       bankCode: "ICB",
@@ -161,8 +160,6 @@ export const CONFIG = {
     },
     myInfo: {
       fullName: "T97",
-      email: "t97system@icloud.com",
-      phone: "0123456789",
       github: "https://github.com/doi2523",
       avatarUrl: "https://github.com/doi2523.png",
     },

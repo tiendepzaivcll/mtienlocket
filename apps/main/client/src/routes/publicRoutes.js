@@ -20,6 +20,7 @@ const ReferencePage = React.lazy(() => import("../pages/Public/APIDocs"));
 const BirthdayPage = React.lazy(() => import("../pages/Public/BirthdayPage"));
 const CaptionPresetManager = React.lazy(() => import("../pages/Public/CaptionPresetManager"));
 const AdminPanel = React.lazy(() => import("../pages/Public/Admin"));
+const Contact = React.lazy(() => import("../pages/Public/Contact"));
 
 const APP_NAME = CONFIG.app.fullName;
 
@@ -27,6 +28,7 @@ export const publicRoutes = [
   { path: "/", component: Home, title: `Trang Chủ | ${APP_NAME}` },
   { path: "/login", component: Login, title: `Đăng Nhập | ${APP_NAME}` },
   { path: "/admin", component: AdminPanel, title: `Admin | ${APP_NAME}` },
+  { path: "/contact", component: Contact, title: `Liên hệ admin | ${APP_NAME}` },
 
   { path: "/newsfeed", component: NewsPage, title: `Bảng tin | ${APP_NAME}` },
   { path: "/newsfeed/:slug", component: NewsDetailPage, title: `Bảng tin | ${APP_NAME}` },

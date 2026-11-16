@@ -1,4 +1,5 @@
 import { detectAppEnvironment } from "../logic/checkIfRunningAsPWA";
+import { CONTACT_CONFIG } from "@/config";
 
 /**
  * Hiển thị cảnh báo nổi bật trên console giống Facebook
@@ -24,7 +25,7 @@ export function showDevWarning(title = "Dừng lại!", message = "") {
     "color: #ff6f00; font-weight: bold; font-size: 13px;"
   );
   console.log(
-    "%c👉 Nếu bạn cần hỗ trợ chính thức, hãy gửi email: t97system@icloud.com",
+    `%c👉 Hỗ trợ MTIEN: ${CONTACT_CONFIG.supportEmail} · Zalo: ${CONTACT_CONFIG.supportNumber}`,
     "color: #00bcd4; font-weight: bold; font-size: 13px;"
   );
   console.log(

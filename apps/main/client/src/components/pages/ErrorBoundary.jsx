@@ -1,4 +1,5 @@
 import React from "react";
+import { CONTACT_CONFIG } from "@/config";
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -72,7 +73,7 @@ export default class ErrorBoundary extends React.Component {
             </p>
             <p className="text-sm md:text-base opacity-80 mb-4 md:mb-6">
               Ứng dụng web MTIEN đang gặp sự cố không mong muốn. Bạn có thể
-              thử khởi động lại hoặc gửi email t97system@icloud.com để được hỗ trợ.
+              thử khởi động lại hoặc gửi email {CONTACT_CONFIG.supportEmail} để được hỗ trợ.
             </p>
 
             {this.state.error && (
@@ -99,13 +100,13 @@ export default class ErrorBoundary extends React.Component {
               </button>
 
               <a
-                href="https://t.me/T97system"
+                href={CONTACT_CONFIG.zaloUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group relative rounded-2xl px-6 py-3 bg-base-300 font-semibold transition-all duration-200 hover:scale-[1.03] hover:bg-base-200 active:scale-95 shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-base-content/20 text-center"
               >
                 <span className="inline-flex items-center gap-2">
-                  BÁO LỖI ADMIN
+                  Báo lỗi qua Zalo
                 </span>
               </a>
             </div>

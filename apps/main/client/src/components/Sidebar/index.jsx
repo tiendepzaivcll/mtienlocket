@@ -13,6 +13,7 @@ import {
   SquareArrowOutUpRight,
   Newspaper,
   CalendarClock,
+  MessageCircle,
 } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { MenuItem } from "./MenuItem";
@@ -117,6 +118,7 @@ const Sidebar = () => {
     {
       title: "Hệ thống & Hỗ trợ",
       items: [
+        { to: "/contact", icon: MessageCircle, text: "Liên hệ admin" },
         // { to: "/devpage", icon: Code2, text: "Trang lập trình", badge: "New" },
         { to: "/privacy", icon: ShieldCheck, text: "Chính sách bảo mật" },
         { to: "/settings", icon: Settings, text: "Cài đặt" },
@@ -140,6 +142,7 @@ const Sidebar = () => {
     {
       title: "Hệ thống & Hỗ trợ",
       items: [
+        { to: "/contact", icon: MessageCircle, text: "Liên hệ admin" },
         { to: "/privacy", icon: ShieldCheck, text: "Chính sách bảo mật" },
         { to: "/settings", icon: Settings, text: "Cài đặt" },
       ],
@@ -193,7 +196,7 @@ const Sidebar = () => {
                     to={item.to}
                     icon={item.icon}
                     badge={item.badge}
-                    locked={accessRole === "celebrity" && item.to !== "/tools"}
+                    locked={accessRole === "celebrity" && !["/tools", "/contact"].includes(item.to)}
                     onClick={() => setIsSidebarOpen(false)}
                   >
                     {item.text}

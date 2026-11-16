@@ -229,7 +229,7 @@ export const useAuthStore = create((set) => ({
         accessDenied: isAccessDenied
           ? {
               username: err?.data?.username || null,
-              contact: err?.data?.contact || "t97system@icloud.com",
+              contact: err?.data?.contact || CONFIG.app.contact.supportEmail,
               message:
                 err?.message ||
                 "Tài khoản chưa được admin phê duyệt.",

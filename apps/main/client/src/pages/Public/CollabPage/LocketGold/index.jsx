@@ -1,4 +1,5 @@
 import { CircleStar, User, Shield, Zap, Users2 } from "lucide-react";
+import { CONTACT_CONFIG } from "@/config";
 
 const features = [
   {
@@ -126,21 +127,20 @@ export default function LocketGold() {
           </div>
           <div>
             <h2 className="text-xl font-bold mb-2 text-base-content">
-              Tuyển CTV đồng hành cùng LocketGold.click
+              Liên hệ admin MTIEN
             </h2>
             <p className="text-base-content/80 leading-relaxed mb-4">
-              Bạn muốn đồng hành cùng LocketGold.click? Chúng tôi đang tìm kiếm
-              Cộng tác viên (CTV) nhiệt huyết để cùng phát triển và hỗ trợ cộng
-              đồng người dùng. Liên hệ qua Facebook để biết thêm chi tiết.
+              Bạn cần hỗ trợ khi sử dụng website MTIEN? Nhắn Zalo cho admin
+              hoặc gửi email đến {CONTACT_CONFIG.supportEmail}.
             </p>
             <a
-              href="https://www.facebook.com/vnkin.06"
+              href={CONTACT_CONFIG.zaloUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm transition-colors"
             >
               <Users2 className="w-4 h-4" />
-              Đăng ký làm CTV
+              Zalo {CONTACT_CONFIG.supportNumber}
             </a>
           </div>
         </div>

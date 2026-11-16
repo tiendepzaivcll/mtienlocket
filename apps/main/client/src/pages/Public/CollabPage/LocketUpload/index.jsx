@@ -1,3 +1,5 @@
+import { CONTACT_CONFIG } from "@/config";
+
 export default function LocketUpload() {
   return (
     <div className="p-4 mx-auto min-h-screen max-w-3xl text-base-content space-y-4">
@@ -66,7 +68,7 @@ export default function LocketUpload() {
 
       {/* Link */}
       <div className="mt-6 rounded-xl space-y-3">
-        <p className="font-semibold">Tham khảo & liên hệ:</p>
+        <p className="font-semibold">Tham khảo & hỗ trợ MTIEN:</p>
 
         <a
           href="https://quockhanh020924.id.vn/locket_upload.html"
@@ -78,21 +80,21 @@ export default function LocketUpload() {
         </a>
 
         <a
-          href="https://www.facebook.com/share/1CFW7iFe4Y/?mibextid=wwXIfr"
+          href={`mailto:${CONTACT_CONFIG.supportEmail}`}
           target="_blank"
           rel="noopener noreferrer"
           className="block text-primary underline break-all"
         >
-          📘 Trang Facebook chính thức
+          Email admin: {CONTACT_CONFIG.supportEmail}
         </a>
 
         <a
-          href="https://m.me/cm/AbbIL5opkgSMzs9x/"
+          href={CONTACT_CONFIG.zaloUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="block text-primary underline break-all"
         >
-          💬 Nhóm Messenger hỗ trợ & trao đổi
+          Zalo admin: {CONTACT_CONFIG.supportNumber}
         </a>
       </div>
 

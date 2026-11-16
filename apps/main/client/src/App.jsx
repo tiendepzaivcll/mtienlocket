@@ -29,9 +29,11 @@ import { showDevWarning } from "./utils/logging/devConsole";
 import LoadingPageMain from "./components/pages/LoadPageMain";
 import LayoutWithSidebar from "./layouts/baseLayout";
 import VipRequired from "./components/pages/VipRequired";
+import { CONTACT_CONFIG } from "@/config";
 
 const allRoutes = [...publicRoutes, ...authRoutes, ...locketRoutes];
 const privateRoutes = [...authRoutes, ...locketRoutes];
+const sharedPublicPaths = ["/admin", "/contact"];
 
 function App() {
   return (
@@ -223,14 +225,14 @@ function AppContent() {
           {(isAuth
             ? [
                 ...privateRoutes,
-                ...publicRoutes.filter((route) => route.path === "/admin"),
+                ...publicRoutes.filter((route) => sharedPublicPaths.includes(route.path)),
               ]
             : publicRoutes
           ).map(
             (route) => {
               const { path } = route;
               const Layout = getLayout(path);
-              const celebrityCanAccess = path === "/tools" || path === "/admin";
+              const celebrityCanAccess = path === "/tools" || sharedPublicPaths.includes(path);
               const redirectCelebrityCamera =
                 accessRole === "celebrity" && path === "/locket-beta";
               return (
@@ -270,7 +272,7 @@ function AppContent() {
           {!loading &&
             isAuth &&
             publicRoutes
-              .filter(({ path }) => path !== "/admin")
+              .filter(({ path }) => !sharedPublicPaths.includes(path))
               .map(({ path }) => (
                 <Route
                   key={path}
@@ -303,12 +305,14 @@ function AppContent() {
             </p>
             <div className="mt-4 rounded-xl bg-base-200 p-3 text-sm">
               Liên hệ admin:
-              <a
-                className="ml-1 font-semibold text-primary underline"
-                href={`mailto:${accessDenied.contact}`}
-              >
-                {accessDenied.contact}
-              </a>
+              <div className="mt-2 flex flex-col gap-2">
+                <a className="break-all font-semibold text-primary underline" href={`mailto:${CONTACT_CONFIG.supportEmail}`}>
+                  {CONTACT_CONFIG.supportEmail}
+                </a>
+                <a className="font-semibold text-primary underline" href={CONTACT_CONFIG.zaloUrl} target="_blank" rel="noopener noreferrer">
+                  Zalo: {CONTACT_CONFIG.supportNumber}
+                </a>
+              </div>
             </div>
             <button
               type="button"

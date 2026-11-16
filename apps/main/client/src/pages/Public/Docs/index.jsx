@@ -1,4 +1,5 @@
 import React from "react";
+import { CONTACT_CONFIG } from "@/config";
 
 const Docs = () => {
   return (
@@ -88,10 +89,12 @@ const Docs = () => {
         <p className="text-sm text-secondary">
           Nếu vẫn gặp lỗi, hãy liên hệ nhanh qua 👉🏻
           <a
-            href="sms:+84 329254203" // Thay số điện thoại của bạn vào đây
+            href={CONTACT_CONFIG.zaloUrl}
+            target="_blank"
+            rel="noopener noreferrer"
             className="underline font-semibold"
           >
-            iMessage
+            Zalo {CONTACT_CONFIG.supportNumber}
           </a>
         </p>
 
@@ -172,10 +175,10 @@ const Docs = () => {
         <p className="text-sm">
           Nếu bạn có bất kỳ câu hỏi hoặc vấn đề gì, vui lòng liên hệ với tôi qua
           email:{" "}
-          <a href="mailto:t97system@icloud.com" className="text-blue-500">
-            t97system@icloud.com
+          <a href={`mailto:${CONTACT_CONFIG.supportEmail}`} className="text-blue-500">
+            {CONTACT_CONFIG.supportEmail}
           </a>
-          .
+          {" "}hoặc <a href={CONTACT_CONFIG.zaloUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500">Zalo {CONTACT_CONFIG.supportNumber}</a>.
         </p>
       </div>
     </div>

@@ -526,7 +526,10 @@ const PrivacyPolicy = () => {
       </p>
       <ul className="list-disc ml-6">
         <li className="mb-4">
-          <p>By email: {CONTACT_CONFIG.supportEmail}</p>
+          <p>By email: <a className="underline" href={`mailto:${CONTACT_CONFIG.supportEmail}`}>{CONTACT_CONFIG.supportEmail}</a></p>
+        </li>
+        <li className="mb-4">
+          <p>By Zalo: <a className="underline" href={CONTACT_CONFIG.zaloUrl} target="_blank" rel="noopener noreferrer">{CONTACT_CONFIG.supportNumber}</a></p>
         </li>
       </ul>
     </div>

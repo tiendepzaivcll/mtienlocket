@@ -1,14 +1,13 @@
 import React from "react";
-import { Code2, Mail, Globe } from "lucide-react";
+import { Code2, Mail, Globe, MessageCircle } from "lucide-react";
 import ImageMarquee from "@/components/ui/Marquee/LanguageMarquee";
 import {
   FaReact,
   FaGithub,
-  FaFacebook,
   FaNodeJs,
 } from "react-icons/fa";
 import { RiTailwindCssFill } from "react-icons/ri";
-import { CONFIG } from "@/config";
+import { CONFIG, CONTACT_CONFIG } from "@/config";
 
 const AboutMe = () => {
   const avatarUrl = CONFIG.app.myInfo.avatarUrl;
@@ -77,39 +76,22 @@ const AboutMe = () => {
 
         <ImageMarquee />
 
-        {/* Contact */}
-        <div className="text-center">
+        {/* Website support is separate from original source authorship. */}
+        <div className="text-center px-4">
           <h2 className="text-2xl md:text-3xl font-semibold mb-5 flex justify-center items-center gap-2">
-            <Globe /> Liên hệ & Mạng xã hội
+            <Globe /> Liên hệ admin MTIEN
           </h2>
-          <div className="flex justify-center gap-4 text-2xl md:text-3xl">
-            {/* Existing Social Links */}
-            <a
-              href="https://github.com/doi2523"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="transition"
-            >
-              <FaGithub className="w-6 h-6 text-black" />
+          <div className="flex flex-wrap justify-center gap-4 text-sm">
+            <a href={`mailto:${CONTACT_CONFIG.supportEmail}`} className="inline-flex items-center gap-2 underline break-all">
+              <Mail className="w-5 h-5" aria-hidden="true" />{CONTACT_CONFIG.supportEmail}
             </a>
-            <a
-              href="mailto:t97system@icloud.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="transition"
-            >
-              <Mail className="w-6 h-6 text-black" />
-            </a>
-
-            <a
-              href="https://facebook.com/daovandoi2003"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-blue-600 transition"
-            >
-              <FaFacebook className="w-6 h-6 text-blue-600" />
+            <a href={CONTACT_CONFIG.zaloUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 underline">
+              <MessageCircle className="w-5 h-5" aria-hidden="true" />Zalo {CONTACT_CONFIG.supportNumber}
             </a>
           </div>
+          <p className="mt-6 text-xs text-base-content/60">
+            Mã nguồn gốc: <a href="https://github.com/doi2523" target="_blank" rel="noopener noreferrer" className="underline">Đào Văn Đôi / doi2523</a>.
+          </p>
         </div>
       </div>
     </>
