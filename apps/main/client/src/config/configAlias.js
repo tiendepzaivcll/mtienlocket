@@ -44,11 +44,6 @@ export const MYBANK_CONFIG = {
   accountName: CONFIG.app.bankInfo.accountName,
 };
 
-export const EMBEDVIDEO_CONFIG = {
-  embedios: CONFIG.app.videoTutorials.iosAddscreen,
-  embedAndroid: CONFIG.app.videoTutorials.androidAddscreen,
-};
-
 export const CACHE_CONFIG = {
   keys: CONFIG.cache.keys,
   ttls: CONFIG.cache.ttl,

@@ -167,17 +167,6 @@ export const CONFIG = {
       personal_authorization:
         "https://docs.google.com/document/d/1c2ttnmPyR3YIYooMj69MlT1XAhCO_xMytHztzi6EaEY/edit?usp=sharing",
     },
-    videoTutorials: {
-      youtubeChannel: "https://www.youtube.com/@Locketdio",
-      iosAddscreen: {
-        title: "Hướng dẫn thêm MTIEN vào màn hình chính trên iPhone!",
-        url: "https://www.youtube.com/embed/iElPAnQ7lNY",
-      }, // Hướng dẫn thêm trang web vào màn hình chính trên iPhone (Safari)
-      androidAddscreen: {
-        title: "Hướng dẫn thêm MTIEN vào màn hình chính trên Android!",
-        url: "https://www.youtube.com/embed/JtgfTNbKTZY",
-      }, // Hướng dẫn thêm trang web vào màn hình chính trên Android (Chrome)
-    },
   },
   ui: {
     theme: "light", // hoặc "dark"

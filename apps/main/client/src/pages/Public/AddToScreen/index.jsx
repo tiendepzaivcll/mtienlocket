@@ -15,9 +15,8 @@ import {
   CheckCircle,
   Chrome,
   Globe,
-  PlayCircle,
 } from "lucide-react";
-import { CONTACT_CONFIG, EMBEDVIDEO_CONFIG } from "@/config";
+import { CONTACT_CONFIG } from "@/config";
 const SettingAppIcon = lazy(() => import("./SettingAppIcon"));
 
 const AddToHomeScreenGuide = () => {
@@ -243,36 +242,6 @@ const AddToHomeScreenGuide = () => {
             </div>
           </div>
         )}
-        <div className="bg-base-100 rounded-2xl shadow-xl p-5 mb-8">
-          <h2 className="text-2xl font-bold text-base-content mb-3 flex items-center gap-2">
-            <PlayCircle className="w-6 h-6 text-purple-600" />
-            Video hướng dẫn
-          </h2>
-          <div className="relative w-full max-w-xs mx-auto aspect-[9/16] overflow-hidden rounded-2xl shadow-lg">
-            {activeTab === "android" ? (
-              <iframe
-                className="absolute inset-0 w-full h-full rounded-2xl"
-                src={EMBEDVIDEO_CONFIG.embedAndroid.url}
-                title={EMBEDVIDEO_CONFIG.embedAndroid.title}
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerPolicy="strict-origin-when-cross-origin"
-                allowFullScreen
-              ></iframe>
-            ) : (
-              <iframe
-                className="absolute inset-0 w-full h-full rounded-2xl"
-                src={EMBEDVIDEO_CONFIG.embedios.url}
-                title={EMBEDVIDEO_CONFIG.embedios.title}
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerPolicy="strict-origin-when-cross-origin"
-                allowFullScreen
-              ></iframe>
-            )}
-          </div>
-        </div>
-
         <Suspense
           fallback={
             <div className="bg-base-300 rounded-2xl shadow-md p-4 h-[200px] flex items-center justify-center">
