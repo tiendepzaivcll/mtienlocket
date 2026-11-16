@@ -210,6 +210,8 @@ export default defineConfig(({ mode }) => {
   const allowedHosts = [
     "t97.io.vn",
     "healthcheck.railway.app",
+    "mtienlocket-production.up.railway.app",
+    "locket-pro.online",
     process.env.RAILWAY_PUBLIC_DOMAIN,
   ].filter(Boolean);
   const storageTarget = (env.VITE_STORAGE_API_URL || "http://localhost:5003")
