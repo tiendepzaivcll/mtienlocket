@@ -398,6 +398,8 @@ class PaymentController {
     if (approvedDoc.exists) {
       await approvedRef.update({
         role: "vip",
+        active: true,
+        username,
         vipPlanId: planId,
         vipPlanName: planName,
         vipExpireAt: now + planDays * 24 * 60 * 60 * 1000,
@@ -411,11 +413,13 @@ class PaymentController {
     } else {
       // Create new approved_users entry with VIP role
       await approvedRef.set({
+        username,
         role: "vip",
         active: true,
         approved: true,
         enabled: true,
         aiFilterEnabled: true,
+        note: `Tự đăng ký VIP - ${planName}`,
         vipPlanId: planId,
         vipPlanName: planName,
         vipExpireAt: now + planDays * 24 * 60 * 60 * 1000,

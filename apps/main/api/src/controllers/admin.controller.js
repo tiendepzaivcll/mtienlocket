@@ -60,7 +60,7 @@ class AdminController {
         return res.status(500).json({ success: false, message: "Firestore chưa sẵn sàng" });
       }
 
-      const snapshot = await db.collection(APPROVED_USER_COLLECTION).orderBy("username").get();
+      const snapshot = await db.collection(APPROVED_USER_COLLECTION).get();
       const users = snapshot.docs.map((doc) => ({
         id: doc.id,
         username: doc.data().username || doc.id,
@@ -68,9 +68,13 @@ class AdminController {
         active: doc.data().active !== false,
         aiFilterEnabled: doc.data().aiFilterEnabled === true,
         note: doc.data().note || "",
+        vipPlanName: doc.data().vipPlanName || null,
+        vipExpireAt: doc.data().vipExpireAt || null,
+        lastPayment: doc.data().lastPayment || null,
         createdAt: doc.data().createdAt || null,
         updatedAt: doc.data().updatedAt || null,
       }));
+      users.sort((a, b) => (a.username || "").localeCompare(b.username || ""));
 
       res.status(200).json({ success: true, data: users });
     } catch (error) {
