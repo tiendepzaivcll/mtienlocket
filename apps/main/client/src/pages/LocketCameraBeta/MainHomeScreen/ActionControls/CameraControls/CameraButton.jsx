@@ -35,6 +35,7 @@ const CameraButton = () => {
   const holdStartTimeRef = useRef(null);
   const holdTimeoutRef = useRef(null);
   const mediaRecorderRef = useRef(null);
+  const micStreamRef = useRef(null);
   const intervalRef = useRef(null);
   const isTryingToRecordRef = useRef(false);
   const isRecordingRef = useRef(false);
@@ -53,7 +54,7 @@ const CameraButton = () => {
     isRecordingRef.current = false; // Reset recording state
     holdStartTimeRef.current = Date.now();
 
-    holdTimeoutRef.current = setTimeout(() => {
+    holdTimeoutRef.current = setTimeout(async () => {
       if (!isTryingToRecordRef.current) return;
 
       // Đánh dấu đang recording
@@ -83,32 +84,59 @@ const CameraButton = () => {
         ? canvas.captureStream(targetFPS)
         : canvas.captureStream();
 
+      // Kết hợp video từ canvas và âm thanh từ Micro
+      const combinedStream = new MediaStream();
+      canvasStream.getVideoTracks().forEach((track) => combinedStream.addTrack(track));
+
+      let micStream = null;
+      const isMicEnabled = localStorage.getItem("setting_camera_mic_enabled") !== "false"; // Mặc định bật mic
+
+      if (isMicEnabled && navigator.mediaDevices?.getUserMedia) {
+        try {
+          micStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+            },
+          });
+          micStream.getAudioTracks().forEach((track) => combinedStream.addTrack(track));
+          micStreamRef.current = micStream;
+          console.log("🎙️ Đã kết nối Microphone vào luồng ghi hình");
+        } catch (audioErr) {
+          console.warn("⚠️ Không thể truy cập mic, quay video im lặng:", audioErr);
+        }
+      }
+
       console.log(
         `🎥 Recording mode: ${detectAppEnvironment() ? "PWA" : "Web"}, FPS: ${
           targetFPS || "auto"
-        }, Audio: off`
+        }, Audio: ${micStream ? "ON (có tiếng)" : "OFF"}`
       );
 
-      // Thử các MIME type khác nhau cho iOS
-      let mimeType = "video/webm";
+      // Thử các MIME type khác nhau có hỗ trợ audio
+      let mimeType = "video/webm;codecs=vp8,opus";
       if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = "video/mp4";
+        mimeType = "video/webm";
         if (!MediaRecorder.isTypeSupported(mimeType)) {
-          mimeType = ""; // Để MediaRecorder tự chọn
+          mimeType = "video/mp4";
+          if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = ""; // Để MediaRecorder tự chọn
+          }
         }
       }
 
       // Cấu hình recorder options với bitrate phù hợp cho PWA
       const recorderOptions = mimeType ? { mimeType } : {};
       if (detectAppEnvironment() && mimeType) {
-        // Nâng bitrate cho PWA để tăng chất lượng
         recorderOptions.videoBitsPerSecond = 8000000; // 8 Mbps cho FullHD
+        if (micStream) recorderOptions.audioBitsPerSecond = 128000;
       } else if (mimeType) {
-        // Web thường mạnh hơn => bitrate cao hơn
         recorderOptions.videoBitsPerSecond = 12000000; // 12 Mbps cho FullHD
+        if (micStream) recorderOptions.audioBitsPerSecond = 128000;
       }
 
-      const recorder = new MediaRecorder(canvasStream, recorderOptions);
+      const recorder = new MediaRecorder(combinedStream, recorderOptions);
       mediaRecorderRef.current = recorder;
 
       const chunks = [];
@@ -120,6 +148,14 @@ const CameraButton = () => {
 
       recorder.onstop = async () => {
         console.log("📹 Video recording stopped, chunks:", chunks.length);
+
+        if (micStreamRef.current) {
+          micStreamRef.current.getTracks().forEach((track) => track.stop());
+          micStreamRef.current = null;
+        }
+        if (micStream) {
+          micStream.getTracks().forEach((track) => track.stop());
+        }
 
         if (chunks.length === 0) {
           console.error("No video data captured");
@@ -256,6 +292,10 @@ const CameraButton = () => {
 
     // Nếu đã timeout và đang holding nhưng chưa bắt đầu record
     if (isHolding && !isRecordingRef.current) {
+      if (micStreamRef.current) {
+        micStreamRef.current.getTracks().forEach((track) => track.stop());
+        micStreamRef.current = null;
+      }
       setIsHolding(false);
       return;
     }

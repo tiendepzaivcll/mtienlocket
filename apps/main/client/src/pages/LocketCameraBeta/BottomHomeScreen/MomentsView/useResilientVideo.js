@@ -40,10 +40,21 @@ export const useResilientVideo = ({ source, isActive }) => {
     const video = videoRef.current;
     if (!video || !isActive) return;
 
+    // Tự động kiểm tra cài đặt âm thanh người dùng (mặc định bật âm thanh)
+    const savedMuted = localStorage.getItem("locket_video_muted");
+    const shouldMute = savedMuted === "true";
+    if (video.muted !== shouldMute) {
+      video.muted = shouldMute;
+    }
+
     const playRequest = video.play();
     if (playRequest?.catch) {
       playRequest.catch((error) => {
-        if (error?.name !== "NotAllowedError" && isActive) {
+        if (error?.name === "NotAllowedError" && isActive) {
+          // Trình duyệt chặn autoplay có tiếng khi chưa tương tác: tạm thời muted để video tự phát hình ảnh
+          video.muted = true;
+          video.play().catch(() => {});
+        } else if (isActive) {
           setBuffering(true);
         }
       });

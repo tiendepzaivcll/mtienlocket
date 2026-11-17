@@ -1,4 +1,4 @@
-import { LoaderCircle, RotateCcw, X } from "lucide-react";
+import { LoaderCircle, RotateCcw, Volume2, VolumeX, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import UserInfo from "../Layout/UserInfoView";
 import { OverlayRenderer } from "@/components/ui";
@@ -104,6 +104,34 @@ const MomentSlide = ({ moment, me, handleClose, isActive = true }) => {
     videoEvents,
   } = useResilientVideo({ source: videoSource, isActive });
 
+  const [isMuted, setIsMuted] = useState(() => {
+    const saved = localStorage.getItem("locket_video_muted");
+    return saved !== null ? saved === "true" : false; // Mặc định có âm thanh
+  });
+
+  const toggleMute = (e) => {
+    if (e) e.stopPropagation();
+    const newMuted = !isMuted;
+    setIsMuted(newMuted);
+    localStorage.setItem("locket_video_muted", String(newMuted));
+    if (videoRef.current) {
+      videoRef.current.muted = newMuted;
+      if (!newMuted) {
+        videoRef.current.volume = 1;
+        videoRef.current.play().catch(() => {});
+      }
+    }
+  };
+
+  const handlePointerInteraction = () => {
+    playActiveVideo();
+    // Khi người dùng chạm vào video: nếu đang không tắt tiếng thì đảm bảo mở âm thanh
+    if (!isMuted && videoRef.current) {
+      videoRef.current.muted = false;
+      videoRef.current.volume = 1;
+    }
+  };
+
   const reactionEmojis = useMemo(() => {
     if (!isOwnMoment || !currentUserId) return [];
 
@@ -135,8 +163,8 @@ const MomentSlide = ({ moment, me, handleClose, isActive = true }) => {
       <div
         className="relative flex flex-col items-center w-full gap-3"
         onClick={(e) => e.stopPropagation()}
-        onPointerUp={playActiveVideo}
-        onTouchEnd={playActiveVideo}
+        onPointerUp={handlePointerInteraction}
+        onTouchEnd={handlePointerInteraction}
       >
         {/* Close button */}
         <button
@@ -163,6 +191,7 @@ const MomentSlide = ({ moment, me, handleClose, isActive = true }) => {
             <video
               ref={videoRef}
               src={playbackUrl}
+              muted={isMuted}
               className={`absolute inset-0 w-full h-full object-cover rounded-2xl transition-opacity duration-300 ${
                 isVideoReady ? "opacity-100" : "opacity-0"
               }`}
@@ -171,6 +200,19 @@ const MomentSlide = ({ moment, me, handleClose, isActive = true }) => {
               preload={isActive ? "auto" : "metadata"}
               {...videoEvents}
             />
+          )}
+
+          {/* Nút Bật / Tắt Âm Thanh Video */}
+          {videoSource && isActive && (
+            <button
+              type="button"
+              onClick={toggleMute}
+              className="absolute top-4 left-4 z-40 p-2.5 bg-black/50 hover:bg-black/75 backdrop-blur-md rounded-full text-white transition active:scale-90 shadow-lg"
+              title={isMuted ? "Bật âm thanh" : "Tắt âm thanh"}
+              aria-label={isMuted ? "Bật âm thanh" : "Tắt âm thanh"}
+            >
+              {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+            </button>
           )}
 
           {videoSource && isActive && isVideoBuffering && !hasVideoFailed && (

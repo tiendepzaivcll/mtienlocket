@@ -1,12 +1,12 @@
-import React, { lazy, Suspense, useEffect, useRef } from "react";
+import React, { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { getAvailableCameras, isIOS } from "@/utils";
 const AutoResizeCaption = lazy(() => import("../CaptionViews"));
 import { useApp } from "@/context/AppContext";
 import { CONFIG } from "@/config";
 import BorderProgress from "../../Widgets/SquareProgress";
-import { SonnerInfo } from "@/components/ui/SonnerToast";
+import { SonnerInfo, SonnerSuccess } from "@/components/ui/SonnerToast";
 import { useUIStore } from "@/stores";
-import { X } from "lucide-react";
+import { Mic, MicOff, Volume2, VolumeX, X } from "lucide-react";
 import AiSparkleIcon from "../../ActionControls/MediaControls/AiSparkleIcon.jsx";
 import AiGenerationEffect from "./AiGenerationEffect.jsx";
 
@@ -36,6 +36,24 @@ const MediaPreview = () => {
   const cameraInitialized = useRef(false);
   const cameraRequestId = useRef(0);
   const lastCameraMode = useRef(cameraMode);
+
+  // Trạng thái mic khi quay video (mặc định bật)
+  const [isMicEnabled, setIsMicEnabled] = useState(() => {
+    const saved = localStorage.getItem("setting_camera_mic_enabled");
+    return saved !== null ? saved === "true" : true;
+  });
+  const [isPreviewMuted, setIsPreviewMuted] = useState(false);
+
+  const toggleMic = () => {
+    const newVal = !isMicEnabled;
+    setIsMicEnabled(newVal);
+    localStorage.setItem("setting_camera_mic_enabled", String(newVal));
+    if (newVal) {
+      SonnerSuccess("Đã bật Mic 🎙️", "Video quay sẽ có âm thanh");
+    } else {
+      SonnerInfo("Đã tắt Mic 🔇", "Video quay sẽ không có âm thanh");
+    }
+  };
 
   const cameraFrame = useUIStore((s) => s.cameraFrame);
   const normalizedOverlayType =
@@ -234,13 +252,31 @@ const MediaPreview = () => {
 
         {!preview && !selectedFile && (
           <>
-            <div className="absolute inset-0 top-7 px-7 z-30 pointer-events-none flex justify-between text-base-content text-xs font-semibold">
-              <button
-                onClick={() => SonnerInfo("Chức năng này sẽ sớm có mặt!")}
-                className="pointer-events-auto w-7 h-7 p-1.5 rounded-full bg-white/30 backdrop-blur-md flex items-center justify-center"
-              >
-                <img src="/icons/bolt.fill.png" alt="Icon sấm sét" />
-              </button>
+            <div className="absolute inset-0 top-7 px-7 z-30 pointer-events-none flex justify-between items-center text-base-content text-xs font-semibold">
+              <div className="flex items-center gap-2 pointer-events-auto">
+                <button
+                  onClick={() => SonnerInfo("Chức năng này sẽ sớm có mặt!")}
+                  className="w-7 h-7 p-1.5 rounded-full bg-white/30 backdrop-blur-md flex items-center justify-center hover:bg-white/40 active:scale-95 transition"
+                  title="Flash"
+                >
+                  <img src="/icons/bolt.fill.png" alt="Icon sấm sét" />
+                </button>
+
+                {/* Nút Bật / Tắt Mic khi quay video */}
+                <button
+                  type="button"
+                  onClick={toggleMic}
+                  className={`w-7 h-7 p-1 rounded-full backdrop-blur-md flex items-center justify-center transition active:scale-95 ${
+                    isMicEnabled
+                      ? "bg-emerald-500/80 text-white shadow-sm"
+                      : "bg-black/50 text-red-400 border border-white/20"
+                  }`}
+                  title={isMicEnabled ? "Mic: Đang BẬT (Video có tiếng)" : "Mic: Đang TẮT (Video không tiếng)"}
+                  aria-label="Bật/Tắt Mic"
+                >
+                  {isMicEnabled ? <Mic size={14} /> : <MicOff size={14} />}
+                </button>
+              </div>
 
               <button
                 onClick={handleCycleZoomCamera}
@@ -303,15 +339,27 @@ const MediaPreview = () => {
         )}
 
         {preview?.type === "video" && (
-          <video
-            src={preview.data}
-            autoPlay
-            loop
-            playsInline
-            className={`w-full h-full object-cover ${
-              preview ? "opacity-100" : "opacity-0"
-            }`}
-          />
+          <div className="relative w-full h-full">
+            <video
+              src={preview.data}
+              autoPlay
+              loop
+              playsInline
+              muted={isPreviewMuted}
+              className={`w-full h-full object-cover ${
+                preview ? "opacity-100" : "opacity-0"
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => setIsPreviewMuted(!isPreviewMuted)}
+              className="absolute top-4 left-4 z-[75] p-2 bg-black/60 hover:bg-black/80 backdrop-blur-md text-white rounded-full transition active:scale-90 shadow-lg"
+              title={isPreviewMuted ? "Bật âm thanh" : "Tắt âm thanh"}
+              aria-label={isPreviewMuted ? "Bật âm thanh" : "Tắt âm thanh"}
+            >
+              {isPreviewMuted ? <VolumeX size={17} /> : <Volume2 size={17} />}
+            </button>
+          </div>
         )}
 
         {preview?.type === "image" && (
