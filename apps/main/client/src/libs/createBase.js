@@ -1,6 +1,7 @@
 import axios from "axios";
 import { CONFIG } from "@/config";
 import { getToken, getMemberToken } from "@/utils";
+import { assertCurrentAccount } from "./authSessionPolicy";
 
 // Meta của app gửi lên server
 const APP_META = {
@@ -13,7 +14,11 @@ const APP_META = {
 
 // Hàm gắn headers chung
 const attachHeaders = (config) => {
-  const { idToken } = getToken();
+  const session = getToken();
+  if (Object.prototype.hasOwnProperty.call(config, "_authSessionLocalId")) {
+    assertCurrentAccount(config._authSessionLocalId, session);
+  }
+  const { idToken } = session;
   const member = getMemberToken();
 
   // Firebase idToken

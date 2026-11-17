@@ -1,4 +1,5 @@
-import { clearAllDB } from "@/cache/configDB";
+import { clearAccountDBs, clearAllDB } from "@/cache/configDB";
+import { isCurrentAccount } from "@/libs/authSessionPolicy";
 import { CONFIG } from "@/config";
 import {
   GetUserLocket,
@@ -100,11 +101,12 @@ export const useAuthStore = create((set) => ({
   },
 
   refreshAccessRole: async () => {
-    const { idToken } = getToken();
+    const { idToken, localId } = getToken();
     if (!idToken) return null;
 
     try {
       const access = await checkAccessApproval();
+      if (!isCurrentAccount(localId, getToken())) return null;
       const accessRole = saveAccessRole(access?.role);
       const aiFilterEnabled = saveAiFilterAccess(access?.features?.aiFilter);
       set({ accessRole, aiFilterEnabled });
@@ -186,6 +188,7 @@ export const useAuthStore = create((set) => ({
         set({ user: userInfo });
       } else {
         userInfo = await GetUserLocket();
+        if (!isCurrentAccount(localId, getToken())) return null;
         if (localId && userInfo?.localId && userInfo.localId !== localId) {
           throw new Error("USER_TOKEN_MISMATCH");
         }
@@ -194,6 +197,7 @@ export const useAuthStore = create((set) => ({
       }
 
       const access = await checkAccessApproval();
+      if (!isCurrentAccount(localId, getToken())) return null;
       const accessRole = saveAccessRole(access?.role);
       const aiFilterEnabled = saveAiFilterAccess(access?.features?.aiFilter);
 
@@ -206,6 +210,7 @@ export const useAuthStore = create((set) => ({
 
       return userInfo;
     } catch (err) {
+      if (!isCurrentAccount(localId, getToken())) return null;
       console.error("Auth init error:", err);
       const isAccessDenied =
         err?.status === 403 || err?.code === "ACCESS_NOT_APPROVED";
@@ -258,20 +263,24 @@ export const useAuthStore = create((set) => ({
   clearAndlogout: async () => {
     try {
       await logout();
-    } catch (error) {
-      console.warn("Không thể đăng xuất trên server, tiếp tục xóa phiên local:", error);
+    } catch {
+      console.warn("Không thể đăng xuất trên server, tiếp tục xóa phiên local.");
+    }
+    try {
+      await clearAccountDBs();
     } finally {
+      // Remove the latest token values after cleanup. A refresh that completed
+      // while the old session was closing must not leave credentials behind.
       removeToken();
       clearUserCache();
       clearAccessRole();
       clearAiFilterAccess();
-      await clearAllDB();
-
       set({
         user: null,
         userPlan: fullAccessPlan,
         uploadStats: fullAccessPlan.upload_stats,
         isAuth: false,
+        loading: false,
         accessDenied: null,
         accessRole: null,
         aiFilterEnabled: false,

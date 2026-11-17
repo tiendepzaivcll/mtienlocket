@@ -1,4 +1,7 @@
 import Dexie from "dexie";
+import { uploadMomentsDB } from "./uploadMomentDB";
+import { clearRemovedFriends } from "./diaryDB";
+import { clearAccountStores } from "./accountDataPolicy.js";
 
 // 👉 Khởi tạo lại DB
 export function createLocketdioDB() {
@@ -36,15 +39,24 @@ let db = createLocketdioDB();
 export default db;
 
 // Xoá toàn bộ database (mọi bảng)
-export async function clearAllDB() {
+export async function clearAllDB({ strict = false } = {}) {
   try {
-    await Promise.all(
-      db.tables.map((table) => table.clear())
-    );
+    await clearAccountStores(db.tables.map((table) => () => table.clear()));
     console.log("🧹 Cleared all tables (DB still exists)");
   } catch (err) {
+    if (strict) throw err;
     console.error("❌ Failed to delete DB:", err);
   }
+}
+
+// These three databases contain personal data and are shared by the browser's
+// active session. Theme, camera settings and other preferences stay untouched.
+export async function clearAccountDBs() {
+  await clearAccountStores([
+    () => clearAllDB({ strict: true }),
+    () => clearAccountStores(uploadMomentsDB.tables.map((table) => () => table.clear())),
+    () => clearRemovedFriends(),
+  ]);
 }
 
 export async function setDBOwner(uid) {
@@ -61,7 +73,7 @@ export async function ensureDBOwner(currentUid) {
 
   if (!owner || owner.uid !== currentUid) {
     console.warn("⚠️ DB owner mismatch → clearing DB");
-    await clearAllDB();
+    await clearAccountDBs();
     await setDBOwner(currentUid);    // set owner mới
   }
 }

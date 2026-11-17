@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   X,
   Palette,
@@ -22,7 +22,8 @@ import {
   Check,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "@/stores";
+import { useAuthStore, useUploadQueueStore } from "@/stores";
+import { useApp } from "@/context/AppContext";
 import { useTheme } from "@/hooks/useTheme";
 import { getAvatarSource, handleAvatarError } from "@/utils/avatar";
 import { SonnerSuccess, SonnerError } from "@/components/ui/SonnerToast";
@@ -31,7 +32,14 @@ import ThemeSelector from "@/components/Theme/ThemeSelector";
 export default function UserSettingsModal({ isOpen, onClose }) {
   const navigate = useNavigate();
   const { user, clearAndlogout } = useAuthStore();
+  const { camera, useloading } = useApp();
+  const queueBusy = useUploadQueueStore((state) => state.isQueueRunning ||
+    state.uploadItems.some((item) => item.status === "queued" || item.status === "uploading"));
+  const operationsBusy = Boolean(queueBusy || camera.isHolding || useloading.sendLoading ||
+    useloading.uploadLoading || useloading.isAiGenerating);
   const { theme } = useTheme();
+  const [sessionAction, setSessionAction] = useState(null);
+  const endingSessionRef = useRef(false);
 
   const [copiedUid, setCopiedUid] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
@@ -61,16 +69,30 @@ export default function UserSettingsModal({ isOpen, onClose }) {
     setTimeout(() => setCopiedUid(false), 2000);
   };
 
-  const handleLogout = async () => {
+  const endSession = async (action) => {
+    if (endingSessionRef.current) return;
+    if (operationsBusy) {
+      SonnerError("Đang xử lý ảnh", "Đợi gửi ảnh hoặc hàng đợi hoàn tất trước khi đổi tài khoản.");
+      return;
+    }
+    endingSessionRef.current = true;
+    setSessionAction(action);
     try {
       await clearAndlogout();
-      SonnerSuccess("Đăng xuất thành công", "Hẹn gặp lại bạn!");
+      SonnerSuccess(action === "switch" ? "Chuyển tài khoản" : "Đăng xuất thành công",
+        action === "switch" ? "Đăng nhập bằng tài khoản Locket khác để tiếp tục." : "Hẹn gặp lại bạn!");
       onClose();
-      window.location.href = "/login";
+      // Reload the app so friends, chat and upload state cannot follow the old account.
+      window.location.replace("/login");
     } catch {
-      SonnerError("Lỗi", "Không thể đăng xuất");
+      SonnerError("Lỗi", action === "switch" ? "Không thể chuyển tài khoản. Vui lòng thử lại." : "Không thể đăng xuất");
+    } finally {
+      endingSessionRef.current = false;
+      setSessionAction(null);
     }
   };
+
+  const handleLogout = () => endSession("logout");
 
   const handleClearBrowserData = () => {
     if (
@@ -115,7 +137,7 @@ export default function UserSettingsModal({ isOpen, onClose }) {
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/60 backdrop-blur-md transition-opacity animate-fade-in"
-        onClick={onClose}
+        onClick={() => { if (!endingSessionRef.current) onClose(); }}
       />
 
       {/* Sheet Content */}
@@ -144,6 +166,7 @@ export default function UserSettingsModal({ isOpen, onClose }) {
           </div>
           <button
             onClick={onClose}
+            disabled={Boolean(sessionAction)}
             className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/15 flex items-center justify-center text-gray-300 hover:text-white transition"
             aria-label="Đóng"
           >
@@ -195,19 +218,18 @@ export default function UserSettingsModal({ isOpen, onClose }) {
               {/* Chuyển tài khoản */}
               <button
                 type="button"
-                onClick={() => {
-                  onClose();
-                  navigate("/login");
-                }}
-                className="w-full flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition text-left"
+                onClick={() => endSession("switch")}
+                disabled={Boolean(sessionAction) || operationsBusy}
+                aria-busy={sessionAction === "switch"}
+                className="w-full flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition text-left disabled:opacity-50 disabled:cursor-wait"
               >
                 <div className="flex items-center gap-3.5 min-w-0">
                   <div className="w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
                     <Users size={19} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-white">Chuyển tài khoản</p>
-                    <p className="text-xs text-gray-400">Các tài khoản đã lưu trên máy này</p>
+                    <p className="text-sm font-semibold text-white">{sessionAction === "switch" ? "Đang chuyển tài khoản…" : "Chuyển tài khoản"}</p>
+                    <p className="text-xs text-gray-400">{operationsBusy ? "Đợi gửi ảnh hoặc hàng đợi hoàn tất" : "Đăng nhập bằng tài khoản khác"}</p>
                   </div>
                 </div>
                 <ChevronRight size={17} className="text-gray-500 shrink-0" />
@@ -420,7 +442,8 @@ export default function UserSettingsModal({ isOpen, onClose }) {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="w-full flex items-center gap-3.5 p-3.5 hover:bg-red-500/10 transition text-left"
+                disabled={Boolean(sessionAction) || operationsBusy}
+                className="w-full flex items-center gap-3.5 p-3.5 hover:bg-red-500/10 transition text-left disabled:opacity-50"
               >
                 <LogOut size={19} className="text-red-400" />
                 <span className="text-sm font-semibold text-red-300">Đăng xuất</span>
@@ -430,6 +453,7 @@ export default function UserSettingsModal({ isOpen, onClose }) {
               <button
                 type="button"
                 onClick={handleClearBrowserData}
+                disabled={Boolean(sessionAction)}
                 className="w-full flex items-center justify-between p-3.5 hover:bg-red-500/10 transition text-left"
               >
                 <div className="flex items-center gap-3.5 min-w-0">

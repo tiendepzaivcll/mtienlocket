@@ -16,6 +16,14 @@ import {
   decideRefreshErrorAction,
   isTerminalRefreshError,
 } from "./auth401Policy";
+import {
+  AUTH_SESSION_CHANGED,
+  assertCurrentAccount,
+  assertSameRefreshSession,
+  isCurrentAccount,
+  isSameRefreshSession,
+  sessionChangedError,
+} from "./authSessionPolicy";
 
 const AUTH_REFRESH_TEMPORARY = "AUTH_REFRESH_TEMPORARY";
 const AUTH_REFRESH_TERMINAL = "AUTH_REFRESH_TERMINAL";
@@ -24,6 +32,7 @@ const TOKEN_REFRESH_SKEW_SECONDS = 5 * 60;
 let cachedToken = null;
 let cachedExp = null;
 let refreshPromise = null;
+let refreshSession = null;
 
 function getTokenExpiry(token) {
   if (!token) return null;
@@ -77,6 +86,8 @@ async function performTokenRefresh() {
       { skipAuthRefresh: true },
     );
     const data = response?.data?.data || {};
+    // An old request may finish after logout or after another account signs in.
+    assertSameRefreshSession({ refreshToken, localId: currentLocalId }, getToken());
     const newToken = data.id_token || data.idToken;
     const newLocalId = data.user_id || data.localId || currentLocalId;
     const rotatedRefreshToken =
@@ -85,6 +96,7 @@ async function performTokenRefresh() {
     if (!newToken) {
       throw makeRefreshError(new Error("Refresh response missing id_token"), false);
     }
+    if (currentLocalId && newLocalId !== currentLocalId) throw sessionChangedError();
 
     saveToken({
       idToken: newToken,
@@ -101,22 +113,30 @@ async function performTokenRefresh() {
 }
 
 async function getFreshToken({ force = false } = {}) {
-  const { idToken, refreshToken } = getToken() || {};
+  const { idToken, refreshToken, localId } = getToken() || {};
   if (!force && idToken && !tokenExpiresSoon(idToken)) return idToken;
   if (!refreshToken) {
     throw makeRefreshError(new Error("Missing refresh token"), true);
   }
 
-  if (!refreshPromise) {
-    refreshPromise = performTokenRefresh().finally(() => {
-      refreshPromise = null;
+  const session = { refreshToken, localId };
+  if (!refreshPromise || !isSameRefreshSession(refreshSession, session)) {
+    const pending = performTokenRefresh().finally(() => {
+      // A new account can have its own refresh in flight before this one ends.
+      if (refreshPromise === pending) {
+        refreshPromise = null;
+        refreshSession = null;
+      }
     });
+    refreshSession = session;
+    refreshPromise = pending;
   }
   return refreshPromise;
 }
 
 function handleLogout() {
   refreshPromise = null;
+  refreshSession = null;
   resetTokenCache();
   clearLocalData();
   removeUser();
@@ -134,7 +154,8 @@ function logoutForExpiredSession() {
 const api = createUploadClient(CONFIG.api.baseUrl);
 
 api.interceptors.request.use(async (config) => {
-  const { idToken, refreshToken } = getToken() || {};
+  const { idToken, refreshToken, localId } = getToken() || {};
+  config._authSessionLocalId = localId;
   if (!idToken && !refreshToken) {
     const error = new Error("Not authenticated");
     error.status = 401;
@@ -147,6 +168,9 @@ api.interceptors.request.use(async (config) => {
     try {
       token = await getFreshToken();
     } catch (error) {
+      if (error?.code === AUTH_SESSION_CHANGED || !isCurrentAccount(localId, getToken())) {
+        return Promise.reject(sessionChangedError());
+      }
       if (error?.authRefreshTerminal) {
         logoutForExpiredSession();
         return Promise.reject(error);
@@ -158,14 +182,23 @@ api.interceptors.request.use(async (config) => {
     }
   }
 
+  assertCurrentAccount(localId, getToken());
+
   config.headers = config.headers || {};
   config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    assertCurrentAccount(response.config?._authSessionLocalId, getToken());
+    return response;
+  },
   async (error) => {
+    const originalRequest = error.config;
+    if (originalRequest && !isCurrentAccount(originalRequest._authSessionLocalId, getToken())) {
+      return Promise.reject(sessionChangedError());
+    }
     const status = error.response?.status || error.status;
     const responseData = error.response?.data;
     const message =
@@ -173,7 +206,6 @@ api.interceptors.response.use(
       responseData?.error?.message ||
       (typeof responseData?.error === "string" ? responseData.error : "") ||
       error.message;
-    const originalRequest = error.config;
 
     const decision = decideAuth401Action({
       status,
@@ -185,10 +217,15 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       try {
         const newToken = await getFreshToken({ force: true });
+        assertCurrentAccount(originalRequest._authSessionLocalId, getToken());
         originalRequest.headers = originalRequest.headers || {};
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
       } catch (refreshError) {
+        if (refreshError?.code === AUTH_SESSION_CHANGED ||
+          !isCurrentAccount(originalRequest._authSessionLocalId, getToken())) {
+          return Promise.reject(sessionChangedError());
+        }
         if (decideRefreshErrorAction(refreshError).isTerminal) {
           logoutForExpiredSession();
         }
