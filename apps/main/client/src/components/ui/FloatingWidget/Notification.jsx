@@ -1,8 +1,23 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./styles.css";
 import { Bell, X } from "lucide-react";
 import { TbPinned } from "react-icons/tb";
 import { getNotifications } from "@/services";
+import { useAuthStore } from "@/stores";
+import {
+  markNotificationsRead,
+  mergeReadStates,
+  notificationReadKey,
+  notificationVersion,
+  readNotificationState,
+  unreadNotifications,
+} from "@/utils/notificationReadState";
+
+const storageForNotifications = () => {
+  try { return window.localStorage; } catch { return null; }
+};
+const sameReadState = (left, right) => Object.keys(left).length === Object.keys(right).length &&
+  Object.entries(left).every(([id, version]) => right[id] === version);
 
 function parseMessage(text = "") {
   const parts = String(text).split(/(https?:\/\/[^\s]+)/g);
@@ -26,10 +41,16 @@ function parseMessage(text = "") {
 }
 
 const FloatingNotification = () => {
+  const accountId = useAuthStore((state) => state.user?.uid || state.user?.localId || state.user?.username || null);
+  const readKey = notificationReadKey(accountId ? `user:${accountId}` : "guest");
+  const [readRecord, setReadRecord] = useState(() => ({ key: readKey, values: readNotificationState(storageForNotifications(), readKey) }));
+  const readValues = readRecord.key === readKey ? readRecord.values : readNotificationState(storageForNotifications(), readKey);
+  const readRecordRef = useRef({ key: readKey, values: readValues });
+  readRecordRef.current = { key: readKey, values: readValues };
   const [notifications, setNotifications] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [animate, setAnimate] = useState(false);
-  const [isShaking, setIsShaking] = useState(true);
+  const [isShaking, setIsShaking] = useState(false);
   const [showNewNotificationAlert, setShowNewNotificationAlert] =
     useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,7 +59,89 @@ const FloatingNotification = () => {
   const requestRef = useRef(null);
   const alertTimerRef = useRef(null);
   const modalTimerRef = useRef(null);
+  const shakeTimerRef = useRef(null);
+  const modalOpenRef = useRef(false);
   const signatureRef = useRef("");
+  const unread = useMemo(() => unreadNotifications(notifications, readValues), [notifications, readValues]);
+  const unreadSignature = unread.map((item) => notificationVersion(item)).join("|");
+
+  const updateReadValues = useCallback((values) => {
+    readRecordRef.current = { key: readKey, values };
+    setReadRecord((previous) => previous.key === readKey && sameReadState(previous.values, values)
+      ? previous : { key: readKey, values });
+  }, [readKey]);
+
+  const markRead = useCallback((items) => {
+    if (!modalOpenRef.current || document.visibilityState === "hidden") return;
+    const storage = storageForNotifications();
+    const stored = readNotificationState(storage, readKey);
+    const current = readRecordRef.current.key === readKey ? readRecordRef.current.values : stored;
+    const next = markNotificationsRead(items, mergeReadStates(stored, current));
+    const changed = !sameReadState(current, next);
+    const needsWrite = Boolean(storage) && !sameReadState(stored, next);
+    updateReadValues(next);
+    if (needsWrite) {
+      try { storage.setItem(readKey, JSON.stringify(next)); } catch { /* Keep the current view marked read when storage is unavailable. */ }
+    }
+    if (changed || needsWrite) window.dispatchEvent(new CustomEvent("mtien-notifications-read", { detail: { key: readKey, values: next } }));
+  }, [readKey, updateReadValues]);
+
+  useEffect(() => {
+    updateReadValues(readNotificationState(storageForNotifications(), readKey));
+    const syncReadValues = (incoming, reset = false) => {
+      const current = readRecordRef.current.key === readKey ? readRecordRef.current.values : {};
+      const next = reset ? {} : mergeReadStates(current, incoming);
+      updateReadValues(next);
+      const storage = storageForNotifications();
+      if (!reset && storage && !sameReadState(readNotificationState(storage, readKey), next)) {
+        try { storage.setItem(readKey, JSON.stringify(next)); } catch { /* In-memory state still works. */ }
+      }
+    };
+    const onStorage = (event) => {
+      if (event.key !== null && event.key !== readKey) return;
+      syncReadValues(readNotificationState(storageForNotifications(), readKey), event.newValue === null);
+    };
+    const onRead = (event) => {
+      if (event.detail?.key === readKey) syncReadValues(event.detail.values);
+    };
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("mtien-notifications-read", onRead);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("mtien-notifications-read", onRead);
+    };
+  }, [readKey, updateReadValues]);
+
+  useEffect(() => {
+    const markVisible = () => {
+      if (showModal && modalOpenRef.current) markRead(notifications);
+    };
+    markVisible();
+    document.addEventListener("visibilitychange", markVisible);
+    return () => document.removeEventListener("visibilitychange", markVisible);
+  }, [showModal, notifications, markRead]);
+
+  useEffect(() => {
+    clearTimeout(alertTimerRef.current);
+    clearTimeout(shakeTimerRef.current);
+    if (showModal || !unreadSignature) {
+      signatureRef.current = "";
+      setShowNewNotificationAlert(false);
+      setIsShaking(false);
+      return undefined;
+    }
+    const signature = `${readKey}:${unreadSignature}`;
+    if (signature === signatureRef.current) return undefined;
+    signatureRef.current = signature;
+    setShowNewNotificationAlert(true);
+    setIsShaking(true);
+    alertTimerRef.current = setTimeout(() => setShowNewNotificationAlert(false), 3000);
+    shakeTimerRef.current = setTimeout(() => setIsShaking(false), 2000);
+    return () => {
+      clearTimeout(alertTimerRef.current);
+      clearTimeout(shakeTimerRef.current);
+    };
+  }, [readKey, unreadSignature, showModal]);
 
   const fetchNotifications = useCallback(async () => {
       requestRef.current?.abort();
@@ -65,13 +168,6 @@ const FloatingNotification = () => {
           return b.createdAt - a.createdAt;
         });
 
-        const signature = formatted.map((item) => `${item.id}:${item.updated_at || item.created_at}`).join("|");
-        if (formatted.length > 0 && signature !== signatureRef.current) {
-          setShowNewNotificationAlert(true);
-          clearTimeout(alertTimerRef.current);
-          alertTimerRef.current = setTimeout(() => setShowNewNotificationAlert(false), 3000);
-        }
-        signatureRef.current = signature;
         setNotifications(formatted);
         setLoadError("");
       } catch (err) {
@@ -93,12 +189,11 @@ const FloatingNotification = () => {
     window.addEventListener("focus", refreshVisible);
     window.addEventListener("mtien-notifications-updated", refreshVisible);
     document.addEventListener("visibilitychange", refreshVisible);
-    const timer = setTimeout(() => setIsShaking(false), 2000);
     return () => {
       mountedRef.current = false;
       requestRef.current?.abort();
-      clearTimeout(timer);
       clearTimeout(alertTimerRef.current);
+      clearTimeout(shakeTimerRef.current);
       clearTimeout(modalTimerRef.current);
       clearInterval(interval);
       window.removeEventListener("focus", refreshVisible);
@@ -118,6 +213,8 @@ const FloatingNotification = () => {
   // Mở modal với animation
   const openModal = () => {
     clearTimeout(modalTimerRef.current);
+    modalOpenRef.current = true;
+    markRead(notifications);
     fetchNotifications();
     setShowNewNotificationAlert(false);
     setShowModal(true);
@@ -126,6 +223,7 @@ const FloatingNotification = () => {
 
   const closeModal = () => {
     clearTimeout(modalTimerRef.current);
+    modalOpenRef.current = false;
     setAnimate(false);
     modalTimerRef.current = setTimeout(() => setShowModal(false), 300);
   };
@@ -146,7 +244,9 @@ const FloatingNotification = () => {
         )}
 
         <button
+          type="button"
           aria-label="Mở giao diện thông báo"
+          aria-expanded={showModal}
           onClick={openModal}
           className="relative flex items-center justify-center w-12 h-12 rounded-full bg-base-300 border text-base-content shadow-sm cursor-pointer"
         >
@@ -156,9 +256,9 @@ const FloatingNotification = () => {
               isShaking ? "shake-animation" : ""
             }`}
           />
-          {notifications.length > 0 && (
-            <span className="absolute no-select -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1 py-0.5 leading-none ring-2 ring-white">
-              {notifications.length}
+          {!showModal && unread.length > 0 && (
+            <span data-testid="notification-unread-badge" aria-label={`${unread.length} thông báo chưa đọc`} className="absolute no-select -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1 py-0.5 leading-none ring-2 ring-white">
+              {unread.length}
             </span>
           )}
         </button>
