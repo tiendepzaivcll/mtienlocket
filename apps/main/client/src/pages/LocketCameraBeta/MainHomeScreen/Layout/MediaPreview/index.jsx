@@ -315,54 +315,55 @@ const MediaPreview = () => {
 
         {!preview && !selectedFile && (
           <>
-            {/* Top Bar: Nút Zoom góc trên bên phải */}
-            <div className="absolute inset-x-0 top-7 px-7 z-30 pointer-events-none flex justify-end items-center text-base-content text-xs font-semibold">
+            {/* Top Bar: Mic góc trên bên trái, Zoom góc trên bên phải */}
+            <div className="absolute inset-x-0 top-6 px-6 z-30 pointer-events-none flex justify-between items-center text-base-content text-xs font-semibold">
+              {/* Nút Mic góc trên bên trái */}
+              <button
+                type="button"
+                onClick={toggleMic}
+                className={`pointer-events-auto h-8 w-8 rounded-full backdrop-blur-md flex items-center justify-center transition active:scale-95 shadow-sm ${
+                  isMicEnabled
+                    ? "bg-emerald-500/90 text-white shadow-emerald-500/30"
+                    : "bg-black/60 text-red-400 border border-white/20 hover:bg-black/80"
+                }`}
+                title={isMicEnabled ? "Mic: Đang BẬT (Video có tiếng)" : "Mic: Đang TẮT (Video không tiếng)"}
+                aria-label="Bật/Tắt Mic"
+              >
+                {isMicEnabled ? <Mic size={16} /> : <MicOff size={16} />}
+              </button>
+
+              {/* Nút Zoom góc trên bên phải */}
               <button
                 onClick={handleCycleZoomCamera}
-                className="pointer-events-auto h-7 px-2.5 text-primary-content font-semibold rounded-full bg-white/30 backdrop-blur-md flex items-center justify-center hover:bg-white/40 active:scale-95 transition shadow-sm"
+                className="pointer-events-auto min-w-[32px] h-8 px-2.5 text-primary-content font-semibold text-xs rounded-full bg-white/30 backdrop-blur-md flex items-center justify-center hover:bg-white/40 active:scale-95 transition shadow-sm"
                 title={`Chế độ Zoom: ${zoomLevel}`}
               >
                 {zoomLevel}
               </button>
             </div>
 
-            {/* Bottom Controls: Mic góc dưới bên trái, Flash + Filter góc dưới bên phải */}
+            {/* Bottom Controls: Flash góc dưới bên trái, AI Filter góc dưới bên phải */}
             <div className="pointer-events-none absolute inset-x-0 bottom-6 z-[70] flex items-center justify-between px-6">
-              {/* Nút Mic góc dưới bên trái */}
+              {/* Nút Flash góc dưới bên trái - Bật/Tắt đèn Flash vật lý & màn hình */}
               <button
                 type="button"
-                onClick={toggleMic}
+                onClick={toggleFlash}
                 className={`pointer-events-auto h-9 w-9 rounded-full backdrop-blur-md flex items-center justify-center transition active:scale-90 shadow-md ${
-                  isMicEnabled
-                    ? "bg-emerald-500/90 text-white shadow-emerald-500/30 ring-1 ring-emerald-400/50"
-                    : "bg-black/60 text-red-400 border border-white/20 hover:bg-black/80"
+                  isFlashOn
+                    ? "bg-amber-400 text-black shadow-amber-400/50 ring-2 ring-amber-300 scale-105"
+                    : "bg-black/60 text-white/80 border border-white/20 hover:bg-black/80"
                 }`}
-                title={isMicEnabled ? "Mic: Đang BẬT (Video có tiếng)" : "Mic: Đang TẮT (Video không tiếng)"}
-                aria-label="Bật/Tắt Mic"
+                title={isFlashOn ? "Đèn Flash: Đang BẬT" : "Đèn Flash: Đang TẮT"}
+                aria-label="Bật/Tắt Flash"
               >
-                {isMicEnabled ? <Mic size={17} /> : <MicOff size={17} />}
+                <Zap
+                  size={17}
+                  className={isFlashOn ? "fill-black text-black" : "text-white/80"}
+                />
               </button>
 
-              {/* Nhóm góc dưới bên phải: Nút Flash + AI Filter */}
+              {/* Nhóm góc dưới bên phải: AI Filter */}
               <div className="flex items-center gap-2.5 pointer-events-auto">
-                {/* Nút Flash góc dưới bên phải - Bật/Tắt đèn Flash vật lý & màn hình */}
-                <button
-                  type="button"
-                  onClick={toggleFlash}
-                  className={`h-9 w-9 rounded-full backdrop-blur-md flex items-center justify-center transition active:scale-90 shadow-md ${
-                    isFlashOn
-                      ? "bg-amber-400 text-black shadow-amber-400/50 ring-2 ring-amber-300 scale-105"
-                      : "bg-black/60 text-white/80 border border-white/20 hover:bg-black/80"
-                  }`}
-                  title={isFlashOn ? "Đèn Flash: Đang BẬT" : "Đèn Flash: Đang TẮT"}
-                  aria-label="Bật/Tắt Flash"
-                >
-                  <Zap
-                    size={17}
-                    className={isFlashOn ? "fill-black text-black" : "text-white/80"}
-                  />
-                </button>
-
                 {selectedAiFilter ? (
                   <>
                     <button
