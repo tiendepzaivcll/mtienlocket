@@ -326,6 +326,9 @@ export default function PricingPage() {
         <p className="text-center text-xs text-gray-500 mt-6">
           Thanh toán an toàn qua PayOS • Kích hoạt tự động sau thanh toán
         </p>
+        <p className="text-center text-xs text-gray-500 mt-2 italic">
+          ✨ Các tính năng VIP mới sẽ được admin cập nhật thêm trong tương lai
+        </p>
       </div>
     </main>
   );
