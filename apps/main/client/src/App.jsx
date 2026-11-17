@@ -147,7 +147,7 @@ function AppContent() {
   }, [accessDenied, location.pathname, navigate]);
 
   useEffect(() => {
-    if (user && accessRole === "vip") {
+    if (user && (accessRole === "vip" || accessRole === "free")) {
       // loadFriendsV2();
       loadFriendsV3();
       syncStreak();
@@ -156,7 +156,7 @@ function AppContent() {
   }, [accessRole, hydrateUploadQueue, loadFriendsV3, syncStreak, user]);
 
   useEffect(() => {
-    if (!user || accessRole !== "vip") return undefined;
+    if (!user || (accessRole !== "vip" && accessRole !== "free")) return undefined;
 
     let lastRecoverySyncAt = 0;
     const recover = () => {

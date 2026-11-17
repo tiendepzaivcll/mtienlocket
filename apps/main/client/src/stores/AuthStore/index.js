@@ -48,10 +48,12 @@ const fullAccessPlan = {
 const ACCESS_ROLE_KEY = "t97_access_role";
 const AI_FILTER_ACCESS_KEY = "t97_ai_filter_access";
 
-const normalizeAccessRole = (role) =>
-  String(role || "").trim().toLowerCase() === "celebrity"
-    ? "celebrity"
-    : "vip";
+const normalizeAccessRole = (role) => {
+  const r = String(role || "").trim().toLowerCase();
+  if (r === "celebrity") return "celebrity";
+  if (r === "vip") return "vip";
+  return "free";
+};
 
 const getCachedAccessRole = () => {
   const role = localStorage.getItem(ACCESS_ROLE_KEY);

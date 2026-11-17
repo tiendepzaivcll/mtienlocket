@@ -326,14 +326,37 @@ class ApiController {
       const approval = await checkFirestoreApproval(username);
 
       if (!approval) {
-        return res.status(403).json({
-          success: false,
-          code: "ACCESS_NOT_APPROVED",
-          message: "Tài khoản chưa được admin phê duyệt.",
+        // Không có trong approved_users → vẫn cho đăng nhập, role = "free"
+        // Lưu uid vào approved_users để theo dõi (nếu có username)
+        if (db && username && localId) {
+          try {
+            await db.collection(APPROVED_USER_COLLECTION).doc(username).set(
+              {
+                uid: localId,
+                role: "free",
+                active: true,
+                approved: true,
+                enabled: true,
+                lastAccessAt: new Date().toISOString(),
+                createdAt: new Date().toISOString(),
+              },
+              { merge: true },
+            );
+          } catch (e) {
+            console.warn("⚠️ Không thể tạo approved_users doc:", e.message);
+          }
+        }
+
+        return res.status(200).json({
+          success: true,
           data: {
-            approved: false,
+            approved: true,
             username: userInfo?.username || null,
-            contact: process.env.ADMIN_CONTACT || "tienmanh6811@gmail.com",
+            role: "free",
+            features: {
+              aiFilter: false,
+            },
+            source: "default",
           },
         });
       }

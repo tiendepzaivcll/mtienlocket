@@ -8,6 +8,11 @@ const isApprovedDocEnabled = (data = {}) =>
   data.enabled !== false &&
   data.disabled !== true;
 
+/**
+ * Middleware: cho phép tất cả user đã đăng nhập đi qua.
+ * Gắn req.accessRole = role thực tế ("vip", "free", "celebrity")
+ * Các tính năng VIP sẽ được kiểm tra riêng ở frontend hoặc từng endpoint.
+ */
 const requireVipAccess = async (req, res, next) => {
   try {
     if (!db) {
@@ -30,30 +35,22 @@ const requireVipAccess = async (req, res, next) => {
     const approvedDoc = snapshot.docs[0];
     const access = approvedDoc?.data() || null;
 
-    if (!access || !isApprovedDocEnabled(access)) {
-      return res.status(403).json({
-        success: false,
-        code: "ACCESS_NOT_APPROVED",
-        message: "Tài khoản chưa được admin phê duyệt.",
-      });
+    // Nếu có doc và đang enabled → cho qua với role thực tế
+    if (access && isApprovedDocEnabled(access)) {
+      const role = String(access.role || "free").trim().toLowerCase();
+      req.accessRole = role;
+      return next();
     }
 
-    const role = String(access.role || "vip").trim().toLowerCase();
-    if (role !== "vip") {
-      return res.status(403).json({
-        success: false,
-        code: "VIP_REQUIRED",
-        message: "Cần Mua Gói Vip Để Sử Dụng",
-      });
-    }
-
-    req.accessRole = "vip";
+    // Nếu không tìm thấy doc bằng uid → vẫn cho qua với role "free"
+    // (trường hợp user mới đăng nhập, chưa kịp sync uid vào approved_users)
+    req.accessRole = "free";
     return next();
   } catch (error) {
-    console.error("❌ Lỗi kiểm tra quyền VIP:", error);
+    console.error("❌ Lỗi kiểm tra quyền:", error);
     return res.status(500).json({
       success: false,
-      message: "Không kiểm tra được quyền VIP",
+      message: "Không kiểm tra được quyền truy cập",
     });
   }
 };
