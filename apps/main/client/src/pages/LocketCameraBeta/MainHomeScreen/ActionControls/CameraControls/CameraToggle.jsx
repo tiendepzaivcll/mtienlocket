@@ -24,6 +24,7 @@ const CameraToggle = () => {
     setLoading,
     setDeviceId,
     setZoomLevel,
+    isFlashOn,
   } = camera;
 
   const handleRotateCamera = async () => {
@@ -43,6 +44,16 @@ const CameraToggle = () => {
         audio: false,
       });
       streamRef.current = stream;
+      if (isFlashOn) {
+        const videoTrack = stream.getVideoTracks()?.[0];
+        if (videoTrack) {
+          try {
+            if (typeof videoTrack.getCapabilities === "function" && videoTrack.getCapabilities()?.torch) {
+              videoTrack.applyConstraints({ advanced: [{ torch: true }] });
+            }
+          } catch {}
+        }
+      }
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }

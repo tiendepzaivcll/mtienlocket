@@ -17,6 +17,10 @@ export const useCamera = () => {
   const [cameraMode, setCameraMode] = useState("user");
   const [zoomLevel, setZoomLevel] = useState("1x"); // "0.5x" | "1x" | "3x"
   const [deviceId, setDeviceId] = useState(null); // deviceId của camera hiện tại
+  const [isFlashOn, setIsFlashOn] = useState(() => {
+    const saved = localStorage.getItem("setting_camera_flash_enabled");
+    return saved === "true";
+  });
 
   // ✅ Lấy từ localStorage hoặc mặc định frame đầu tiên
   const [selectedFrame, setSelectedFrame] = useState(() => {
@@ -58,5 +62,7 @@ export const useCamera = () => {
     setZoomLevel,
     selectedFrame,
     setSelectedFrame,
+    isFlashOn,
+    setIsFlashOn,
   };
 };

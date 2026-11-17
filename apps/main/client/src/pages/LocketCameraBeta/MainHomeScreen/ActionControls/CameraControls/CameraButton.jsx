@@ -28,6 +28,7 @@ const CameraButton = () => {
     setLoading,
     setDeviceId,
     setZoomLevel,
+    isFlashOn,
   } = camera;
   const { preview, setPreview, setSelectedFile, setSizeMedia } = post;
   const { setIsCaptionLoading, uploadLoading, setUploadLoading } = useloading;
@@ -307,6 +308,9 @@ const CameraButton = () => {
   };
 
   const captureImage = () => {
+    if (isFlashOn) {
+      window.dispatchEvent(new CustomEvent("camera-flash-burst"));
+    }
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
