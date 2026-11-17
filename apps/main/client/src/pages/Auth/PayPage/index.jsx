@@ -188,7 +188,7 @@ export default function PayPage() {
         </div>
 
         {/* QR Code */}
-        {order.qrCode && (
+        {order.checkoutUrl && (
           <div className="bg-white rounded-2xl p-6 text-center">
             <div className="flex items-center justify-center gap-2 mb-3">
               <QrCode className="w-5 h-5 text-purple-600" />
@@ -197,10 +197,14 @@ export default function PayPage() {
               </span>
             </div>
             <img
-              src={order.qrCode}
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(order.checkoutUrl)}`}
               alt="QR thanh toán"
               className="w-56 h-56 mx-auto rounded-xl"
+              onError={(e) => { e.target.style.display = "none"; }}
             />
+            <p className="text-xs text-gray-500 mt-2">
+              Quét mã QR hoặc ấn nút bên dưới để thanh toán
+            </p>
           </div>
         )}
 
