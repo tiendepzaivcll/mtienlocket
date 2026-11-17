@@ -37,7 +37,14 @@ const CameraToggle = () => {
     setZoomScale(1);
     setDeviceId(null);
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current.getTracks().forEach((track) => {
+        try {
+          if (typeof track.getCapabilities === "function" && track.getCapabilities()?.torch) {
+            track.applyConstraints({ advanced: [{ torch: false }] });
+          }
+        } catch {}
+        track.stop();
+      });
     }
 
     try {
@@ -46,16 +53,6 @@ const CameraToggle = () => {
         audio: false,
       });
       streamRef.current = stream;
-      if (isFlashOn) {
-        const videoTrack = stream.getVideoTracks()?.[0];
-        if (videoTrack) {
-          try {
-            if (typeof videoTrack.getCapabilities === "function" && videoTrack.getCapabilities()?.torch) {
-              videoTrack.applyConstraints({ advanced: [{ torch: true }] });
-            }
-          } catch {}
-        }
-      }
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }

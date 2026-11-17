@@ -54,15 +54,29 @@ const MediaPreview = () => {
   const [zoomRange, setZoomRange] = useState({ min: 0.5, max: 6 });
 
   // Kiểm tra khả năng zoom phần cứng của camera thiết bị
-  const updateCameraZoomCapabilities = (track) => {
+  const updateCameraZoomCapabilities = (track, mode = cameraMode) => {
     if (!track || track.readyState !== "live") return;
     try {
       const caps = typeof track.getCapabilities === "function" ? track.getCapabilities() : {};
+      const isFront = mode === "user";
+
+      if (isFront) {
+        // Cam trước: Giới hạn từ 1.0x đến tối đa 2.5x để đảm bảo ảnh selfie nét, không vỡ hạt
+        const minZ = caps && caps.zoom && caps.zoom.min !== undefined ? Math.max(caps.zoom.min, 1.0) : 1.0;
+        const maxZ = caps && caps.zoom && caps.zoom.max ? Math.min(caps.zoom.max, 2.5) : 2.5;
+        setHasHardwareZoom(Boolean(caps?.zoom));
+        setZoomRange({ min: minZ, max: maxZ, step: caps?.zoom?.step || 0.1 });
+        return;
+      }
+
+      // Cam sau: Nhận diện chính xác theo phần cứng máy (từ 0.5x đến caps.zoom.max của thiết bị)
       if (caps && caps.zoom) {
         setHasHardwareZoom(true);
+        const minZ = caps.zoom.min !== undefined ? Math.min(caps.zoom.min, 0.5) : 0.5;
+        const maxZ = caps.zoom.max ? Math.min(caps.zoom.max, 10) : 6;
         setZoomRange({
-          min: caps.zoom.min !== undefined ? Math.min(caps.zoom.min, 0.5) : 0.5,
-          max: caps.zoom.max || 8,
+          min: minZ,
+          max: maxZ,
           step: caps.zoom.step || 0.1,
         });
         return;
@@ -70,8 +84,14 @@ const MediaPreview = () => {
     } catch (err) {
       console.warn("Lỗi kiểm tra capabilities zoom:", err);
     }
-    setHasHardwareZoom(false);
-    setZoomRange({ min: 0.5, max: 6, step: 0.1 });
+
+    if (mode === "user") {
+      setHasHardwareZoom(false);
+      setZoomRange({ min: 1.0, max: 2.5, step: 0.1 });
+    } else {
+      setHasHardwareZoom(false);
+      setZoomRange({ min: 0.5, max: 6.0, step: 0.1 });
+    }
   };
 
   const applyHardwareZoom = async (val) => {
@@ -80,8 +100,8 @@ const MediaPreview = () => {
     try {
       const caps = typeof track.getCapabilities === "function" ? track.getCapabilities() : {};
       if (caps && caps.zoom) {
-        const minZ = caps.zoom.min !== undefined ? Math.min(caps.zoom.min, 0.5) : 0.5;
-        const maxZ = caps.zoom.max || 8;
+        const minZ = zoomRange.min !== undefined ? zoomRange.min : (caps.zoom.min || 1);
+        const maxZ = zoomRange.max !== undefined ? zoomRange.max : (caps.zoom.max || 6);
         const clamped = Math.min(Math.max(val, minZ), maxZ);
         await track.applyConstraints({ advanced: [{ zoom: clamped }] });
       }
@@ -319,8 +339,8 @@ const MediaPreview = () => {
 
       const videoTrack = stream.getVideoTracks()?.[0];
       if (videoTrack) {
-        updateCameraZoomCapabilities(videoTrack);
-        if (zoomScale > 1) {
+        updateCameraZoomCapabilities(videoTrack, cameraMode);
+        if (Math.abs(zoomScale - 1) > 0.05) {
           applyHardwareZoom(zoomScale);
         }
       }
@@ -349,6 +369,14 @@ const MediaPreview = () => {
   //     stopCamera();
   //   };
   // }, [cameraActive, cameraMode, preview, selectedFile]);
+
+  useEffect(() => {
+    setZoomScale(1);
+    const videoTrack = streamRef.current?.getVideoTracks()?.[0];
+    if (videoTrack) {
+      updateCameraZoomCapabilities(videoTrack, cameraMode);
+    }
+  }, [cameraMode]);
 
   useEffect(() => {
     if (cameraActive && isCameraScreenActive && !preview && !selectedFile) {
