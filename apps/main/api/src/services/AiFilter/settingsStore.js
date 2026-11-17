@@ -12,10 +12,10 @@ const MODEL_OPTIONS = Object.freeze([
     model: "kira-2.0-image",
   }),
   Object.freeze({
-    id: "kira-hy-image-v3.5-free",
-    label: "Kira HY Image 3.5 Free",
+    id: "kira-hy4-flash-free",
+    label: "Kira HY4 Flash Free",
     provider: "kira",
-    model: "hy-image-v3.5-free",
+    model: "hy4-flash-free",
   }),
   Object.freeze({
     id: "cloudflare-flux-2-klein-9b",
@@ -27,13 +27,18 @@ const MODEL_OPTIONS = Object.freeze([
 
 const DEFAULT_MODEL_ID = "cloudflare-flux-2-klein-9b";
 const CACHE_TTL_MS = 30_000;
+const LEGACY_MODEL_ALIASES = new Map([
+  ["kira-hy-image-v3.5-free", "kira-hy4-flash-free"],
+  ["hy-image-v3.5-free", "kira-hy4-flash-free"],
+]);
 
 const findModelOption = (value) => {
   const normalized = String(value || "").trim().toLowerCase();
+  const modelId = LEGACY_MODEL_ALIASES.get(normalized) || normalized;
   return MODEL_OPTIONS.find(
     (option) =>
-      option.id.toLowerCase() === normalized ||
-      option.model.toLowerCase() === normalized,
+      option.id.toLowerCase() === modelId ||
+      option.model.toLowerCase() === modelId,
   ) || null;
 };
 
