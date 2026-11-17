@@ -4,10 +4,20 @@ import { useApp } from "@/context/AppContext";
 import { getVideoRecordLimit } from "@/hooks/useFeature";
 import { CAMERA_CONFIG } from "@/config/configAlias";
 import { detectAppEnvironment } from "@/utils/logic/checkIfRunningAsPWA";
-import { SonnerInfo } from "@/components/ui/SonnerToast";
+import { SonnerError, SonnerInfo } from "@/components/ui/SonnerToast";
+import { useCameraCaptureMode } from "@/hooks/useCameraCaptureMode";
+import { usePhotoboothStore } from "@/stores";
+import { PHOTOBOOTH_FRAMES } from "@/data/photoboothFrames";
+import { capturePhotoboothFrame, composePhotoboothGrid } from "@/utils/photobooth";
 
 const CameraButton = () => {
   const { camera, post, useloading } = useApp();
+  const { showPhotobooth, selectedFrameId, chooseCaptureMode } = useCameraCaptureMode();
+  const photoboothPhotos = usePhotoboothStore((state) => state.photos);
+  const isComposing = usePhotoboothStore((state) => state.isComposing);
+  const addPhoto = usePhotoboothStore((state) => state.addPhoto);
+  const clearPhotos = usePhotoboothStore((state) => state.clearPhotos);
+  const setComposing = usePhotoboothStore((state) => state.setComposing);
   const {
     videoRef,
     streamRef,
@@ -54,6 +64,7 @@ const CameraButton = () => {
   const startHold = (e) => {
     // Prevent default để tránh conflict trên iOS
     e.preventDefault();
+    if (showPhotobooth) return;
 
     isTryingToRecordRef.current = true;
     isRecordingRef.current = false; // Reset recording state
@@ -289,9 +300,106 @@ const CameraButton = () => {
     }, 600);
   };
 
+  const capturePhotoboothStep = async () => {
+    if (isComposing) return;
+    const video = videoRef.current;
+    if (!video || video.readyState < 2) {
+      SonnerInfo("Camera chưa sẵn sàng, vui lòng chờ giây lát...");
+      return;
+    }
+
+    const videoTrack = streamRef.current?.getVideoTracks()?.[0];
+    let torchTurnedOnByCapture = false;
+
+    // 1. Flash nếu đang bật
+    if (isFlashOn) {
+      if (cameraMode === "environment") {
+        try {
+          if (videoTrack && typeof videoTrack.getCapabilities === "function" && videoTrack.getCapabilities()?.torch) {
+            await videoTrack.applyConstraints({ advanced: [{ torch: true }] });
+            torchTurnedOnByCapture = true;
+            await new Promise((r) => setTimeout(r, 160));
+          } else {
+            window.dispatchEvent(new CustomEvent("camera-flash-burst"));
+            await new Promise((r) => setTimeout(r, 80));
+          }
+        } catch (err) {
+          console.warn("Lỗi bật torch cam sau:", err);
+        }
+      } else if (cameraMode === "user") {
+        setIsScreenFlashing(true);
+        await new Promise((r) => setTimeout(r, 240));
+      }
+    }
+
+    try {
+      // 2. Chụp khung hình vuông từ video
+      const photoFile = await capturePhotoboothFrame(video, {
+        mirror: cameraMode === "user",
+        size: CAMERA_CONFIG.imageSizePx || 1920,
+      });
+      const photoUrl = URL.createObjectURL(photoFile);
+
+      const nextPhotos = addPhoto({ blob: photoFile, url: photoUrl });
+
+      // Nếu đã chụp đủ 4 ảnh: tự động ghép và hiển thị sang màn hình gửi Locket
+      if (nextPhotos.length >= 4) {
+        setComposing(true);
+        try {
+          const selectedFrame = PHOTOBOOTH_FRAMES.find((f) => f.id === selectedFrameId) || null;
+          const frameOption = selectedFrame?.src ? selectedFrame : null;
+
+          const composedFile = await composePhotoboothGrid(
+            nextPhotos.map((p) => p.blob),
+            {
+              frame: frameOption,
+              size: 1920,
+            }
+          );
+          const composedUrl = URL.createObjectURL(composedFile);
+
+          const fileSizeInMB = (composedFile.size / (1024 * 1024)).toFixed(2);
+          setSizeMedia(fileSizeInMB);
+          setPreview({ type: "image", data: composedUrl });
+          setSelectedFile(composedFile);
+          setIsCaptionLoading(true);
+          setCameraActive(false);
+
+          // Thoát Photobooth mode
+          clearPhotos();
+          chooseCaptureMode(false);
+        } catch (composeErr) {
+          console.error("Lỗi tự động ghép ảnh Photobooth:", composeErr);
+          SonnerError("Không thể ghép ảnh Photobooth. Vui lòng thử lại!");
+          setComposing(false);
+        }
+      }
+    } catch (err) {
+      console.error("Lỗi chụp ảnh Photobooth:", err);
+      SonnerError(err.message || "Không thể chụp ảnh Photobooth.");
+    } finally {
+      // 3. Tắt Flash
+      if (isFlashOn) {
+        if (cameraMode === "environment" && torchTurnedOnByCapture && videoTrack) {
+          try {
+            await videoTrack.applyConstraints({ advanced: [{ torch: false }] });
+          } catch (e) {}
+        } else if (cameraMode === "user") {
+          setIsScreenFlashing(false);
+        }
+      }
+    }
+  };
+
   const endHold = (e) => {
     // Prevent default để tránh conflict trên iOS
     e.preventDefault();
+
+    if (showPhotobooth) {
+      if (isComposing) return;
+      capturePhotoboothStep();
+      return;
+    }
 
     const heldTime = Date.now() - (holdStartTimeRef.current || Date.now());
 
@@ -436,6 +544,45 @@ const CameraButton = () => {
       clearInterval(intervalRef.current);
     };
   }, []);
+
+  if (showPhotobooth) {
+    return (
+      <button
+        type="button"
+        onClick={capturePhotoboothStep}
+        disabled={isComposing}
+        className="relative flex items-center justify-center w-24 h-24 active:scale-95 transition"
+        style={{
+          touchAction: "manipulation",
+          userSelect: "none",
+          WebkitUserSelect: "none",
+        }}
+        aria-label="Chụp ảnh Photobooth"
+      >
+        {/* Vòng tròn viền xanh cyan phát sáng */}
+        <div className="absolute w-20 h-20 rounded-full border-[3.5px] border-cyan-400 shadow-[0_0_22px_rgba(34,211,238,0.7)] animate-pulse" />
+
+        {/* Nút tròn màu trắng ở giữa */}
+        <div className="absolute w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-lg transition active:scale-90">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-black"
+          >
+            <rect width="14" height="20" x="5" y="2" rx="3" />
+            <line x1="5" x2="19" y1="8" y2="8" />
+            <line x1="5" x2="19" y1="14" y2="14" />
+          </svg>
+        </div>
+      </button>
+    );
+  }
 
   return (
     <>

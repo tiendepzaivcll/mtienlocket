@@ -11,3 +11,4 @@ export * from "./FriendStores";
 export * from "./AuthStore";
 export * from "./SettingStores";
 export * from "./StreakStores";
+export * from "./usePhotoboothStore";

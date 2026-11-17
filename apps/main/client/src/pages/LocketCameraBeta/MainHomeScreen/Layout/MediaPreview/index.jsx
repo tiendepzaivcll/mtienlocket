@@ -5,7 +5,9 @@ import { useApp } from "@/context/AppContext";
 import { CONFIG } from "@/config";
 import BorderProgress from "../../Widgets/SquareProgress";
 import { SonnerInfo, SonnerSuccess } from "@/components/ui/SonnerToast";
-import { useUIStore } from "@/stores";
+import { useUIStore, usePhotoboothStore } from "@/stores";
+import { useCameraCaptureMode } from "@/hooks/useCameraCaptureMode";
+import { PHOTOBOOTH_FRAMES } from "@/data/photoboothFrames";
 import { Mic, MicOff, Volume2, VolumeX, X, Zap } from "lucide-react";
 import AiSparkleIcon from "../../ActionControls/MediaControls/AiSparkleIcon.jsx";
 import AiGenerationEffect from "./AiGenerationEffect.jsx";
@@ -41,6 +43,10 @@ const MediaPreview = () => {
     isFlashOn,
     setIsFlashOn,
   } = camera;
+  const { showPhotobooth, selectedFrameId } = useCameraCaptureMode();
+  const photoboothPhotos = usePhotoboothStore((state) => state.photos);
+  const isComposing = usePhotoboothStore((state) => state.isComposing);
+  const currentBoothFrame = PHOTOBOOTH_FRAMES.find((f) => f.id === selectedFrameId) || null;
   const cameraInitialized = useRef(false);
   const cameraRequestId = useRef(0);
   const lastCameraMode = useRef(cameraMode);
@@ -581,6 +587,66 @@ const MediaPreview = () => {
                   >
                     <AiSparkleIcon />
                   </button>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Photobooth HUD: Top badge & Bottom status + 4-cell preview */}
+        {showPhotobooth && !preview && !selectedFile && (
+          <>
+            {/* Top badge: Ảnh X/4 */}
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[70] pointer-events-none">
+              <span className="bg-black/60 backdrop-blur-md text-white text-xs px-3.5 py-1 rounded-full font-semibold border border-white/10 shadow-lg">
+                Ảnh {Math.min(photoboothPhotos.length + 1, 4)}/4
+              </span>
+            </div>
+
+            {/* Bottom center: text + mini 4-cell layout preview box */}
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-[70] flex flex-col items-center pointer-events-none select-none">
+              <span className="text-white text-[13px] font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-2">
+                {isComposing
+                  ? "Đang ghép 4 ảnh Photobooth…"
+                  : `Chạm nút chụp • ảnh ${Math.min(photoboothPhotos.length + 1, 4)}/4`}
+              </span>
+
+              {/* Khung 4 ô photobooth mini */}
+              <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-black/50 backdrop-blur-md border border-white/30 p-1 shadow-2xl">
+                <div className="grid grid-cols-2 grid-rows-2 gap-1 w-full h-full">
+                  {[0, 1, 2, 3].map((index) => {
+                    const photo = photoboothPhotos[index];
+                    const isCurrent = index === photoboothPhotos.length;
+                    return (
+                      <div
+                        key={index}
+                        className={`relative w-full h-full rounded-sm overflow-hidden flex items-center justify-center transition-all duration-200 ${
+                          photo
+                            ? "bg-black"
+                            : isCurrent
+                            ? "bg-white/30 ring-1 ring-white/60 animate-pulse"
+                            : "bg-white/10"
+                        }`}
+                      >
+                        {photo ? (
+                          <img
+                            src={photo.url}
+                            alt={`Ảnh ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Nếu có khung viền photobooth, phủ viền lên mini box */}
+                {currentBoothFrame?.src && (
+                  <img
+                    src={currentBoothFrame.src}
+                    alt=""
+                    className="absolute inset-0 w-full h-full pointer-events-none object-cover"
+                  />
                 )}
               </div>
             </div>

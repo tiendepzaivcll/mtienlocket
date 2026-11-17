@@ -2,7 +2,6 @@ import React, { lazy, Suspense } from "react";
 import { useApp } from "@/context/AppContext";
 import { CalendarClock, LoaderCircle, X } from "lucide-react";
 import { usePostStore } from "@/stores";
-import { useCameraCaptureMode } from "@/hooks/useCameraCaptureMode";
 import { formatRestoreDate } from "@/utils/streakRestoreFlow";
 import "../branding.css";
 
@@ -15,7 +14,6 @@ import MediaSizeInfo from "@/components/ui/MediaSizeInfo/index.jsx";
 
 const BottomHomeScreen = lazy(() => import("../BottomHomeScreen"));
 const SelectFriendsList = lazy(() => import("./Layout/SelectFriends"));
-const Photobooth = lazy(() => import("@/pages/Auth/Photobooth"));
 
 const RestoreFlowBanner = () => {
   const restoreFlow = usePostStore((state) => state.restoreFlow);
@@ -69,7 +67,6 @@ const RestoreFlowBanner = () => {
 
 export default function MainHomeScreen() {
   const { navigation, post } = useApp();
-  const { showPhotobooth, selectedFrameId, chooseCaptureMode } = useCameraCaptureMode();
 
   const {
     isHomeOpen,
@@ -84,12 +81,6 @@ export default function MainHomeScreen() {
     setFriendHistoryOpen,
   } = navigation;
   const { selectedFile } = post;
-  const hasRestoreSelection = usePostStore((state) => Boolean(state.restoreFlow.selectedDate));
-  const boothActive = !isProfileOpen && !isHomeOpen && !isBottomOpen &&
-    !isFriendHistoryOpen && !navigation.isSidebarOpen && !navigation.isFriendsTabOpen &&
-    !navigation.isChatDetailOpen && !navigation.isOptionModalOpen &&
-    !navigation.isFilterOpen && !navigation.isAiFilterOpen &&
-    !navigation.isSettingTabOpen && !post.showEmojiPicker;
 
   return (
     <>
@@ -131,16 +122,6 @@ export default function MainHomeScreen() {
             isBottomOpen ? "fixed -translate-y-full" : "translate-x-0"
           }`}
         >
-          {showPhotobooth ? (
-            <div className="locket-pro-inline-booth-host" data-testid="locket-inline-photobooth">
-              <Suspense fallback={<p className="py-8 text-sm opacity-70" role="status">Đang mở Photobooth…</p>}>
-                <Photobooth embedded active={boothActive} frameId={selectedFrameId}
-                  onOpenFilters={() => navigation.setIsAiFilterOpen(true)}
-                  onUseResult={() => chooseCaptureMode(false)} />
-              </Suspense>
-              <button type="button" className="locket-pro-booth-history" onClick={() => setIsBottomOpen(true)}>Lịch sử</button>
-            </div>
-          ) : <>
           <div className="h-10" />
           <MediaPreview />
           <MediaSizeInfo />
@@ -177,7 +158,6 @@ export default function MainHomeScreen() {
               <HistoryArrow setIsBottomOpen={setIsBottomOpen} />
             </div>
           </div>
-          </>}
         </div>
       </div>
     </>
