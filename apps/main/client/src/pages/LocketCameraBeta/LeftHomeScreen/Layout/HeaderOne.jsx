@@ -6,7 +6,6 @@ function HeaderOne({ setIsProfileOpen }) {
     <div className="flex items-center justify-between px-4 py-1">
       <div className="select-none px-3 py-2">
         <div className="text-lg font-bold tracking-tight">LOCKET-PRO</div>
-        <div className="text-xs opacity-70">Admin <strong>MTIEN</strong></div>
       </div>
       <button
         onClick={() => setIsProfileOpen(false)}

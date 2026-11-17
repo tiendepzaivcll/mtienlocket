@@ -70,12 +70,12 @@ const Sidebar = () => {
   const { startYear } = CONFIG.app;
   const handleLogout = async () => {
     try {
-      clearAndlogout();
+      await clearAndlogout();
       SonnerSuccess(
         "Đăng xuất thành công!",
         `Tạm biệt ${user?.displayName || "người dùng"}!`,
       );
-      navigate("/login");
+      window.location.href = "/login";
     } catch (error) {
       SonnerError("error", "Đăng xuất thất bại!");
       console.error("❌ Lỗi khi đăng xuất:", error);
@@ -87,7 +87,7 @@ const Sidebar = () => {
     {
       title: "Điều hướng",
       items: [
-        { to: "/home", icon: Home, text: "Trang chủ" },
+        { to: "/locket-beta", icon: Home, text: "Trang chủ" },
         { to: "/newsfeed", icon: Newspaper, text: "Bảng tin", badge: "New" },
         {
           to: "/download",

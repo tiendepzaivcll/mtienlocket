@@ -201,7 +201,7 @@ function AppContent() {
 
   useEffect(() => {
     const r = allRoutes.find((route) => route.path === location.pathname);
-    document.title = r?.title || "LOCKET-PRO · Admin MTIEN";
+    document.title = r?.title || "LOCKET-PRO";
 
     const url = window.location.origin + location.pathname;
     (

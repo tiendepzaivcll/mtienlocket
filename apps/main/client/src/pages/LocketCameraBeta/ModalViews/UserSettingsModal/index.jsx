@@ -63,10 +63,10 @@ export default function UserSettingsModal({ isOpen, onClose }) {
 
   const handleLogout = async () => {
     try {
-      clearAndlogout();
+      await clearAndlogout();
       SonnerSuccess("Đăng xuất thành công", "Hẹn gặp lại bạn!");
       onClose();
-      navigate("/login");
+      window.location.href = "/login";
     } catch {
       SonnerError("Lỗi", "Không thể đăng xuất");
     }
@@ -303,21 +303,6 @@ export default function UserSettingsModal({ isOpen, onClose }) {
                 <div className="flex items-center gap-3.5">
                   <Smartphone size={19} className="text-purple-400" />
                   <span className="text-sm font-medium text-white">Cài đặt WebApp</span>
-                </div>
-                <ChevronRight size={17} className="text-gray-500" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  navigate("/locket-beta?camera=photobooth");
-                }}
-                className="w-full flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition text-left"
-              >
-                <div className="flex items-center gap-3.5">
-                  <Camera size={19} className="text-pink-400" />
-                  <span className="text-sm font-medium text-white">Photobooth 4 ô</span>
                 </div>
                 <ChevronRight size={17} className="text-gray-500" />
               </button>
