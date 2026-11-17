@@ -307,7 +307,7 @@ const ScreenCustomeStudio = () => {
             onSelect={handleCustomeSelect}
           />
           <ThemesCustomes
-            title="🎨 Decorative by T97"
+            title="🎨 Decorative by MTIEN"
             presets={captionOverlays.custome}
             onSelect={handleCustomeSelect}
           />
@@ -321,14 +321,11 @@ const ScreenCustomeStudio = () => {
           <FeatureGate canUse={canUseCaptionimage}>
             <ImageCaptionSelector title="🎨 Caption Ảnh - Truy cập sớm" />
           </FeatureGate>
-          <div className="px-4">
+          <div className="px-4 pb-6">
             <h2 className="text-md font-semibold text-primary">
               🎨 Caption Logo
             </h2>
             <p className="text-xs">Comming Soon?...</p>
-          </div>
-          <div className="bottom-0">
-            <Footer />
           </div>
         </div>
       </div>

@@ -11,12 +11,7 @@ const UploadingQueue = () => {
   } = useApp().post;
   const uploadItems = useUploadQueueStore((s) => s.uploadItems);
 
-  if (uploadItems.length === 0)
-    return (
-      <div className="flex justify-center items-center w-full">
-        <p className="text-sm">i love MTIEN</p>
-      </div>
-    );
+  if (uploadItems.length === 0) return null;
 
   return (
     <>

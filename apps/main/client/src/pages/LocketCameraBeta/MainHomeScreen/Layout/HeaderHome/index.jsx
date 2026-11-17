@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { ChevronDown, Download, Menu } from "lucide-react";
+import { ChevronDown, Download, Megaphone } from "lucide-react";
 import HistorySelectFriend from "@/pages/LocketCameraBeta/ModalViews/HistorySelectFriend";
+import UserSettingsModal from "@/pages/LocketCameraBeta/ModalViews/UserSettingsModal";
 import { useAuthStore, useFriendList } from "@/stores";
+import { useApp } from "@/context/AppContext";
 import { getAvatarSource, handleAvatarError } from "@/utils/avatar";
 
 const HeaderHome = ({
@@ -14,23 +16,21 @@ const HeaderHome = ({
   selectedFile,
 }) => {
   const { user } = useAuthStore();
-
+  const { navigation } = useApp();
   const friendList = useFriendList();
 
   const [isImageLoaded, setIsImageLoaded] = useState(false);
-
   const [isVisible, setIsVisible] = useState(false);
   const [friendName, setFriendName] = useState("Mọi người");
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   const toggleDropdown = () => {
     // Nếu bottom đang mở → dùng animation logic
     if (isBottomOpen) {
       if (!isVisible) {
-        // Mở dropdown
         setIsVisible(true);
         setTimeout(() => setFriendHistoryOpen(true), 10);
       } else {
-        // Đóng dropdown
         setFriendHistoryOpen(false);
         setTimeout(() => setIsVisible(false), 500);
       }
@@ -40,14 +40,19 @@ const HeaderHome = ({
     // Nếu bottom đang đóng → mở tab bạn bè
     setFriendsTabOpen(true);
   };
+
+  const handleOpenRollcall = () => {
+    navigation.setProfileSection("rollcall");
+    setIsProfileOpen(true);
+  };
+
   const handleDownload = () => {
     if (!selectedFile) return;
 
     const url = URL.createObjectURL(selectedFile);
-
     const extension = selectedFile.type.split("/")[1] || "png";
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const defaultName = `t97-${timestamp}.${extension}`;
+    const defaultName = `locket-${timestamp}.${extension}`;
 
     const link = document.createElement("a");
     link.href = url;
@@ -63,7 +68,7 @@ const HeaderHome = ({
     <>
       {selectedFile && (
         <div
-          className={`fixed top-0 left-0 w-full px-2 pt-1 flex items-center justify-between z-50`}
+          className={`fixed top-0 left-0 w-full px-3 pt-2 flex items-center justify-between z-50`}
         >
           <div></div>
           <div className="absolute flex justify-center items-center flex-row gap-1 left-1/2 transform -translate-x-1/2 text-xl font-semibold text-base-content">
@@ -80,34 +85,22 @@ const HeaderHome = ({
           </div>
         </div>
       )}
+
       {!selectedFile && (
         <div
-          className={`fixed top-0 left-0 w-full px-2 pt-1 flex items-center justify-between z-50`}
+          className={`fixed top-0 left-0 w-full px-3 pt-2 flex items-center justify-between z-50`}
         >
-          {/* Avatar bên trái */}
+          {/* Nút Rollcall góc trên bên trái */}
           <button
-            onClick={() => setIsProfileOpen(true)}
-            className="relative flex items-center justify-center w-11 h-11 cursor-pointer active:scale-105"
+            onClick={handleOpenRollcall}
+            className="flex items-center justify-center w-11 h-11 bg-base-300/70 backdrop-blur-[6px] hover:bg-base-300 rounded-full active:scale-95 transition text-base-content shadow-sm"
+            aria-label="Mở Rollcall"
+            title="Rollcall"
           >
-            {/* Nền mờ */}
-            <div className="bg-base-300/70 backdrop-blur-[4px] w-11.5 h-11.5 rounded-full absolute" />
-
-            {/* Hiển thị vòng loading khi ảnh chưa load */}
-            {!isImageLoaded && (
-              <div className="absolute w-5 h-5 border-t-transparent border-white rounded-full animate-spin" />
-            )}
-
-            <img
-              src={getAvatarSource(user)}
-              alt="avatar"
-              onLoad={() => setIsImageLoaded(true)}
-              onError={handleAvatarError}
-              className={`rounded-full h-9.5 w-9.5 relative backdrop-blur-3xl transition-opacity duration-300 ${
-                isImageLoaded ? "opacity-100" : "opacity-0 bg-base-300"
-              }`}
-            />
+            <Megaphone size={21} strokeWidth={2.2} />
           </button>
 
+          {/* Bạn bè / Mọi người ở giữa */}
           <button
             className="absolute flex z-90 transition-all justify-center items-center flex-row gap-1 left-1/2 
           transform -translate-x-1/2 text-lg font-semibold bg-base-300/70 backdrop-blur-[4px] 
@@ -141,18 +134,36 @@ const HeaderHome = ({
                     clipRule="evenodd"
                   />
                 </svg>
-                <span>{friendList.length || "0"}</span>người bạn
+                <span>{friendList.length || "0"}</span> người bạn
               </>
             )}
           </button>
 
-          {/* Nút bên phải */}
+          {/* Avatar chuyển sang bên phải */}
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="w-11 h-11 flex items-center justify-center bg-base-300/70 backdrop-blur-[4px] rounded-full hover:bg-base-300 transition active:scale-105"
+              onClick={() => setIsSettingsModalOpen(true)}
+              className="relative flex items-center justify-center w-11 h-11 cursor-pointer active:scale-105"
+              aria-label="Cài đặt & Tài khoản"
+              title="Cài đặt & Tài khoản"
             >
-              <Menu size={28} strokeWidth={2} />
+              {/* Nền mờ */}
+              <div className="bg-base-300/70 backdrop-blur-[4px] w-11.5 h-11.5 rounded-full absolute" />
+
+              {/* Hiển thị vòng loading khi ảnh chưa load */}
+              {!isImageLoaded && (
+                <div className="absolute w-5 h-5 border-t-transparent border-white rounded-full animate-spin" />
+              )}
+
+              <img
+                src={getAvatarSource(user)}
+                alt="avatar"
+                onLoad={() => setIsImageLoaded(true)}
+                onError={handleAvatarError}
+                className={`rounded-full h-9.5 w-9.5 relative backdrop-blur-3xl transition-opacity duration-300 ${
+                  isImageLoaded ? "opacity-100" : "opacity-0 bg-base-300"
+                }`}
+              />
             </button>
           </div>
 
@@ -161,6 +172,12 @@ const HeaderHome = ({
             setIsVisible={setIsVisible}
             setFriendName={setFriendName}
             onClick={toggleDropdown}
+          />
+
+          {/* Modal Cài đặt & Tài khoản theo thiết kế mới */}
+          <UserSettingsModal
+            isOpen={isSettingsModalOpen}
+            onClose={() => setIsSettingsModalOpen(false)}
           />
         </div>
       )}

@@ -111,11 +111,6 @@ export default function MainHomeScreen() {
           isFriendHistoryOpen={isFriendHistoryOpen}
           selectedFile={selectedFile}
         />
-        {!selectedFile && !isBottomOpen && !hasRestoreSelection && (
-          <div className="locket-pro-camera-identity" aria-label="LOCKET-PRO, Admin MTIEN">
-            <strong>LOCKET-PRO</strong><span>Admin <b>MTIEN</b></span>
-          </div>
-        )}
         <RestoreFlowBanner />
         <div
           className={`w-full h-full flex flex-1 flex-col transition-all duration-500 justify-center items-center ${

@@ -234,7 +234,7 @@ export default function GeneralThemes({ title }) {
       handleCustomeSelect(buildMusicOverlay(music));
 
       const musicType = formType === "apple" ? "Apple Music" : "Spotify";
-      SonnerSuccess(`${musicType} by T97`, "Lấy nhạc thành công");
+      SonnerSuccess(`${musicType} by MTIEN`, "Lấy nhạc thành công");
 
       closeMusicForm();
     } catch (error) {
