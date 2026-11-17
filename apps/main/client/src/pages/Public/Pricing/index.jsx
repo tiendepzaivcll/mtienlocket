@@ -37,9 +37,17 @@ const FEATURE_ROWS = [
   },
   {
     icon: Camera,
-    label: "Khung Photobooth",
-    free: "3 khung cơ bản",
-    vip: "Tất cả khung",
+    label: "Photobooth 4 ô",
+    free: false,
+    vip: true,
+    isBoolean: true,
+  },
+  {
+    icon: Camera,
+    label: "Khung Camera",
+    free: false,
+    vip: true,
+    isBoolean: true,
   },
   {
     icon: Wand2,

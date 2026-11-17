@@ -1,11 +1,15 @@
-import { Camera, Check } from "lucide-react";
+import { Camera, Check, Crown, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getAllFrameCamera } from "@/services";
-import { useUIStore } from "@/stores";
+import { useUIStore, useAuthStore } from "@/stores";
 import { CAMERA_FRAMES } from "@/data/cameraFrames";
 
 export default function CameraFrameSelector() {
   const [frames, setFrames] = useState([{ id: 0, name: "Không có", imageSrc: null }, ...CAMERA_FRAMES]);
+  const navigate = useNavigate();
+  const accessRole = useAuthStore((s) => s.accessRole);
+  const isVip = accessRole === "vip";
 
   const setCameraFrame = useUIStore((s) => s.setCameraFrame);
   const cameraFrame = useUIStore((s) => s.cameraFrame);
@@ -29,6 +33,36 @@ export default function CameraFrameSelector() {
 
     fetchFrames();
   }, []);
+
+  // Khung camera chỉ dành cho VIP
+  if (!isVip) {
+    return (
+      <div className="w-full">
+        <div className="flex items-center mb-4 text-base-content">
+          <Camera className="w-5 h-5 mr-2" />
+          <h2 className="text-lg font-semibold">Chọn Khung Camera</h2>
+          <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r from-yellow-400 to-orange-500 text-black">
+            <Crown className="w-3 h-3" /> VIP
+          </span>
+        </div>
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <div className="w-16 h-16 rounded-full bg-yellow-500/10 flex items-center justify-center mb-3">
+            <Lock className="w-8 h-8 text-yellow-500" />
+          </div>
+          <p className="text-base-content/70 text-sm mb-3">
+            Khung camera là tính năng dành riêng cho VIP
+          </p>
+          <button
+            onClick={() => navigate("/pricing")}
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold text-sm hover:opacity-90 transition"
+          >
+            <Crown className="w-4 h-4 inline mr-1 -mt-0.5" />
+            Nâng cấp VIP
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">

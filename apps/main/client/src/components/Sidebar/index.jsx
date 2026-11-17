@@ -102,7 +102,7 @@ const Sidebar = () => {
       title: "Tính năng",
       items: [
         { to: "/postmoments", icon: Upload, text: "Đăng ảnh, video" },
-        { to: "/locket-beta?camera=photobooth", icon: Camera, text: "Photobooth 4 ô" },
+        { to: "/locket-beta?camera=photobooth", icon: Camera, text: "Photobooth 4 ô", badge: "VIP" },
         {
           to: "/locket-beta",
           icon: Smartphone,
