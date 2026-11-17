@@ -300,16 +300,30 @@ class PaymentController {
    */
   async handleWebhook(req, res) {
     try {
-      const { code, data, signature } = req.body;
+      const body = req.body || {};
+      const { code, data, signature, desc, success: webhookSuccess } = body;
 
-      console.log("🔔 PayOS webhook received:", { code, orderCode: data?.orderCode });
+      console.log("🔔 PayOS webhook received:", JSON.stringify(body).slice(0, 500));
 
-      // Verify signature
-      if (data && signature) {
+      // PayOS sends a test/verification webhook — always return 200
+      if (!data && !code) {
+        console.log("ℹ️ Webhook test/ping request — responding OK");
+        return res.status(200).json({ success: true });
+      }
+
+      // Handle confirm webhook (PayOS sends this to verify URL)
+      if (code === "00" && data && data.orderCode === 123) {
+        console.log("ℹ️ PayOS confirm webhook test — responding OK");
+        return res.status(200).json({ success: true });
+      }
+
+      // Verify signature (skip for test webhooks)
+      if (data && signature && data.orderCode !== 123) {
         const isValid = verifyWebhookSignature(data, signature);
         if (!isValid) {
           console.warn("⚠️ Invalid webhook signature");
-          return res.status(400).json({ success: false, message: "Invalid signature" });
+          // Still return 200 to prevent retries
+          return res.status(200).json({ success: false, message: "Invalid signature" });
         }
       }
 
