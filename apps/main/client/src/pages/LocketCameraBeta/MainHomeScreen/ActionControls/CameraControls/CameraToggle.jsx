@@ -24,6 +24,7 @@ const CameraToggle = () => {
     setLoading,
     setDeviceId,
     setZoomLevel,
+    setZoomScale,
     isFlashOn,
   } = camera;
 
@@ -33,6 +34,7 @@ const CameraToggle = () => {
     setCameraMode(newMode);
     // ✅ Reset deviceId để tránh bị giữ lại cam cũ (zoom cam)
     setZoomLevel("1x");
+    setZoomScale(1);
     setDeviceId(null);
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());

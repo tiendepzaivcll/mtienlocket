@@ -16,6 +16,9 @@ export const useCamera = () => {
   const [countdown, setCountdown] = useState(null);
   const [cameraMode, setCameraMode] = useState("user");
   const [zoomLevel, setZoomLevel] = useState("1x"); // "0.5x" | "1x" | "3x"
+  const [zoomScale, setZoomScale] = useState(1); // Thu phóng tự do (chụm 2 ngón tay pinch-to-zoom)
+  const [hasHardwareZoom, setHasHardwareZoom] = useState(false);
+  const [isScreenFlashing, setIsScreenFlashing] = useState(false); // Sáng toàn màn hình khi chụp cam trước
   const [deviceId, setDeviceId] = useState(null); // deviceId của camera hiện tại
   const [isFlashOn, setIsFlashOn] = useState(() => {
     const saved = localStorage.getItem("setting_camera_flash_enabled");
@@ -60,9 +63,15 @@ export const useCamera = () => {
     setDeviceId,
     zoomLevel,
     setZoomLevel,
+    zoomScale,
+    setZoomScale,
+    hasHardwareZoom,
+    setHasHardwareZoom,
     selectedFrame,
     setSelectedFrame,
     isFlashOn,
     setIsFlashOn,
+    isScreenFlashing,
+    setIsScreenFlashing,
   };
 };

@@ -30,6 +30,12 @@ const MediaPreview = () => {
     cameraMode,
     zoomLevel,
     setZoomLevel,
+    zoomScale,
+    setZoomScale,
+    hasHardwareZoom,
+    setHasHardwareZoom,
+    isScreenFlashing,
+    setIsScreenFlashing,
     deviceId,
     setDeviceId,
     isFlashOn,
@@ -38,6 +44,104 @@ const MediaPreview = () => {
   const cameraInitialized = useRef(false);
   const cameraRequestId = useRef(0);
   const lastCameraMode = useRef(cameraMode);
+
+  // Pinch-to-zoom (thu phóng bằng chụm 2 ngón tay banh ra/thu vào)
+  const cameraContainerRef = useRef(null);
+  const initialPinchDist = useRef(0);
+  const initialPinchZoom = useRef(1);
+  const [isPinching, setIsPinching] = useState(false);
+  const pinchTimeoutRef = useRef(null);
+  const [zoomRange, setZoomRange] = useState({ min: 1, max: 6 });
+
+  // Kiểm tra khả năng zoom phần cứng của camera thiết bị
+  const updateCameraZoomCapabilities = (track) => {
+    if (!track || track.readyState !== "live") return;
+    try {
+      const caps = typeof track.getCapabilities === "function" ? track.getCapabilities() : {};
+      if (caps && caps.zoom) {
+        setHasHardwareZoom(true);
+        setZoomRange({
+          min: caps.zoom.min || 1,
+          max: caps.zoom.max || 8,
+          step: caps.zoom.step || 0.1,
+        });
+        return;
+      }
+    } catch (err) {
+      console.warn("Lỗi kiểm tra capabilities zoom:", err);
+    }
+    setHasHardwareZoom(false);
+    setZoomRange({ min: 1, max: 6, step: 0.1 });
+  };
+
+  const applyHardwareZoom = async (val) => {
+    const track = streamRef.current?.getVideoTracks()?.[0];
+    if (!track || track.readyState !== "live") return;
+    try {
+      const caps = typeof track.getCapabilities === "function" ? track.getCapabilities() : {};
+      if (caps && caps.zoom) {
+        const minZ = caps.zoom.min || 1;
+        const maxZ = caps.zoom.max || 8;
+        const clamped = Math.min(Math.max(val, minZ), maxZ);
+        await track.applyConstraints({ advanced: [{ zoom: clamped }] });
+      }
+    } catch (e) {}
+  };
+
+  const handleTouchStart = (e) => {
+    if (e.touches.length === 2) {
+      const d = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      initialPinchDist.current = d;
+      initialPinchZoom.current = zoomScale || 1;
+      setIsPinching(true);
+      if (pinchTimeoutRef.current) clearTimeout(pinchTimeoutRef.current);
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (e.touches.length === 2 && initialPinchDist.current > 0) {
+      if (e.cancelable) e.preventDefault();
+      const currentDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const factor = currentDist / initialPinchDist.current;
+      let nextZoom = initialPinchZoom.current * factor;
+      const minZ = zoomRange.min || 1;
+      const maxZ = zoomRange.max || 6;
+      nextZoom = Math.min(Math.max(nextZoom, minZ), maxZ);
+      const rounded = Math.round(nextZoom * 10) / 10;
+      setZoomScale(rounded);
+      applyHardwareZoom(rounded);
+      setIsPinching(true);
+    }
+  };
+
+  const handleTouchEnd = (e) => {
+    if (e.touches.length < 2) {
+      initialPinchDist.current = 0;
+      if (pinchTimeoutRef.current) clearTimeout(pinchTimeoutRef.current);
+      pinchTimeoutRef.current = setTimeout(() => {
+        setIsPinching(false);
+      }, 1000);
+    }
+  };
+
+  // Ngăn chặn trình duyệt di động zoom cả trang web khi đang chụm 2 ngón tay trên camera
+  useEffect(() => {
+    const el = cameraContainerRef.current;
+    if (!el) return;
+    const onTouchMovePrevent = (e) => {
+      if (e.touches.length === 2 && e.cancelable) {
+        e.preventDefault();
+      }
+    };
+    el.addEventListener("touchmove", onTouchMovePrevent, { passive: false });
+    return () => el.removeEventListener("touchmove", onTouchMovePrevent);
+  }, []);
 
   // Trạng thái mic khi quay video (mặc định bật)
   const [isMicEnabled, setIsMicEnabled] = useState(() => {
@@ -90,20 +194,18 @@ const MediaPreview = () => {
     setIsFlashOn(newVal);
     localStorage.setItem("setting_camera_flash_enabled", String(newVal));
 
-    const videoTrack = streamRef.current?.getVideoTracks()?.[0];
-    let hardwareTorch = false;
-    if (videoTrack) {
-      hardwareTorch = await applyTorchSafe(videoTrack, newVal);
-    }
-
     if (newVal) {
-      if (hardwareTorch) {
-        SonnerSuccess("Đã bật Đèn Flash ⚡", "Đèn flash vật lý trên máy đã bật");
+      if (cameraMode === "environment") {
+        SonnerSuccess("Đã bật Flash ⚡", "Sẽ chớp đèn flash máy khi bấm chụp");
       } else {
-        SonnerSuccess("Đã bật Flash ⚡", "Chế độ flash trợ sáng đã kích hoạt");
+        SonnerSuccess("Đã bật Flash ⚡", "Màn hình sẽ sáng rực khi bấm chụp");
       }
     } else {
-      SonnerInfo("Đã tắt Flash", "Đèn flash / trợ sáng đã tắt");
+      const videoTrack = streamRef.current?.getVideoTracks()?.[0];
+      if (videoTrack) {
+        applyTorchSafe(videoTrack, false);
+      }
+      SonnerInfo("Đã tắt Flash", "Chụp không đèn flash");
     }
   };
 
@@ -200,8 +302,12 @@ const MediaPreview = () => {
       cameraInitialized.current = true;
       lastCameraMode.current = cameraMode;
 
-      if (isFlashOn) {
-        applyTorchSafe(stream.getVideoTracks()?.[0], true);
+      const videoTrack = stream.getVideoTracks()?.[0];
+      if (videoTrack) {
+        updateCameraZoomCapabilities(videoTrack);
+        if (zoomScale > 1) {
+          applyHardwareZoom(zoomScale);
+        }
       }
 
       if (videoRef.current) {
@@ -290,10 +396,25 @@ const MediaPreview = () => {
     }
   };
 
+  const handleZoomButtonClick = () => {
+    if (zoomScale > 1.05) {
+      setZoomScale(1);
+      applyHardwareZoom(1);
+      SonnerInfo("Đã đặt lại zoom 1x");
+    } else {
+      handleCycleZoomCamera();
+    }
+  };
+
   return (
     <>
       <div
-        className={`relative w-full max-w-md aspect-square bg-gray-800 rounded-[65px] overflow-hidden transition-transform duration-500 `}
+        ref={cameraContainerRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
+        className={`relative w-full max-w-md aspect-square bg-gray-800 rounded-[65px] overflow-hidden transition-transform duration-500 touch-none select-none`}
       >
         {!preview && !selectedFile && cameraActive && (
           <video
@@ -301,9 +422,13 @@ const MediaPreview = () => {
             autoPlay
             playsInline
             muted
+            style={{
+              transform: `${cameraMode === "user" ? "scaleX(-1)" : ""} ${
+                !hasHardwareZoom && zoomScale > 1 ? `scale(${zoomScale})` : ""
+              }`.trim(),
+            }}
             className={`
-              w-full h-full object-cover transition-all duration-500 ease-in-out
-              ${cameraMode === "user" ? "scale-x-[-1]" : ""}
+              w-full h-full object-cover transition-transform duration-75 ease-out
               ${
                 cameraActive
                   ? "opacity-100 scale-100"
@@ -334,11 +459,11 @@ const MediaPreview = () => {
 
               {/* Nút Zoom góc trên bên phải */}
               <button
-                onClick={handleCycleZoomCamera}
-                className="pointer-events-auto min-w-[32px] h-8 px-2.5 text-primary-content font-semibold text-xs rounded-full bg-white/30 backdrop-blur-md flex items-center justify-center hover:bg-white/40 active:scale-95 transition shadow-sm"
-                title={`Chế độ Zoom: ${zoomLevel}`}
+                onClick={handleZoomButtonClick}
+                className="pointer-events-auto min-w-[34px] h-8 px-2.5 text-primary-content font-semibold text-xs rounded-full bg-white/30 backdrop-blur-md flex items-center justify-center hover:bg-white/40 active:scale-95 transition shadow-sm"
+                title={zoomScale > 1 ? "Nhấn để trở về 1x" : `Chế độ Zoom: ${zoomLevel}`}
               >
-                {zoomLevel}
+                {zoomScale > 1 ? `${zoomScale.toFixed(1)}x` : zoomLevel}
               </button>
             </div>
 
@@ -531,9 +656,12 @@ const MediaPreview = () => {
           <BorderProgress />
         </div>
 
-        {/* Trợ sáng màn hình khi Flash đang bật (dành cho selfie / thiếu sáng) */}
-        {isFlashOn && !preview && !selectedFile && cameraActive && (
-          <div className="absolute inset-0 pointer-events-none z-20 border-[6px] border-amber-300/40 bg-amber-100/10 mix-blend-screen transition-opacity duration-300" />
+        {/* Badge hiển thị mức zoom khi đang chụm phóng to/thu nhỏ */}
+        {isPinching && (
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-[85] bg-black/80 backdrop-blur-md text-amber-300 font-bold text-base px-4 py-1.5 rounded-full border border-amber-400/40 shadow-2xl flex items-center gap-1.5 animate-pulse">
+            <span>🔍</span>
+            <span>{zoomScale.toFixed(1)}x</span>
+          </div>
         )}
 
         {/* Hiệu ứng chớp trắng toàn màn hình khi bấm chụp ảnh có flash */}
@@ -553,6 +681,11 @@ const MediaPreview = () => {
           </div>
         )}
       </div>
+
+      {/* Sáng toàn màn hình khi ấn chụp bằng camera trước (Screen Flash) */}
+      {isScreenFlashing && (
+        <div className="fixed inset-0 z-[9999] bg-white pointer-events-none transition-opacity duration-150 animate-in fade-in" />
+      )}
     </>
   );
 };

@@ -29,6 +29,10 @@ const CameraButton = () => {
     setDeviceId,
     setZoomLevel,
     isFlashOn,
+    zoomScale,
+    hasHardwareZoom,
+    isScreenFlashing,
+    setIsScreenFlashing,
   } = camera;
   const { preview, setPreview, setSelectedFile, setSizeMedia } = post;
   const { setIsCaptionLoading, uploadLoading, setUploadLoading } = useloading;
@@ -61,6 +65,14 @@ const CameraButton = () => {
       // Đánh dấu đang recording
       isRecordingRef.current = true;
       setIsHolding(true);
+
+      // Bật đèn flash torch khi quay video cam sau nếu bật flash
+      if (isFlashOn && cameraMode === "environment") {
+        const vTrack = streamRef.current?.getVideoTracks()?.[0];
+        if (vTrack && typeof vTrack.getCapabilities === "function" && vTrack.getCapabilities()?.torch) {
+          vTrack.applyConstraints({ advanced: [{ torch: true }] }).catch(() => {});
+        }
+      }
 
       const video = videoRef.current;
       if (!video || video.readyState < 2) {
@@ -163,6 +175,14 @@ const CameraButton = () => {
           return;
         }
 
+        // Tắt torch sau khi dừng quay video
+        if (cameraMode === "environment") {
+          const vTrack = streamRef.current?.getVideoTracks()?.[0];
+          if (vTrack && typeof vTrack.getCapabilities === "function" && vTrack.getCapabilities()?.torch) {
+            vTrack.applyConstraints({ advanced: [{ torch: false }] }).catch(() => {});
+          }
+        }
+
         // Tạo blob với MIME type phù hợp
         const finalMimeType = mimeType || "video/mp4";
         const blob = new Blob(chunks, { type: finalMimeType });
@@ -244,9 +264,11 @@ const CameraButton = () => {
           ctx.scale(-1, 1);
         }
 
-        const sx = (video.videoWidth - side) / 2;
-        const sy = (video.videoHeight - side) / 2;
-        ctx.drawImage(video, sx, sy, side, side, 0, 0, outputSize, outputSize);
+        const effectiveScale = (!hasHardwareZoom && zoomScale > 1) ? zoomScale : 1;
+        const cropSide = side / effectiveScale;
+        const sx = (video.videoWidth - cropSide) / 2;
+        const sy = (video.videoHeight - cropSide) / 2;
+        ctx.drawImage(video, sx, sy, cropSide, cropSide, 0, 0, outputSize, outputSize);
 
         ctx.restore();
 
@@ -307,66 +329,101 @@ const CameraButton = () => {
     }
   };
 
-  const captureImage = () => {
-    if (isFlashOn) {
-      window.dispatchEvent(new CustomEvent("camera-flash-burst"));
-    }
+  const captureImage = async () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
-    const ctx = canvas.getContext("2d");
-    canvas.width = CAMERA_CONFIG.imageSizePx;
-    canvas.height = CAMERA_CONFIG.imageSizePx;
+    const videoTrack = streamRef.current?.getVideoTracks()?.[0];
+    let torchTurnedOnByCapture = false;
 
-    let sx = 0,
-      sy = 0,
-      sw = video.videoWidth,
-      sh = video.videoHeight;
-
-    if (video.videoWidth > video.videoHeight) {
-      const offset = (video.videoWidth - video.videoHeight) / 2;
-      sx = offset;
-      sw = video.videoHeight;
-    } else {
-      const offset = (video.videoHeight - video.videoWidth) / 2;
-      sy = offset;
-      sh = video.videoWidth;
-    }
-
-    if (cameraMode === "user") {
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
-    }
-
-    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-
-    canvas.toBlob(
-      (blob) => {
-        if (blob) {
-          const file = new File([blob], "t97.jpg", {
-            type: "image/jpeg",
-          });
-          const imgUrl = URL.createObjectURL(file);
-          setPreview({ type: "image", data: imgUrl });
-
-          const fileSizeInMB = file.size / (1024 * 1024);
-          setSizeMedia(fileSizeInMB.toFixed(2));
-
-          setSelectedFile(file);
-          setIsCaptionLoading(true);
-          setCameraActive(false);
+    // 1. Kích hoạt Flash trước khi chụp
+    if (isFlashOn) {
+      if (cameraMode === "environment") {
+        // Cam sau: Bật đèn flash LED vật lý soi sáng khung cảnh
+        try {
+          if (videoTrack && typeof videoTrack.getCapabilities === "function" && videoTrack.getCapabilities()?.torch) {
+            await videoTrack.applyConstraints({ advanced: [{ torch: true }] });
+            torchTurnedOnByCapture = true;
+            // Đợi 160ms để đèn LED sáng và cảm biến máy thích ứng độ sáng
+            await new Promise((r) => setTimeout(r, 160));
+          } else {
+            // Hiệu ứng chớp màn hình nếu thiết bị không có torch LED
+            window.dispatchEvent(new CustomEvent("camera-flash-burst"));
+            await new Promise((r) => setTimeout(r, 80));
+          }
+        } catch (err) {
+          console.warn("Lỗi bật torch cam sau:", err);
         }
-      },
-      "image/jpeg",
-      1.0
-    );
+      } else if (cameraMode === "user") {
+        // Cam trước: Toàn màn hình sáng trắng rực rỡ để chiếu sáng mặt lúc bấm chụp
+        setIsScreenFlashing(true);
+        // Đợi 240ms để khuôn mặt được chiếu sáng rõ nét
+        await new Promise((r) => setTimeout(r, 240));
+      }
+    }
 
-    // Fix iOS
-    setTimeout(() => {
-      const videoEl = document.querySelector("video");
-      if (videoEl) videoEl.setAttribute("playsinline", "true");
-    }, 100);
+    try {
+      const ctx = canvas.getContext("2d");
+      canvas.width = CAMERA_CONFIG.imageSizePx;
+      canvas.height = CAMERA_CONFIG.imageSizePx;
+
+      const baseSide = Math.min(video.videoWidth, video.videoHeight);
+      // Zoom kỹ thuật số nếu không có hardware zoom và zoomScale > 1
+      const effectiveScale = (!hasHardwareZoom && zoomScale > 1) ? zoomScale : 1;
+      const cropSide = baseSide / effectiveScale;
+
+      const sx = (video.videoWidth - cropSide) / 2;
+      const sy = (video.videoHeight - cropSide) / 2;
+
+      ctx.save();
+      if (cameraMode === "user") {
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+      }
+
+      ctx.drawImage(video, sx, sy, cropSide, cropSide, 0, 0, canvas.width, canvas.height);
+      ctx.restore();
+
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            const file = new File([blob], "t97.jpg", {
+              type: "image/jpeg",
+            });
+            const imgUrl = URL.createObjectURL(file);
+            setPreview({ type: "image", data: imgUrl });
+
+            const fileSizeInMB = file.size / (1024 * 1024);
+            setSizeMedia(fileSizeInMB.toFixed(2));
+
+            setSelectedFile(file);
+            setIsCaptionLoading(true);
+            setCameraActive(false);
+          }
+        },
+        "image/jpeg",
+        1.0
+      );
+
+      // Fix iOS
+      setTimeout(() => {
+        const videoEl = document.querySelector("video");
+        if (videoEl) videoEl.setAttribute("playsinline", "true");
+      }, 100);
+    } finally {
+      // 3. Tắt Flash ngay sau khi chụp xong để trở lại bình thường
+      if (isFlashOn) {
+        if (cameraMode === "environment" && torchTurnedOnByCapture && videoTrack) {
+          try {
+            await videoTrack.applyConstraints({ advanced: [{ torch: false }] });
+          } catch (e) {}
+        } else if (cameraMode === "user") {
+          // Màn hình trở lại bình thường ngay sau khi chụp xong
+          setIsScreenFlashing(false);
+        }
+      }
+    }
   };
 
   // Cleanup khi component unmount
