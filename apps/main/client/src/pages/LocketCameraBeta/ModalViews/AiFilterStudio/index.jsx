@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
-import { Camera, Check, Grid2X2, LoaderCircle, LockKeyhole, RefreshCw, Sparkles, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Camera, Check, LoaderCircle, LockKeyhole, RefreshCw, Sparkles, X } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { useCameraCaptureMode } from "@/hooks/useCameraCaptureMode";
 import { PHOTOBOOTH_FRAMES } from "@/data/photoboothFrames";
-import { useAuthStore } from "@/stores";
-import { fetchAiFilters } from "@/services";
+import { CAMERA_FRAMES } from "@/data/cameraFrames";
+import { useAuthStore, useUIStore } from "@/stores";
+import { fetchAiFilters, getAllFrameCamera } from "@/services";
 import { SonnerError } from "@/components/ui/SonnerToast";
+import "./styles.css";
 
 const errorMessage = (error) =>
   error?.response?.data?.message ||
@@ -13,27 +15,92 @@ const errorMessage = (error) =>
   error?.message ||
   "Không thể tải danh sách AI Filter.";
 
+function FrameThumbnail({ src, booth = false, selected = false }) {
+  return (
+    <span className={`filter-studio-thumbnail${booth ? " filter-studio-thumbnail-booth" : ""}`}>
+      {booth ? <span className="filter-studio-mini-grid" aria-hidden="true">{[0, 1, 2, 3].map((cell) => <span key={cell} />)}</span> : <Camera size={25} aria-hidden="true" />}
+      {src && <img src={src} alt="" loading="lazy" />}
+      {selected && <span className="filter-studio-check"><Check size={13} aria-hidden="true" /></span>}
+    </span>
+  );
+}
+
 function OpenFilterStudio() {
   const { navigation, post, camera, useloading } = useApp();
   const { setIsAiFilterOpen } = navigation;
   const { selectedFile, selectedAiFilter, setSelectedAiFilter } = post;
   const { showPhotobooth, selectedFrameId, mediaIsLocked, chooseCaptureMode } = useCameraCaptureMode();
+  const cameraFrame = useUIStore((state) => state.cameraFrame);
+  const setCameraFrame = useUIStore((state) => state.setCameraFrame);
   const aiFilterEnabled = useAuthStore((state) => state.aiFilterEnabled);
   const refreshAccessRole = useAuthStore((state) => state.refreshAccessRole);
-  const [tab, setTab] = useState(() => selectedFile || selectedAiFilter ? "ai" : "photobooth");
+  const scrollRef = useRef(null);
+  const aiSectionRef = useRef(null);
+  const closeRef = useRef(null);
+  const [aiSectionVisible, setAiSectionVisible] = useState(Boolean(selectedAiFilter));
   const [checkingAccess, setCheckingAccess] = useState(false);
   const [accessChecked, setAccessChecked] = useState(false);
+  const [remoteFrames, setRemoteFrames] = useState([]);
   const [groups, setGroups] = useState([]);
   const [loadingCatalog, setLoadingCatalog] = useState(false);
   const [catalogLoaded, setCatalogLoaded] = useState(false);
   const [catalogError, setCatalogError] = useState("");
   const [catalogAttempt, setCatalogAttempt] = useState(0);
+  const localFrameIds = new Set(CAMERA_FRAMES.map((frame) => String(frame.id)));
+  const cameraFrames = [...CAMERA_FRAMES, ...remoteFrames.filter((frame) => !localFrameIds.has(String(frame.id)))];
   const aiSelectionLocked = Boolean(camera.isHolding || useloading.sendLoading ||
     useloading.uploadLoading || useloading.isAiGenerating || post.imageToCrop || post.videoCrop);
+  const hasImage = Boolean(selectedFile?.type?.startsWith("image/"));
+  const frameSelectionLocked = aiSelectionLocked || Boolean(selectedFile && !hasImage) ||
+    (mediaIsLocked && !hasImage);
 
-  // Photobooth is local. Check the separate AI permission only in its own tab.
   useEffect(() => {
-    if (tab !== "ai" || aiFilterEnabled || accessChecked) return undefined;
+    let active = true;
+    getAllFrameCamera().then((frames) => {
+      if (!active || !Array.isArray(frames)) return;
+      const ids = new Set();
+      setRemoteFrames(frames.filter((frame) => {
+        if (!frame || frame.id == null || typeof frame.name !== "string" ||
+          typeof frame.imageSrc !== "string" || !frame.imageSrc || ids.has(String(frame.id))) return false;
+        ids.add(String(frame.id));
+        return true;
+      }));
+    }).catch(() => { /* The local frame collection stays available. */ });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    document.body.classList.add("overflow-hidden");
+    const previousFocus = document.activeElement;
+    closeRef.current?.focus({ preventScroll: true });
+    if (selectedAiFilter) aiSectionRef.current?.scrollIntoView({ block: "start" });
+    return () => {
+      document.body.classList.remove("overflow-hidden");
+      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+    };
+    // Start at the existing selection when this sheet is opened again.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (aiSectionVisible) return undefined;
+    if (!window.IntersectionObserver) {
+      setAiSectionVisible(true);
+      return undefined;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        setAiSectionVisible(true);
+        observer.disconnect();
+      }
+    }, { root: scrollRef.current, rootMargin: "140px 0px" });
+    if (aiSectionRef.current) observer.observe(aiSectionRef.current);
+    return () => observer.disconnect();
+  }, [aiSectionVisible]);
+
+  // Local frames never require AI access or an AI catalogue request.
+  useEffect(() => {
+    if (!aiSectionVisible || aiFilterEnabled || accessChecked) return undefined;
     let active = true;
     setCheckingAccess(true);
     Promise.resolve(refreshAccessRole()).catch(() => null).finally(() => {
@@ -43,10 +110,10 @@ function OpenFilterStudio() {
       }
     });
     return () => { active = false; };
-  }, [tab, aiFilterEnabled, accessChecked, refreshAccessRole]);
+  }, [aiSectionVisible, aiFilterEnabled, accessChecked, refreshAccessRole]);
 
   useEffect(() => {
-    if (tab !== "ai" || !aiFilterEnabled || catalogLoaded) return undefined;
+    if (!aiSectionVisible || !aiFilterEnabled || catalogLoaded) return undefined;
     let active = true;
     setLoadingCatalog(true);
     setCatalogError("");
@@ -66,20 +133,25 @@ function OpenFilterStudio() {
         if (active) setLoadingCatalog(false);
       });
     return () => { active = false; };
-  }, [tab, aiFilterEnabled, catalogAttempt, catalogLoaded]);
-
-  useEffect(() => {
-    document.body.classList.add("overflow-hidden");
-    return () => document.body.classList.remove("overflow-hidden");
-  }, []);
+  }, [aiSectionVisible, aiFilterEnabled, catalogAttempt, catalogLoaded]);
 
   const close = useCallback(() => {
     setIsAiFilterOpen(false);
   }, [setIsAiFilterOpen]);
 
-  const selectCapture = (photobooth, frameId = "none") => {
-    if (mediaIsLocked || chooseCaptureMode(photobooth, frameId) === false) return;
-    if (photobooth) setSelectedAiFilter(null);
+  const selectCameraFrame = (frame) => {
+    if (frameSelectionLocked) return;
+    if (showPhotobooth && chooseCaptureMode(false) === false) return;
+    setCameraFrame(frame);
+    setSelectedAiFilter(null);
+    close();
+  };
+
+  const selectPhotobooth = (frameId) => {
+    if (mediaIsLocked || chooseCaptureMode(true, frameId) === false) return;
+    // Booth exports already contain their frame, so the send flow must not add another.
+    setCameraFrame(null);
+    setSelectedAiFilter(null);
     close();
   };
 
@@ -92,136 +164,98 @@ function OpenFilterStudio() {
 
   return (
     <div
-      className="fixed inset-0 z-[110] flex items-end justify-center bg-black/40 backdrop-blur-[2px]"
+      className="filter-studio-backdrop"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) close();
       }}
       onKeyDown={(event) => {
         if (event.key === "Escape") close();
+        if (event.key === "Tab") {
+          const controls = event.currentTarget.querySelectorAll('button:not(:disabled), a[href]');
+          const first = controls[0];
+          const last = controls[controls.length - 1];
+          if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+          else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+        }
       }}
     >
-      <section
-        role="dialog"
-        aria-modal="true"
-        aria-label="Filter Studio"
-        data-testid="ai-filter-studio"
-        className="relative flex h-[70dvh] max-h-[70dvh] w-full max-w-md flex-col overflow-hidden rounded-t-[28px] bg-base-100 text-base-content shadow-2xl"
-      >
-        <header className="flex h-16 shrink-0 items-center gap-2 px-4">
-          <Sparkles className="h-6 w-6 text-[#b2f5cf]" strokeWidth={2.5} />
-          <h2 className="text-xl font-black uppercase tracking-tight">Filter Studio</h2>
-          <span className="flex-1" />
-          <button
-            type="button"
-            aria-label="Đóng Filter Studio"
-            onClick={close}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-base-200/80 shadow-sm transition hover:bg-base-200 active:scale-95"
-          >
-            <X className="h-6 w-6" />
-          </button>
+      <section role="dialog" aria-modal="true" aria-label="Filter Studio" data-testid="ai-filter-studio" className="filter-studio-sheet">
+        <div className="filter-studio-grip" aria-hidden="true" />
+        <header className="filter-studio-header">
+          <h2>Filter</h2>
+          <button ref={closeRef} type="button" aria-label="Đóng Filter Studio" onClick={close}><X size={22} /></button>
         </header>
 
-        <div className="mx-4 mb-3 flex shrink-0 gap-1 rounded-full bg-base-200 p-1" role="tablist" aria-label="Loại filter">
-          {[{ id: "photobooth", label: "Photobooth" }, { id: "ai", label: "AI Filter" }].map(({ id, label }) => (
-            <button
-              key={id}
-              id={`filter-tab-${id}`}
-              type="button"
-              role="tab"
-              aria-selected={tab === id}
-              aria-controls={`filter-panel-${id}`}
-              onClick={() => setTab(id)}
-              className={`inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-full px-3 text-sm font-bold transition ${tab === id ? "bg-[#b2f5cf] text-[#112219] shadow-sm" : "text-base-content/70"}`}
-            >
-              {id === "photobooth" ? <Grid2X2 size={16} aria-hidden="true" /> : <Sparkles size={16} aria-hidden="true" />}{label}
-            </button>
-          ))}
-        </div>
-
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-          {tab === "photobooth" ? (
-            <div role="tabpanel" id="filter-panel-photobooth" aria-labelledby="filter-tab-photobooth">
-              <p className="mb-3 text-sm leading-relaxed text-base-content/65">Chọn khung để xem ngay trên camera, rồi chụp lần lượt 4 ảnh.</p>
-              {mediaIsLocked && <p className="mb-3 rounded-xl bg-base-200 p-3 text-sm" role="status">Hãy hoàn tất hoặc huỷ ảnh đang chọn rồi quay lại camera để đổi chế độ chụp.</p>}
-              <button
-                type="button"
-                aria-pressed={!showPhotobooth}
-                disabled={mediaIsLocked}
-                onClick={() => selectCapture(false)}
-                className={`mb-4 flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition disabled:opacity-40 ${!showPhotobooth ? "border-[#b2f5cf] bg-[#b2f5cf]/10" : "border-base-content/15 bg-base-200/50"}`}
-              >
-                <Camera size={23} aria-hidden="true" /><span className="flex-1 text-sm font-semibold">Chụp thường</span>{!showPhotobooth && <Check size={18} aria-hidden="true" />}
+        <div ref={scrollRef} className="filter-studio-content" data-testid="filter-scroll-content">
+          <section className="filter-studio-category" aria-labelledby="camera-frames-title">
+            <h3 id="camera-frames-title">Khung viền</h3>
+            <p>Chọn khung để xem trực tiếp khi chụp.</p>
+            <div className="filter-studio-row" role="group" aria-label="Khung viền camera">
+              <button type="button" aria-label="Chụp thường · Không khung" aria-pressed={!showPhotobooth && !cameraFrame?.imageSrc} disabled={frameSelectionLocked} onClick={() => selectCameraFrame(null)} className="filter-studio-option">
+                <FrameThumbnail selected={!showPhotobooth && !cameraFrame?.imageSrc} />
+                <span>Không khung</span>
               </button>
-              <h3 className="mb-3 text-sm font-bold">Photobooth 4 ô</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {PHOTOBOOTH_FRAMES.map((frame) => {
-                  const selected = showPhotobooth && selectedFrameId === frame.id;
-                  return (
-                    <button
-                      key={frame.id}
-                      type="button"
-                      aria-label={`Photobooth · ${frame.name}`}
-                      aria-pressed={selected}
-                      disabled={mediaIsLocked}
-                      onClick={() => selectCapture(true, frame.id)}
-                      className={`overflow-hidden rounded-2xl border p-2 text-left transition active:scale-95 disabled:opacity-40 ${selected ? "border-[#b2f5cf] bg-[#b2f5cf]/10" : "border-base-content/15 bg-base-200/50"}`}
-                    >
-                      <span className="relative mx-auto block aspect-square w-full max-w-36 overflow-hidden rounded-xl bg-base-300">
-                        <span className="absolute inset-[10%] grid grid-cols-2 gap-[8%]" aria-hidden="true">
-                          {[0, 1, 2, 3].map((cell) => <span key={cell} className="rounded-lg bg-base-content/15" />)}
-                        </span>
-                        {frame.src && <img src={frame.src} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-contain" />}
-                      </span>
-                      <span className="mt-2 flex items-center gap-1 px-1 text-xs font-semibold"><span className="flex-1">{frame.name}</span>{selected && <Check size={15} aria-hidden="true" />}</span>
-                    </button>
-                  );
-                })}
+              {cameraFrames.map((frame) => {
+                const selected = !showPhotobooth && cameraFrame?.id === frame.id;
+                return (
+                  <button key={frame.id} type="button" aria-label={`Khung viền · ${frame.name}`} aria-pressed={selected} disabled={frameSelectionLocked} onClick={() => selectCameraFrame(frame)} className="filter-studio-option">
+                    <FrameThumbnail src={frame.imageSrc} selected={selected} />
+                    <span>{frame.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="filter-studio-category" aria-labelledby="photobooth-frames-title">
+            <h3 id="photobooth-frames-title">Photobooth 4 ảnh</h3>
+            <p>Chụp từng ô bằng tay hoặc đếm ngược.</p>
+            {mediaIsLocked && <p className="filter-studio-hint" role="status">Hoàn tất hoặc huỷ ảnh đang chọn để chuyển sang Photobooth.</p>}
+            <div className="filter-studio-row" role="group" aria-label="Khung Photobooth 4 ảnh">
+              {PHOTOBOOTH_FRAMES.map((frame) => {
+                const selected = showPhotobooth && selectedFrameId === frame.id;
+                return (
+                  <button key={frame.id} type="button" aria-label={`Photobooth · ${frame.name}`} aria-pressed={selected} disabled={mediaIsLocked} onClick={() => selectPhotobooth(frame.id)} className="filter-studio-option">
+                    <FrameThumbnail src={frame.src} booth selected={selected} />
+                    <span>{frame.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          <section ref={aiSectionRef} className="filter-studio-category filter-studio-ai" aria-labelledby="ai-filters-title">
+            <div className="filter-studio-category-heading"><h3 id="ai-filters-title">AI Filter</h3><span className="filter-studio-premium"><Sparkles size={12} />Premium</span></div>
+            <p>Chọn phong cách để tạo ảnh AI.</p>
+            {!aiSectionVisible ? <div className="filter-studio-status">Cuộn để xem AI Filter.</div> : !aiFilterEnabled ? (
+              <div className="filter-studio-status">
+                {checkingAccess || !accessChecked ? <><LoaderCircle className="animate-spin" size={19} /><span>Đang kiểm tra quyền AI Filter…</span></> : <>
+                  <LockKeyhole size={20} /><span>Liên hệ admin MTIEN để bật quyền AI Filter.</span>
+                  <a href="https://zalo.me/0359153413" target="_blank" rel="noopener noreferrer">Liên hệ MTIEN</a>
+                </>}
               </div>
-            </div>
-          ) : (
-            <div role="tabpanel" id="filter-panel-ai" aria-labelledby="filter-tab-ai">
-              {!aiFilterEnabled ? (
-                <div className="flex min-h-48 flex-col items-center justify-center gap-3 px-3 text-center text-sm text-base-content/65">
-                  {checkingAccess || !accessChecked ? <><LoaderCircle className="h-5 w-5 animate-spin" /><p>Đang kiểm tra quyền AI Filter…</p></> : <>
-                    <LockKeyhole className="h-7 w-7 text-amber-400" />
-                    <h3 className="font-bold text-base-content">AI Filter cần được admin bật quyền</h3>
-                    <p>Bạn vẫn có thể chụp Photobooth và chọn khung ở tab bên cạnh.</p>
-                    <a href="https://zalo.me/0359153413" target="_blank" rel="noopener noreferrer" className="rounded-full bg-[#b2f5cf] px-4 py-2 font-semibold text-[#112219]">Liên hệ MTIEN</a>
-                  </>}
+            ) : <>
+              {loadingCatalog && <div className="filter-studio-status" role="status"><LoaderCircle className="animate-spin" size={19} /><span>Đang tải filter…</span></div>}
+              {!loadingCatalog && catalogError && <div className="filter-studio-status"><span>Không tải được danh sách AI Filter.</span><button type="button" onClick={() => setCatalogAttempt((value) => value + 1)}><RefreshCw size={15} />Thử lại</button></div>}
+              {!loadingCatalog && !catalogError && catalogLoaded && !groups.length && <div className="filter-studio-status">Chưa có AI Filter.</div>}
+              {!loadingCatalog && !catalogError && groups.map((group) => (
+                <div key={group.id} className="filter-studio-ai-group">
+                  <h4>{group.title}</h4>
+                  <div className="filter-studio-row" role="group" aria-label={group.title}>
+                    {(group.filters || []).map((filter) => {
+                      const selected = selectedAiFilter?.filter_id === filter.filter_id;
+                      return (
+                        <button type="button" key={filter.filter_id} onClick={() => selectFilter(filter)} disabled={aiSelectionLocked} className="filter-studio-option" aria-pressed={selected} title={filter.filter_label}>
+                          <span className="filter-studio-thumbnail filter-studio-ai-thumbnail"><img src={filter.icon_url} alt="" loading="lazy" />{selected && <span className="filter-studio-check"><Check size={13} aria-hidden="true" /></span>}</span>
+                          <span>{filter.filter_label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              ) : <>
-                <div className="mb-3 flex items-center justify-between gap-2 text-sm"><p className="text-base-content/65">Chọn phong cách để tạo ảnh AI.</p><span className="rounded-full bg-amber-400/15 px-2 py-1 text-[11px] font-bold text-amber-400">Premium</span></div>
-                {loadingCatalog && (
-                  <div className="flex min-h-48 items-center justify-center gap-2 text-sm text-base-content/60" role="status"><LoaderCircle className="h-5 w-5 animate-spin" />Đang tải filter…</div>
-                )}
-                {!loadingCatalog && catalogError && (
-                  <div className="flex min-h-48 flex-col items-center justify-center gap-3 text-center text-sm text-base-content/60">
-                    <p>Không tải được danh sách filter.</p>
-                    <button type="button" onClick={() => setCatalogAttempt((value) => value + 1)} className="inline-flex items-center gap-2 rounded-full bg-base-200 px-4 py-2 font-semibold text-base-content transition active:scale-95"><RefreshCw className="h-4 w-4" />Thử lại</button>
-                  </div>
-                )}
-                {!loadingCatalog && !catalogError && groups.map((group) => (
-                  <div key={group.id} className="pb-5 pt-2">
-                    <h3 className="mb-4 text-lg font-bold text-base-content">{group.title}</h3>
-                    <div className="grid grid-cols-4 gap-x-4 gap-y-5">
-                      {(group.filters || []).map((filter) => {
-                        const selected = selectedAiFilter?.filter_id === filter.filter_id;
-                        return (
-                          <button type="button" key={filter.filter_id} onClick={() => selectFilter(filter)} disabled={aiSelectionLocked} className="group flex min-w-0 flex-col items-center text-center active:scale-95 disabled:opacity-40" aria-pressed={selected} title={filter.filter_label}>
-                            <span className={`relative aspect-square w-full max-w-[64px] overflow-hidden rounded-[17px] bg-base-200 shadow-sm ring-offset-2 ring-offset-base-100 transition ${selected ? "ring-3 ring-amber-400" : "ring-0 group-hover:ring-2 group-hover:ring-base-300"}`}>
-                              <img src={filter.icon_url} alt={filter.filter_label} loading="lazy" className="h-full w-full object-cover" />
-                              {selected && <span className="absolute inset-0 grid place-items-center bg-amber-400/15"><Sparkles className="h-5 w-5 text-white drop-shadow" /></span>}
-                            </span>
-                            <span className="mt-2 w-full truncate text-[11px] leading-4 text-base-content/80">{filter.filter_label}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </>}
-            </div>
-          )}
+              ))}
+            </>}
+          </section>
         </div>
       </section>
     </div>

@@ -36,4 +36,40 @@ export const PHOTOBOOTH_FRAMES = [
       [126, 678, 450, 451], [679, 678, 449, 451],
     ]),
   },
+  {
+    id: "sweet-treats",
+    name: "Sweet Treats",
+    src: "/images/photobooth/frames/sweet-treats.png",
+    photoRegions: regions([
+      [175, 203, 422, 392], [656, 202, 422, 393],
+      [175, 647, 422, 391], [656, 647, 422, 391],
+    ]),
+  },
+  {
+    id: "winter-wonderland",
+    name: "Winter Wonderland",
+    src: "/images/photobooth/frames/winter-wonderland.png",
+    photoRegions: regions([
+      [180, 200, 415, 417], [655, 199, 412, 417],
+      [179, 665, 417, 432], [655, 665, 413, 432],
+    ]),
+  },
+  {
+    id: "cosmic-adventure",
+    name: "Cosmic Adventure",
+    src: "/images/photobooth/frames/cosmic-adventure.png",
+    photoRegions: regions([
+      [179, 173, 420, 406], [649, 173, 427, 405],
+      [180, 619, 419, 420], [651, 618, 424, 422],
+    ]),
+  },
+  {
+    id: "spring-bloom",
+    name: "Spring Bloom",
+    src: "/images/photobooth/frames/spring-bloom.png",
+    photoRegions: regions([
+      [175, 172, 427, 429], [652, 172, 423, 428],
+      [178, 642, 424, 413], [652, 642, 422, 413],
+    ]),
+  },
 ];

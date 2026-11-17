@@ -1,7 +1,9 @@
+import { PHOTOBOOTH_FRAMES } from "../data/photoboothFrames.js";
+
 export const PHOTOBOOTH_OUTPUT_SIZE = 1920;
 export const PHOTOBOOTH_PHOTO_COUNT = 4;
 
-const FRAME_IDS = new Set(["dark-sparkle", "blue-sky", "kitty-pink"]);
+const FRAME_IDS = new Set(PHOTOBOOTH_FRAMES.filter((frame) => frame.src).map((frame) => frame.id));
 
 const defaultCanvasFactory = () => document.createElement("canvas");
 const defaultFileFactory = (parts, name, options) => new File(parts, name, options);

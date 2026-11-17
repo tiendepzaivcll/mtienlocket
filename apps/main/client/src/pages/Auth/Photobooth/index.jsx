@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, Camera, Check, Download, Image as ImageIcon, Loa
 import { useApp } from "@/context/AppContext";
 import { capturePhotoboothFrame, composePhotoboothGrid, getPhotoboothGrid } from "@/utils/photobooth";
 import { PHOTOBOOTH_FRAMES } from "@/data/photoboothFrames";
+import { useUIStore } from "@/stores";
 import { usePhotoboothCamera } from "./usePhotoboothCamera";
 import "./styles.css";
 
@@ -21,6 +22,7 @@ const regionStyle = ({ x, y, width, height }) => ({
 export default function Photobooth({ embedded = false, active = true, frameId, onOpenFilters, onUseResult } = {}) {
   const navigate = useNavigate();
   const { post, camera: locketCamera, useloading } = useApp();
+  const setCameraFrame = useUIStore((state) => state.setCameraFrame);
   const [photos, setPhotos] = useState(emptyPhotos);
   const photosRef = useRef(photos);
   const [mode, setMode] = useState("manual");
@@ -277,6 +279,8 @@ export default function Photobooth({ embedded = false, active = true, frameId, o
     const file = result.file;
     // The post preview owns a fresh URL; gallery cleanup cannot revoke it.
     const previewUrl = URL.createObjectURL(file);
+    // The booth frame is already baked into the JPEG; do not add a single-photo frame again.
+    setCameraFrame(null);
     post.setImageToCrop(null);
     post.setVideoCrop(null);
     post.setVideoCropArea(null);

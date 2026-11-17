@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { PHOTOBOOTH_FRAMES } from "../src/data/photoboothFrames.js";
 import {
   capturePhotoboothFrame,
   composePhotoboothGrid,
@@ -197,5 +198,22 @@ test("frame metadata rejects unapproved assets and missing, overlapping or out-o
       loadFrameImage: async () => ({ width: 1536, height: 1536 }),
     }));
     assert.equal(h.calls.length, 0);
+  }
+});
+
+test("every published Photobooth frame composes its four openings and exact local overlay", async () => {
+  for (const frame of PHOTOBOOTH_FRAMES.filter((item) => item.src)) {
+    const h = canvasHarness();
+    const overlay = { width: 1254, height: 1254, src: frame.src };
+    const file = await composePhotoboothGrid(framedSources, {
+      ...h,
+      frame,
+      loadImage: async () => ({ width: 1024, height: 1024 }),
+      loadFrameImage: async (src) => { assert.equal(src, frame.src); return overlay; },
+    });
+    const draws = h.calls.filter(([method]) => method === "drawImage");
+    assert.equal(draws.length, 5, frame.id);
+    assert.equal(draws.at(-1)[1], overlay, frame.id);
+    assert.equal(file.type, "image/jpeg", frame.id);
   }
 });

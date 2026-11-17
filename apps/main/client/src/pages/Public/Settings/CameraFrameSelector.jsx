@@ -2,9 +2,10 @@ import { Camera, Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getAllFrameCamera } from "@/services";
 import { useUIStore } from "@/stores";
+import { CAMERA_FRAMES } from "@/data/cameraFrames";
 
 export default function CameraFrameSelector() {
-  const [frames, setFrames] = useState([]);
+  const [frames, setFrames] = useState([{ id: 0, name: "Không có", imageSrc: null }, ...CAMERA_FRAMES]);
 
   const setCameraFrame = useUIStore((s) => s.setCameraFrame);
   const cameraFrame = useUIStore((s) => s.cameraFrame);
@@ -17,11 +18,12 @@ export default function CameraFrameSelector() {
         const apiFrames = result || [];
         const defaultFrame = { id: 0, name: "Không có", imageSrc: null };
 
-        setFrames([defaultFrame, ...apiFrames.filter((f) => f.id !== 0)]);
+        const localIds = new Set(CAMERA_FRAMES.map((frame) => String(frame.id)));
+        setFrames([defaultFrame, ...CAMERA_FRAMES, ...apiFrames.filter((frame) => frame.id !== 0 && !localIds.has(String(frame.id)))]);
       } catch (err) {
         console.error("Lỗi khi lấy danh sách khung:", err);
         // Nếu lỗi API, vẫn hiển thị frame mặc định
-        setFrames([{ id: 0, name: "Không có", imageSrc: null }]);
+        setFrames([{ id: 0, name: "Không có", imageSrc: null }, ...CAMERA_FRAMES]);
       }
     };
 
