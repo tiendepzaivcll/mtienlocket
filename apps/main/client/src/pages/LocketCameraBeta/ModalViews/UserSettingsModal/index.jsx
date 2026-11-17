@@ -71,10 +71,17 @@ export default function UserSettingsModal({ isOpen, onClose }) {
 
   const endSession = async (action) => {
     if (endingSessionRef.current) return;
-    if (operationsBusy) {
+    const currentQueue = useUploadQueueStore.getState();
+    if (operationsBusy || currentQueue.isQueueRunning || currentQueue.uploadItems.some(
+      (item) => item.status === "queued" || item.status === "uploading"
+    )) {
       SonnerError("Đang xử lý ảnh", "Đợi gửi ảnh hoặc hàng đợi hoàn tất trước khi đổi tài khoản.");
       return;
     }
+    const unsentItems = currentQueue.uploadItems.some((item) => item.status !== "done");
+    if (unsentItems && !window.confirm(
+      "Bạn còn ảnh/video chưa gửi thành công trong hàng đợi. Tiếp tục sẽ xóa bản lưu tạm này trên trình duyệt. Ảnh đã đăng trên Locket vẫn được giữ. Bạn có muốn tiếp tục?"
+    )) return;
     endingSessionRef.current = true;
     setSessionAction(action);
     try {
