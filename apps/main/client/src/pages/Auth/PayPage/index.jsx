@@ -32,6 +32,31 @@ export default function PayPage() {
     fetchOrder();
   }, [orderCode]);
 
+  // Auto-polling: kiểm tra mỗi 5 giây khi đơn hàng đang PENDING
+  useEffect(() => {
+    if (!orderCode || !order || order.status !== "PENDING") return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await instanceMain.post(`/api/payment/check-order/${orderCode}`);
+        if (res.data?.success) {
+          const data = res.data.data;
+          if (data.status === "PAID") {
+            setOrder(data);
+            SonnerSuccess("🎉 Thanh toán thành công! VIP đã được kích hoạt.");
+            clearInterval(interval);
+          } else if (data.status === "CANCELLED") {
+            setOrder(data);
+            SonnerInfo("Đơn hàng đã bị huỷ.");
+            clearInterval(interval);
+          }
+        }
+      } catch (err) {
+        // im lặng, không cần báo lỗi khi auto-check
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [orderCode, order?.status]);
+
   const fetchOrder = async () => {
     try {
       const res = await instanceMain.get(`/api/payment/order/${orderCode}`);
@@ -57,7 +82,7 @@ export default function PayPage() {
         } else if (data.status === "CANCELLED") {
           SonnerInfo("Đơn hàng đã bị huỷ.");
         } else {
-          SonnerInfo("Đơn hàng chưa được thanh toán.");
+          SonnerInfo("Đơn hàng chưa được thanh toán. Hệ thống sẽ tự kiểm tra lại sau vài giây.");
         }
       }
     } catch (error) {
@@ -239,8 +264,8 @@ export default function PayPage() {
 
         {/* Notes */}
         <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4 text-xs text-yellow-200/80 space-y-1">
-          <p>• Hệ thống sẽ tự động kích hoạt VIP sau khi thanh toán (1-5 phút).</p>
-          <p>• Nếu chưa được kích hoạt, ấn "Kiểm tra ngay" phía trên.</p>
+          <p>• Hệ thống sẽ <strong>tự động kiểm tra</strong> và kích hoạt VIP sau khi thanh toán.</p>
+          <p>• Hoặc ấn "Kiểm tra ngay" nếu muốn kiểm tra thủ công.</p>
           <p>• Liên hệ hỗ trợ: <strong>tienmanh6811@gmail.com</strong></p>
         </div>
       </div>
