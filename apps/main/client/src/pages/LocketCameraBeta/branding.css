@@ -23,9 +23,5 @@
 .locket-pro-camera-identity > span { border-left: 1px solid color-mix(in srgb, var(--color-base-content) 20%, transparent); padding-left: 10px; }
 .locket-pro-camera-identity b { font-weight: 700; }
 
-.locket-pro-capture-modes { position:absolute; top:92px; left:50%; transform:translateX(-50%); z-index:20; display:flex; align-items:center; gap:4px; padding:4px; border:1px solid color-mix(in srgb,var(--color-base-content) 14%,transparent); border-radius:999px; background:var(--color-base-100); white-space:nowrap; }
-.locket-pro-capture-modes button { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:32px; padding:5px 13px; border-radius:999px; font-size:12px; font-weight:650; color:var(--color-base-content); cursor:pointer; }
-.locket-pro-capture-modes button[aria-pressed=true] { background:#b2f5cf; color:#112219; }
-.locket-pro-capture-modes button:focus-visible { outline:2px solid #b2f5cf; outline-offset:3px; }
-.locket-pro-inline-booth-host { width:100%; height:100dvh; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:138px 12px max(92px,env(safe-area-inset-bottom)) ; display:flex; flex-direction:column; align-items:center; gap:12px; }
+.locket-pro-inline-booth-host { width:100%; height:100dvh; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:100px 12px max(92px,env(safe-area-inset-bottom)); display:flex; flex-direction:column; align-items:center; gap:12px; }
 .locket-pro-booth-history { flex-shrink:0; min-height:40px; padding:8px 20px; font-size:13px; font-weight:650; cursor:pointer; }

@@ -1,8 +1,8 @@
 import React, { lazy, Suspense } from "react";
-import { useSearchParams } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
-import { CalendarClock, Camera, LoaderCircle, X } from "lucide-react";
+import { CalendarClock, LoaderCircle, X } from "lucide-react";
 import { usePostStore } from "@/stores";
+import { useCameraCaptureMode } from "@/hooks/useCameraCaptureMode";
 import { formatRestoreDate } from "@/utils/streakRestoreFlow";
 import "../branding.css";
 
@@ -68,8 +68,8 @@ const RestoreFlowBanner = () => {
 };
 
 export default function MainHomeScreen() {
-  const { navigation, post, camera, useloading } = useApp();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { navigation, post } = useApp();
+  const { showPhotobooth, selectedFrameId, chooseCaptureMode } = useCameraCaptureMode();
 
   const {
     isHomeOpen,
@@ -83,23 +83,13 @@ export default function MainHomeScreen() {
     isFriendHistoryOpen,
     setFriendHistoryOpen,
   } = navigation;
-  const { selectedFile, imageToCrop, videoCrop, selectedQueue } = post;
+  const { selectedFile } = post;
   const hasRestoreSelection = usePostStore((state) => Boolean(state.restoreFlow.selectedDate));
-  const mediaIsLocked = Boolean(selectedFile || imageToCrop || videoCrop ||
-    typeof selectedQueue === "number" || selectedQueue || hasRestoreSelection ||
-    camera.isHolding || useloading.sendLoading || useloading.uploadLoading || useloading.isAiGenerating);
-  const showPhotobooth = searchParams.get("camera") === "photobooth" && !mediaIsLocked;
   const boothActive = !isProfileOpen && !isHomeOpen && !isBottomOpen &&
     !isFriendHistoryOpen && !navigation.isSidebarOpen && !navigation.isFriendsTabOpen &&
     !navigation.isChatDetailOpen && !navigation.isOptionModalOpen &&
     !navigation.isFilterOpen && !navigation.isAiFilterOpen &&
     !navigation.isSettingTabOpen && !post.showEmojiPicker;
-  const chooseCaptureMode = (photobooth) => {
-    const next = new URLSearchParams(searchParams);
-    if (photobooth) next.set("camera", "photobooth");
-    else next.delete("camera");
-    setSearchParams(next, { replace: true });
-  };
 
   return (
     <>
@@ -126,12 +116,6 @@ export default function MainHomeScreen() {
             <strong>LOCKET-PRO</strong><span>Admin <b>MTIEN</b></span>
           </div>
         )}
-        {!mediaIsLocked && !isBottomOpen && !isProfileOpen && !isHomeOpen && (
-          <div className="locket-pro-capture-modes" role="group" aria-label="Chế độ camera Locket">
-            <button type="button" aria-pressed={!showPhotobooth} onClick={() => chooseCaptureMode(false)}>Chụp thường</button>
-            <button type="button" aria-pressed={showPhotobooth} onClick={() => chooseCaptureMode(true)}><Camera size={14} aria-hidden="true" />Photobooth 4 ô</button>
-          </div>
-        )}
         <RestoreFlowBanner />
         <div
           className={`w-full h-full flex flex-1 flex-col transition-all duration-500 justify-center items-center ${
@@ -155,7 +139,9 @@ export default function MainHomeScreen() {
           {showPhotobooth ? (
             <div className="locket-pro-inline-booth-host" data-testid="locket-inline-photobooth">
               <Suspense fallback={<p className="py-8 text-sm opacity-70" role="status">Đang mở Photobooth…</p>}>
-                <Photobooth embedded active={boothActive} onUseResult={() => chooseCaptureMode(false)} />
+                <Photobooth embedded active={boothActive} frameId={selectedFrameId}
+                  onOpenFilters={() => navigation.setIsAiFilterOpen(true)}
+                  onUseResult={() => chooseCaptureMode(false)} />
               </Suspense>
               <button type="button" className="locket-pro-booth-history" onClick={() => setIsBottomOpen(true)}>Lịch sử</button>
             </div>

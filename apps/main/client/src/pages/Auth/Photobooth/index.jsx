@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Camera, Check, Download, Image as ImageIcon, LoaderCircle, RefreshCcw, RotateCcw, Square, Timer } from "lucide-react";
+import { ArrowLeft, ArrowRight, Camera, Check, Download, Image as ImageIcon, LoaderCircle, RefreshCcw, RotateCcw, Sparkles, Square, Timer } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { capturePhotoboothFrame, composePhotoboothGrid, getPhotoboothGrid } from "@/utils/photobooth";
 import { PHOTOBOOTH_FRAMES } from "@/data/photoboothFrames";
@@ -18,7 +18,7 @@ const regionStyle = ({ x, y, width, height }) => ({
   width: `${width * 100}%`, height: `${height * 100}%`,
 });
 
-export default function Photobooth({ embedded = false, active = true, onUseResult } = {}) {
+export default function Photobooth({ embedded = false, active = true, frameId, onOpenFilters, onUseResult } = {}) {
   const navigate = useNavigate();
   const { post, camera: locketCamera, useloading } = useApp();
   const [photos, setPhotos] = useState(emptyPhotos);
@@ -41,7 +41,10 @@ export default function Photobooth({ embedded = false, active = true, onUseResul
   const [frameAsset, setFrameAsset] = useState({ id: "none", status: "ready", message: "" });
   const [frameRetryVersion, setFrameRetryVersion] = useState(0);
   const [thumbnailFailures, setThumbnailFailures] = useState({});
-  const selectedFrame = PHOTOBOOTH_FRAMES.find((frame) => frame.id === selectedFrameId) || PHOTOBOOTH_FRAMES[0];
+  // Controlled selection also updates while the camera is paused by Filter Studio.
+  // Keep the same photo state so choosing a new frame never requires a retake.
+  const selectedFrame = PHOTOBOOTH_FRAMES.find((frame) => frame.id === (frameId ?? selectedFrameId)) || PHOTOBOOTH_FRAMES[0];
+  const usesFilterStudio = embedded && typeof onOpenFilters === "function";
   const photoRegions = selectedFrame.photoRegions || defaultPhotoRegions;
   const frameIsReady = !selectedFrame.src || (frameAsset.id === selectedFrame.id && frameAsset.status === "ready");
   const frameIsLoading = Boolean(selectedFrame.src && (frameAsset.id !== selectedFrame.id || frameAsset.status === "loading"));
@@ -183,7 +186,7 @@ export default function Photobooth({ embedded = false, active = true, onUseResul
   };
 
   const captureManual = async () => {
-    if (!activeRef.current || busyRef.current || !camera.isReady || complete) return;
+    if (!activeRef.current || busyRef.current || !camera.isReady || !frameIsReady || complete) return;
     busyRef.current = true;
     const id = ++runRef.current;
     const index = photosRef.current.findIndex((photo) => !photo);
@@ -203,7 +206,7 @@ export default function Photobooth({ embedded = false, active = true, onUseResul
   };
 
   const captureAutomatic = async () => {
-    if (!activeRef.current || busyRef.current || !camera.isReady || complete) return;
+    if (!activeRef.current || busyRef.current || !camera.isReady || !frameIsReady || complete) return;
     busyRef.current = true;
     const id = ++runRef.current;
     setRunning(true);
@@ -321,16 +324,38 @@ export default function Photobooth({ embedded = false, active = true, onUseResul
     <div className="photobooth-error" role="alert"><p>{frameError || error || camera.error}</p>{camera.error && <button type="button" onClick={camera.startCamera} disabled={!active || camera.isStarting}>Thử mở camera</button>}{frameError && <button type="button" disabled={!active} onClick={retryFrame}>Thử tải lại khung</button>}{complete && error && !frameError && <button type="button" disabled={!active} onClick={() => setComposeVersion((value) => value + 1)}>Ghép lại ảnh</button>}</div>
   );
 
-  const captureLabel = running ? "Dừng chụp" : busy || camera.isStarting ? "Đang chuẩn bị…" : mode === "automatic" ? `Bắt đầu chụp ${4 - count} ảnh` : `Chụp ô ${nextIndex + 1}`;
+  const captureLabel = running ? "Dừng chụp" : frameIsLoading ? "Đang tải khung ảnh…" : busy || camera.isStarting ? "Đang chuẩn bị…" : mode === "automatic" ? `Bắt đầu chụp ${4 - count} ảnh` : `Chụp ô ${nextIndex + 1}`;
   const captureButton = (
-    <button type="button" className={`photobooth-primary${embedded ? " photobooth-shutter" : ""}`} aria-label={captureLabel} disabled={!active || (!running && (!camera.isReady || busy))} onClick={running ? () => { cancelCapture(); setMessage("Đã dừng. Bạn có thể tiếp tục các ô còn lại."); } : mode === "automatic" ? captureAutomatic : captureManual}>
-      {running ? <Square size={embedded ? 24 : 17} /> : busy || camera.isStarting ? <LoaderCircle size={embedded ? 24 : 18} className="photobooth-spinner" /> : <Camera size={embedded ? 27 : 19} />}
+    <button type="button" className={`photobooth-primary${embedded ? " photobooth-shutter" : ""}`} aria-label={captureLabel} disabled={!active || (!running && (!camera.isReady || !frameIsReady || busy))} onClick={running ? () => { cancelCapture(); setMessage("Đã dừng. Bạn có thể tiếp tục các ô còn lại."); } : mode === "automatic" ? captureAutomatic : captureManual}>
+      {running ? <Square size={embedded ? 24 : 17} /> : frameIsLoading || busy || camera.isStarting ? <LoaderCircle size={embedded ? 24 : 18} className="photobooth-spinner" /> : <Camera size={embedded ? 27 : 19} />}
       <span className={embedded ? "sr-only" : undefined}>{captureLabel}</span>
     </button>
   );
 
   const flipButton = (
     <button type="button" className={`photobooth-secondary${embedded ? " photobooth-camera-icon" : ""}`} aria-label="Đổi camera" disabled={!active || running || busy || camera.isStarting} onClick={camera.flipCamera}><RefreshCcw size={embedded ? 20 : 17} />{!embedded && "Đổi camera"}</button>
+  );
+
+  const openFrames = () => {
+    if (!activeRef.current) return;
+    if (usesFilterStudio) onOpenFilters();
+    else setFramesOpen((open) => !open);
+  };
+
+  const frameButton = (
+    <button
+      type="button"
+      className="photobooth-secondary photobooth-camera-icon"
+      aria-label={usesFilterStudio ? "Mở Filter" : "Khung ảnh"}
+      aria-haspopup={usesFilterStudio ? "dialog" : undefined}
+      aria-expanded={usesFilterStudio ? undefined : framesOpen}
+      aria-controls={usesFilterStudio ? undefined : `${framePickerId}-options`}
+      disabled={!active || (!usesFilterStudio && (running || busy))}
+      onClick={openFrames}
+    >
+      {usesFilterStudio ? <Sparkles size={20} /> : <ImageIcon size={20} />}
+      <span className="sr-only">{usesFilterStudio ? "Filter" : "Khung ảnh"}</span>
+    </button>
   );
 
   return (
@@ -360,8 +385,8 @@ export default function Photobooth({ embedded = false, active = true, onUseResul
                 <div className="photobooth-complete"><Check size={16} /><span>{frameIsLoading ? "Đang tải khung ảnh…" : composing ? "Đang ghép bốn ảnh…" : canUseResult ? (embedded ? "Ảnh ghép đã sẵn sàng." : "Khung hình của bạn đã sẵn sàng.") : "Chưa thể tạo ảnh ghép."}</span></div>
                 <div className="photobooth-result-buttons"><button type="button" className="photobooth-primary" disabled={!canUseResult} onClick={useOnLocket}>{embedded ? "Dùng ảnh" : "Dùng ảnh này trên Locket"}<ArrowRight size={17} /></button>{canUseResult && <a className="photobooth-secondary" href={result.url} download={result.file.name}><Download size={17} />{embedded ? "Lưu ảnh" : "Lưu ảnh ghép"}</a>}</div>
                 {!embedded && <p className="photobooth-hint">Thêm caption và chọn bạn bè ở bước đăng Locket.</p>}
-              </div> : embedded ? <div className="photobooth-capture-row">{flipButton}<div className="photobooth-shutter-group">{captureButton}<span className="photobooth-shutter-caption" aria-hidden="true">{running ? "Dừng chụp" : mode === "automatic" ? "3 giây / ảnh" : `Chụp ô ${nextIndex + 1}`}</span></div><button type="button" className="photobooth-secondary photobooth-camera-icon" aria-label="Khung ảnh" aria-expanded={framesOpen} aria-controls={`${framePickerId}-options`} disabled={!active || running || busy} onClick={() => setFramesOpen((open) => !open)}><ImageIcon size={20} /><span className="sr-only">Khung ảnh</span></button></div> : <>{captureButton}{flipButton}</>}
-              {embedded && <div className="photobooth-embedded-settings">{!complete && modeSelector}{complete && <button type="button" className="photobooth-frame-toggle" aria-expanded={framesOpen} aria-controls={`${framePickerId}-options`} disabled={!active} onClick={() => setFramesOpen((open) => !open)}><ImageIcon size={15} />Khung ảnh<span>{selectedFrame.name}</span></button>}{framesOpen && framePicker}</div>}
+              </div> : embedded ? <div className="photobooth-capture-row">{flipButton}<div className="photobooth-shutter-group">{captureButton}<span className="photobooth-shutter-caption" aria-hidden="true">{running ? "Dừng chụp" : mode === "automatic" ? "3 giây / ảnh" : `Chụp ô ${nextIndex + 1}`}</span></div>{frameButton}</div> : <>{captureButton}{flipButton}</>}
+              {embedded && <div className="photobooth-embedded-settings">{!complete && modeSelector}{complete && <button type="button" className="photobooth-frame-toggle" aria-label={usesFilterStudio ? "Mở Filter" : undefined} aria-haspopup={usesFilterStudio ? "dialog" : undefined} aria-expanded={usesFilterStudio ? undefined : framesOpen} aria-controls={usesFilterStudio ? undefined : `${framePickerId}-options`} disabled={!active} onClick={openFrames}>{usesFilterStudio ? <Sparkles size={15} /> : <ImageIcon size={15} />}{usesFilterStudio ? "Filter" : "Khung ảnh"}<span>{selectedFrame.name}</span></button>}{!usesFilterStudio && framesOpen && framePicker}</div>}
               {count > 0 && <button type="button" className="photobooth-reset" disabled={!active || running || busy} onClick={reset}><RotateCcw size={15} />Chụp lại từ đầu</button>}
               <p className="photobooth-message" aria-live="polite">{message}</p>
               {!embedded && <div className="photobooth-footer-note">Chụp xong có thể bấm vào biểu tượng chụp lại ở từng ô để đổi riêng tấm đó.</div>}

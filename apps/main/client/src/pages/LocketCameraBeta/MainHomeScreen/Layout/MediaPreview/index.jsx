@@ -4,8 +4,8 @@ const AutoResizeCaption = lazy(() => import("../CaptionViews"));
 import { useApp } from "@/context/AppContext";
 import { CONFIG } from "@/config";
 import BorderProgress from "../../Widgets/SquareProgress";
-import { SonnerInfo, SonnerWarning } from "@/components/ui/SonnerToast";
-import { useAuthStore, useUIStore } from "@/stores";
+import { SonnerInfo } from "@/components/ui/SonnerToast";
+import { useUIStore } from "@/stores";
 import { X } from "lucide-react";
 import AiSparkleIcon from "../../ActionControls/MediaControls/AiSparkleIcon.jsx";
 import AiGenerationEffect from "./AiGenerationEffect.jsx";
@@ -20,8 +20,6 @@ const MediaPreview = () => {
     setSelectedAiFilter,
   } = post;
   const { isAiGenerating } = useloading;
-  const aiFilterEnabled = useAuthStore((state) => state.aiFilterEnabled);
-  const refreshAccessRole = useAuthStore((state) => state.refreshAccessRole);
   const { isBottomOpen, isHomeOpen, isProfileOpen } = navigation;
   const { setIsAiFilterOpen } = navigation;
   const {
@@ -61,20 +59,7 @@ const MediaPreview = () => {
 
   const iosDevice = isIOS();
   const isCameraScreenActive = !isBottomOpen && !isHomeOpen && !isProfileOpen;
-  const openAiFilterStudio = async () => {
-    if (aiFilterEnabled) {
-      setIsAiFilterOpen(true);
-      return;
-    }
-
-    const access = await refreshAccessRole();
-    if (access?.features?.aiFilter === true) {
-      setIsAiFilterOpen(true);
-      return;
-    }
-
-    SonnerWarning("Tính năng trả phí", "Liên hệ admin để sử dụng");
-  };
+  const openAiFilterStudio = () => setIsAiFilterOpen(true);
   const stopCamera = () => {
     cameraRequestId.current += 1;
     if (streamRef.current) {
@@ -308,7 +293,7 @@ const MediaPreview = () => {
                   onClick={openAiFilterStudio}
                   disabled={isAiGenerating}
                   className="pointer-events-auto ml-auto inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/30 text-white shadow-md backdrop-blur-md transition active:scale-90"
-                  aria-label="Chọn AI Filter"
+                  aria-label="Mở Filter"
                 >
                   <AiSparkleIcon />
                 </button>
@@ -383,7 +368,7 @@ const MediaPreview = () => {
                 onClick={openAiFilterStudio}
                 disabled={isAiGenerating}
                 className="pointer-events-auto ml-auto inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/30 text-white shadow-md backdrop-blur-md transition active:scale-90"
-                aria-label="Chọn AI Filter"
+                aria-label="Mở Filter"
               >
                 <AiSparkleIcon />
               </button>
