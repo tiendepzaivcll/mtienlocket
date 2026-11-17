@@ -230,6 +230,68 @@ class AdminController {
     }
   }
 
+  // === LẤY DANH SÁCH PAYMENT ORDERS ===
+  async listPaymentOrders(req, res) {
+    try {
+      if (!db) {
+        return res.status(500).json({ success: false, message: "Firestore chưa sẵn sàng" });
+      }
+
+      const snapshot = await db
+        .collection("payment_orders")
+        .orderBy("createdAt", "desc")
+        .limit(200)
+        .get();
+
+      const orders = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      res.status(200).json({ success: true, data: orders });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  // === LẤY DANH SÁCH SUBSCRIPTIONS (VIP) ===
+  async listSubscriptions(req, res) {
+    try {
+      if (!db) {
+        return res.status(500).json({ success: false, message: "Firestore chưa sẵn sàng" });
+      }
+
+      const snapshot = await db.collection("subscriptions").get();
+      const now = Date.now();
+      const subs = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          username: data.username || doc.id,
+          planId: data.planId || null,
+          planName: data.planName || null,
+          planDays: data.planDays || null,
+          expireAt: data.expireAt || null,
+          isExpired: data.expireAt ? data.expireAt < now : true,
+          lastPayment: data.lastPayment || null,
+          createdAt: data.createdAt || null,
+          updatedAt: data.updatedAt || null,
+          email: data.email || null,
+        };
+      });
+
+      // Sort: active first, then by expireAt desc
+      subs.sort((a, b) => {
+        if (a.isExpired !== b.isExpired) return a.isExpired ? 1 : -1;
+        return (b.expireAt || 0) - (a.expireAt || 0);
+      });
+
+      res.status(200).json({ success: true, data: subs });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
   // === XÓA TRÙNG LẶP (QUÉT RÁC) ===
   async removeDuplicates(req, res) {
     try {

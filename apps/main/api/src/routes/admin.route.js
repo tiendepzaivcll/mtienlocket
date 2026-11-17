@@ -45,4 +45,16 @@ router.delete(
   adminController.deleteApprovedUser.bind(adminController),
 );
 
+// Payment management (admin protected)
+router.get(
+  "/payment-orders",
+  adminController.verifyAdmin.bind(adminController),
+  adminController.listPaymentOrders.bind(adminController),
+);
+router.get(
+  "/subscriptions",
+  adminController.verifyAdmin.bind(adminController),
+  adminController.listSubscriptions.bind(adminController),
+);
+
 module.exports = router;

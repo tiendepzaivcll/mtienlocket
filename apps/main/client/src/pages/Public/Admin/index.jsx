@@ -30,6 +30,7 @@ import AppCheckSettings from "./AppCheckSettings";
 import AiFilterSettings from "./AiFilterSettings";
 import CaptionSettings from "./CaptionSettings";
 import NotificationSettings from "./NotificationSettings";
+import PaymentManagement from "./PaymentManagement";
 
 const normalizeUsername = (value = "") =>
   value.trim().replace(/^@+/, "").toLowerCase();
@@ -283,6 +284,10 @@ export default function AdminPanel() {
           </div>
         </div>
 
+        <PaymentManagement onAuthExpired={() => {
+          handleLogout();
+          SonnerWarning("Phiên admin đã hết hạn. Vui lòng đăng nhập lại.");
+        }} />
         <NotificationSettings onAuthExpired={() => {
           handleLogout();
           SonnerWarning("Phiên admin đã hết hạn. Vui lòng đăng nhập lại.");

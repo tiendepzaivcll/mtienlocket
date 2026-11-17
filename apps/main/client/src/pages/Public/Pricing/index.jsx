@@ -16,13 +16,15 @@ import {
   Star,
   Zap,
   ArrowLeft,
+  User,
+  AtSign,
 } from "lucide-react";
 import { instanceMain } from "@/libs/instanceMain";
 import {
   SonnerSuccess,
   SonnerWarning,
-  SonnerInfo,
 } from "@/components/ui/SonnerToast";
+import { useAuthStore } from "@/stores/AuthStore";
 
 // ─── Feature comparison data ────────────────────────────────────────
 const FEATURE_ROWS = [
@@ -68,14 +70,21 @@ const FEATURE_ROWS = [
 
 export default function PricingPage() {
   const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(null); // planId being purchased
-  const [subscription, setSubscription] = useState(null);
+  const [creating, setCreating] = useState(null);
+  const [username, setUsername] = useState("");
+
+  // Auto-fill username from logged-in user
+  useEffect(() => {
+    if (user?.username) {
+      setUsername(user.username.replace(/^@+/, ""));
+    }
+  }, [user]);
 
   useEffect(() => {
     fetchPlans();
-    fetchSubscription();
   }, []);
 
   const fetchPlans = async () => {
@@ -83,56 +92,31 @@ export default function PricingPage() {
       const res = await instanceMain.get("/api/payment/plans");
       setPlans(res.data?.data?.plans || []);
     } catch {
-      // fallback plans
       setPlans([
-        {
-          id: "vip_1month",
-          name: "VIP 1 Tháng",
-          price: 25000,
-          days: 30,
-          badge: null,
-        },
-        {
-          id: "vip_6months",
-          name: "VIP 6 Tháng",
-          price: 99000,
-          days: 180,
-          badge: "Phổ biến",
-        },
-        {
-          id: "vip_1year",
-          name: "VIP 1 Năm",
-          price: 149000,
-          days: 365,
-          badge: "Tốt nhất",
-        },
+        { id: "vip_1month", name: "VIP 1 Tháng", price: 25000, days: 30, badge: null },
+        { id: "vip_6months", name: "VIP 6 Tháng", price: 99000, days: 180, badge: "Phổ biến" },
+        { id: "vip_1year", name: "VIP 1 Năm", price: 149000, days: 365, badge: "Tốt nhất" },
       ]);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchSubscription = async () => {
-    try {
-      const res = await instanceMain.get("/api/payment/my-subscription");
-      if (res.data?.success) {
-        setSubscription(res.data.data);
-      }
-    } catch {
-      // Not logged in or error — ignore
-    }
-  };
-
   const handlePurchase = async (planId) => {
+    const trimmed = username.trim().replace(/^@+/, "");
+    if (!trimmed) {
+      SonnerWarning("Vui lòng nhập tên người dùng Locket của bạn");
+      return;
+    }
     setCreating(planId);
     try {
       const res = await instanceMain.post("/api/payment/create-order", {
         planId,
+        username: trimmed,
       });
       if (res.data?.success) {
-        const { orderCode, checkoutUrl } = res.data.data;
+        const { orderCode } = res.data.data;
         SonnerSuccess("Đơn hàng đã tạo thành công!");
-        // Navigate to payment page
         navigate(`/pay?orderCode=${orderCode}`);
       } else {
         SonnerWarning(res.data?.message || "Không thể tạo đơn hàng");
@@ -153,7 +137,7 @@ export default function PricingPage() {
 
   const discount = (plan) => {
     if (plans.length === 0) return 0;
-    const basePrice = plans[0]?.price; // 1 month price
+    const basePrice = plans[0]?.price;
     const months = plan.days / 30;
     const fullPrice = basePrice * months;
     return Math.round(((fullPrice - plan.price) / fullPrice) * 100);
@@ -181,7 +165,7 @@ export default function PricingPage() {
 
       <div className="px-4 pb-10 max-w-lg mx-auto">
         {/* Title */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold px-4 py-1.5 rounded-full text-sm mb-4">
             <Crown className="w-4 h-4" />
             LOCKET VIP
@@ -192,23 +176,30 @@ export default function PricingPage() {
           </p>
         </div>
 
-        {/* Current subscription */}
-        {subscription?.hasVip && (
-          <div className="mb-6 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-2xl p-4">
-            <div className="flex items-center gap-2 mb-1">
-              <Crown className="w-5 h-5 text-yellow-400" />
-              <span className="font-bold text-yellow-400">VIP đang hoạt động</span>
-            </div>
-            <p className="text-sm text-gray-300">
-              Gói: <strong>{subscription.planName}</strong> • Còn{" "}
-              <strong>{subscription.remainingDays} ngày</strong>
-            </p>
+        {/* Username input */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            <User className="w-4 h-4 inline mr-1.5 -mt-0.5" />
+            Tên người dùng Locket
+          </label>
+          <div className="relative">
+            <AtSign className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Nhập username Locket của bạn"
+              className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/10 border border-white/10 focus:border-purple-500 focus:outline-none text-white placeholder-gray-500 text-sm transition"
+            />
           </div>
-        )}
+          <p className="text-xs text-gray-500 mt-1.5">
+            Nhập đúng username để hệ thống tự kích hoạt VIP sau thanh toán
+          </p>
+        </div>
 
         {/* Plan cards */}
         <div className="space-y-4 mb-8">
-          {plans.map((plan, idx) => {
+          {plans.map((plan) => {
             const isPopular = plan.badge === "Phổ biến";
             const isBest = plan.badge === "Tốt nhất";
             const isHighlighted = isPopular || isBest;
@@ -223,7 +214,6 @@ export default function PricingPage() {
                     : "bg-white/10"
                 }`}
               >
-                {/* Badge */}
                 {plan.badge && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
                     <span
@@ -233,21 +223,13 @@ export default function PricingPage() {
                           : "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
                       }`}
                     >
-                      {isBest ? (
-                        <Star className="w-3 h-3" />
-                      ) : (
-                        <Zap className="w-3 h-3" />
-                      )}
+                      {isBest ? <Star className="w-3 h-3" /> : <Zap className="w-3 h-3" />}
                       {plan.badge}
                     </span>
                   </div>
                 )}
 
-                <div
-                  className={`rounded-2xl p-5 ${
-                    isHighlighted ? "bg-gray-900" : "bg-white/5"
-                  }`}
-                >
+                <div className={`rounded-2xl p-5 ${isHighlighted ? "bg-gray-900" : "bg-white/5"}`}>
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-lg font-bold">{plan.name}</h3>
@@ -257,10 +239,7 @@ export default function PricingPage() {
                         </span>
                         {disc > 0 && (
                           <span className="text-xs line-through text-gray-500">
-                            {(plans[0].price * (plan.days / 30)).toLocaleString(
-                              "vi-VN",
-                            )}
-                            đ
+                            {(plans[0].price * (plan.days / 30)).toLocaleString("vi-VN")}đ
                           </span>
                         )}
                       </div>
@@ -268,9 +247,7 @@ export default function PricingPage() {
                         <p className="text-xs text-gray-400 mt-0.5">
                           ~{pricePerMonth(plan).toLocaleString("vi-VN")}đ/tháng
                           {disc > 0 && (
-                            <span className="ml-2 text-green-400 font-bold">
-                              -{ disc}%
-                            </span>
+                            <span className="ml-2 text-green-400 font-bold">-{disc}%</span>
                           )}
                         </p>
                       )}
@@ -312,41 +289,36 @@ export default function PricingPage() {
           </div>
 
           <div className="space-y-3">
-            {FEATURE_ROWS.map(
-              ({ icon: Icon, label, free, vip, isBoolean }) => (
-                <div
-                  key={label}
-                  className="grid grid-cols-3 items-center text-xs"
-                >
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <Icon className="w-3.5 h-3.5 flex-shrink-0 text-gray-500" />
-                    <span>{label}</span>
-                  </div>
-                  <div className="text-center text-gray-500">
-                    {isBoolean ? (
-                      free ? (
-                        <Check className="w-4 h-4 text-green-500 mx-auto" />
-                      ) : (
-                        <X className="w-4 h-4 text-red-500/50 mx-auto" />
-                      )
-                    ) : (
-                      free
-                    )}
-                  </div>
-                  <div className="text-center text-green-400 font-medium">
-                    {isBoolean ? (
-                      vip ? (
-                        <Check className="w-4 h-4 text-green-400 mx-auto" />
-                      ) : (
-                        <X className="w-4 h-4 text-red-500/50 mx-auto" />
-                      )
-                    ) : (
-                      vip
-                    )}
-                  </div>
+            {FEATURE_ROWS.map(({ icon: Icon, label, free, vip, isBoolean }) => (
+              <div key={label} className="grid grid-cols-3 items-center text-xs">
+                <div className="flex items-center gap-2 text-gray-300">
+                  <Icon className="w-3.5 h-3.5 flex-shrink-0 text-gray-500" />
+                  <span>{label}</span>
                 </div>
-              ),
-            )}
+                <div className="text-center text-gray-500">
+                  {isBoolean ? (
+                    free ? (
+                      <Check className="w-4 h-4 text-green-500 mx-auto" />
+                    ) : (
+                      <X className="w-4 h-4 text-red-500/50 mx-auto" />
+                    )
+                  ) : (
+                    free
+                  )}
+                </div>
+                <div className="text-center text-green-400 font-medium">
+                  {isBoolean ? (
+                    vip ? (
+                      <Check className="w-4 h-4 text-green-400 mx-auto" />
+                    ) : (
+                      <X className="w-4 h-4 text-red-500/50 mx-auto" />
+                    )
+                  ) : (
+                    vip
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

@@ -1,5 +1,6 @@
 // File: controllers/payment.controller.js
 // PayOS + Firestore payment system for VIP subscriptions
+// Self-service: users enter their username, pick a plan, pay, VIP auto-activates
 
 const crypto = require("crypto");
 const { db } = require("../config/firebase-admin-config");
@@ -86,9 +87,10 @@ const verifyWebhookSignature = (data, receivedSignature) => {
   return computed === receivedSignature;
 };
 
-// ─── Firestore helpers ──────────────────────────────────────────────
+// ─── Firestore collections ─────────────────────────────────────────
 const ORDERS_COLLECTION = "payment_orders";
 const SUBSCRIPTIONS_COLLECTION = "subscriptions";
+const APPROVED_USERS_COLLECTION = "approved_users";
 
 // ─── Controller ─────────────────────────────────────────────────────
 class PaymentController {
@@ -108,18 +110,27 @@ class PaymentController {
 
   /**
    * POST /api/payment/create-order
-   * Auth required: tạo đơn hàng PayOS
+   * PUBLIC — không cần đăng nhập
+   * Body: { planId, username }
+   * username = tên người dùng Locket (dùng để kích hoạt VIP sau thanh toán)
    */
   async createOrder(req, res) {
     try {
-      const { planId } = req.body;
-      const userEmail = req.user?.email;
-      const userLocalId = req.user?.localId;
+      const { planId, username } = req.body;
 
-      if (!userEmail || !userLocalId) {
-        return res.status(401).json({
+      if (!username || !String(username).trim()) {
+        return res.status(400).json({
           success: false,
-          message: "Vui lòng đăng nhập để mua gói VIP",
+          message: "Vui lòng nhập tên người dùng (username)",
+        });
+      }
+
+      const normalizedUsername = String(username).trim().replace(/^@+/, "").toLowerCase();
+
+      if (!normalizedUsername) {
+        return res.status(400).json({
+          success: false,
+          message: "Tên người dùng không hợp lệ",
         });
       }
 
@@ -143,21 +154,23 @@ class PaymentController {
         });
       }
 
-      // Generate unique order code (must be numeric for PayOS)
-      const orderCode = Date.now() % 2147483647; // keep within int32 range
+      // Generate unique order code (must be numeric for PayOS, int32 range)
+      const orderCode = Date.now() % 2147483647;
 
+      const baseUrl = req.headers.origin || "https://locket-pro.online";
       const returnUrl =
-        process.env.PAYOS_RETURN_URL ||
-        `${req.headers.origin || "https://locket-pro.online"}/payment/result`;
+        process.env.PAYOS_RETURN_URL || `${baseUrl}/payment/result`;
       const cancelUrl =
-        process.env.PAYOS_CANCEL_URL ||
-        `${req.headers.origin || "https://locket-pro.online"}/pricing`;
+        process.env.PAYOS_CANCEL_URL || `${baseUrl}/pricing`;
+
+      // Description includes username for reference
+      const description = `${plan.name} - @${normalizedUsername}`;
 
       // Data for signature
       const signData = {
         amount: plan.price,
         cancelUrl,
-        description: plan.name,
+        description: description.slice(0, 25), // PayOS limits description to 25 chars
         orderCode,
         returnUrl,
       };
@@ -171,7 +184,8 @@ class PaymentController {
         {
           orderCode,
           amount: plan.price,
-          description: plan.name,
+          description: description.slice(0, 25),
+          buyerName: normalizedUsername,
           cancelUrl,
           returnUrl,
           signature,
@@ -206,15 +220,13 @@ class PaymentController {
 
       // Save order to Firestore
       if (db) {
-        const normalizedEmail = userEmail.toLowerCase();
         await db.collection(ORDERS_COLLECTION).doc(String(orderCode)).set({
           orderCode,
           planId: plan.id,
           planName: plan.name,
           planDays: plan.days,
           price: plan.price,
-          email: normalizedEmail,
-          uid: userLocalId,
+          username: normalizedUsername,
           status: "PENDING",
           checkoutUrl: payosData.checkoutUrl,
           qrCode: payosData.qrCode,
@@ -222,6 +234,7 @@ class PaymentController {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         });
+        console.log(`📦 Order created: #${orderCode} for @${normalizedUsername} - ${plan.name}`);
       }
 
       return res.status(200).json({
@@ -233,6 +246,7 @@ class PaymentController {
           amount: plan.price,
           planName: plan.name,
           planDays: plan.days,
+          username: normalizedUsername,
         },
       });
     } catch (error) {
@@ -246,12 +260,11 @@ class PaymentController {
 
   /**
    * GET /api/payment/order/:orderCode
-   * Auth required: lấy thông tin đơn hàng
+   * PUBLIC: lấy thông tin đơn hàng (ai cũng xem được bằng orderCode)
    */
   async getOrder(req, res) {
     try {
       const { orderCode } = req.params;
-      const userLocalId = req.user?.localId;
 
       if (!db) {
         return res.status(503).json({
@@ -264,6 +277,7 @@ class PaymentController {
         .collection(ORDERS_COLLECTION)
         .doc(String(orderCode))
         .get();
+
       if (!doc.exists) {
         return res.status(404).json({
           success: false,
@@ -272,14 +286,6 @@ class PaymentController {
       }
 
       const order = doc.data();
-
-      // Verify ownership
-      if (order.uid !== userLocalId) {
-        return res.status(403).json({
-          success: false,
-          message: "Bạn không có quyền xem đơn hàng này",
-        });
-      }
 
       return res.status(200).json({
         success: true,
@@ -296,12 +302,12 @@ class PaymentController {
 
   /**
    * POST /api/payment/webhook
-   * PayOS webhook: xử lý khi thanh toán thành công
+   * PayOS webhook: xử lý khi thanh toán thành công → auto kích hoạt VIP
    */
   async handleWebhook(req, res) {
     try {
       const body = req.body || {};
-      const { code, data, signature, desc, success: webhookSuccess } = body;
+      const { code, data, signature } = body;
 
       console.log("🔔 PayOS webhook received:", JSON.stringify(body).slice(0, 500));
 
@@ -322,7 +328,6 @@ class PaymentController {
         const isValid = verifyWebhookSignature(data, signature);
         if (!isValid) {
           console.warn("⚠️ Invalid webhook signature");
-          // Still return 200 to prevent retries
           return res.status(200).json({ success: false, message: "Invalid signature" });
         }
       }
@@ -333,7 +338,7 @@ class PaymentController {
         return res.status(200).json({ success: true });
       }
 
-      const { orderCode, amount, description } = data;
+      const { orderCode, amount } = data;
 
       if (!db) {
         console.error("❌ Firestore not available for webhook");
@@ -357,13 +362,6 @@ class PaymentController {
         return res.status(200).json({ success: true });
       }
 
-      // Verify amount matches
-      if (order.price !== amount) {
-        console.warn(
-          `⚠️ Amount mismatch for order ${orderCode}: expected ${order.price}, got ${amount}`,
-        );
-      }
-
       // Update order status
       await orderRef.update({
         status: "PAID",
@@ -372,145 +370,107 @@ class PaymentController {
         payosData: data,
       });
 
-      // Activate VIP subscription
-      const now = Date.now();
-      const subRef = db.collection(SUBSCRIPTIONS_COLLECTION).doc(order.email);
-      const subDoc = await subRef.get();
-
-      let newExpireAt;
-
-      if (subDoc.exists) {
-        const existing = subDoc.data();
-        // If existing VIP is still valid, extend from current expiry
-        const currentExpiry = existing.expireAt || 0;
-        const baseTime = currentExpiry > now ? currentExpiry : now;
-        newExpireAt = baseTime + order.planDays * 24 * 60 * 60 * 1000;
-      } else {
-        newExpireAt = now + order.planDays * 24 * 60 * 60 * 1000;
-      }
-
-      await subRef.set(
-        {
-          email: order.email,
-          uid: order.uid,
-          planId: order.planId,
-          planName: order.planName,
-          planDays: order.planDays,
-          expireAt: newExpireAt,
-          lastPayment: {
-            orderCode,
-            amount,
-            paidAt: new Date().toISOString(),
-          },
-          updatedAt: new Date().toISOString(),
-          ...(subDoc.exists ? {} : { createdAt: new Date().toISOString() }),
-        },
-        { merge: true },
-      );
-
-      // Also update approved_users role to "vip"
-      try {
-        const approvedSnap = await db
-          .collection("approved_users")
-          .where("uid", "==", order.uid)
-          .limit(1)
-          .get();
-        if (!approvedSnap.empty) {
-          await approvedSnap.docs[0].ref.update({
-            role: "vip",
-            updatedAt: new Date().toISOString(),
-          });
-        }
-      } catch (roleErr) {
-        console.warn("⚠️ Could not update approved_users role:", roleErr.message);
-      }
+      // ─── Auto-activate VIP by username ──────────────────────
+      await this._activateVip(order);
 
       console.log(
-        `✅ VIP activated for ${order.email}: ${order.planName}, expires ${new Date(newExpireAt).toISOString()}`,
+        `✅ Payment confirmed & VIP activated: order #${orderCode} for @${order.username} - ${order.planName}`,
       );
 
       return res.status(200).json({ success: true });
     } catch (error) {
       console.error("❌ Webhook error:", error.message);
-      // Always return 200 to prevent PayOS retries on internal errors
       return res.status(200).json({ success: true });
     }
   }
 
   /**
-   * GET /api/payment/my-subscription
-   * Auth required: lấy thông tin gói VIP hiện tại
+   * Internal: kích hoạt VIP cho user dựa trên username
    */
-  async getMySubscription(req, res) {
-    try {
-      const userEmail = req.user?.email;
-      const userLocalId = req.user?.localId;
+  async _activateVip(order) {
+    const { username, planId, planName, planDays, price, orderCode } = order;
+    const now = Date.now();
 
-      if (!userEmail || !userLocalId) {
-        return res.status(401).json({
-          success: false,
-          message: "Vui lòng đăng nhập",
-        });
-      }
+    // 1) Update or create approved_users doc for this username
+    const approvedRef = db.collection(APPROVED_USERS_COLLECTION).doc(username);
+    const approvedDoc = await approvedRef.get();
 
-      if (!db) {
-        return res.status(503).json({
-          success: false,
-          message: "Database chưa sẵn sàng",
-        });
-      }
-
-      const normalizedEmail = userEmail.toLowerCase();
-      const doc = await db
-        .collection(SUBSCRIPTIONS_COLLECTION)
-        .doc(normalizedEmail)
-        .get();
-
-      if (!doc.exists) {
-        return res.status(200).json({
-          success: true,
-          data: {
-            hasVip: false,
-            plan: null,
-          },
-        });
-      }
-
-      const sub = doc.data();
-      const now = Date.now();
-      const isExpired = sub.expireAt < now;
-      const remainingDays = isExpired
-        ? 0
-        : Math.ceil((sub.expireAt - now) / (24 * 60 * 60 * 1000));
-
-      return res.status(200).json({
-        success: true,
-        data: {
-          hasVip: !isExpired,
-          isExpired,
-          planId: sub.planId,
-          planName: sub.planName,
-          expireAt: sub.expireAt,
-          remainingDays,
+    if (approvedDoc.exists) {
+      await approvedRef.update({
+        role: "vip",
+        vipPlanId: planId,
+        vipPlanName: planName,
+        vipExpireAt: now + planDays * 24 * 60 * 60 * 1000,
+        lastPayment: {
+          orderCode,
+          amount: price,
+          paidAt: new Date().toISOString(),
         },
+        updatedAt: new Date().toISOString(),
       });
-    } catch (error) {
-      console.error("❌ getMySubscription error:", error.message);
-      return res.status(500).json({
-        success: false,
-        message: "Lỗi lấy thông tin gói VIP",
+    } else {
+      // Create new approved_users entry with VIP role
+      await approvedRef.set({
+        role: "vip",
+        active: true,
+        approved: true,
+        enabled: true,
+        aiFilterEnabled: true,
+        vipPlanId: planId,
+        vipPlanName: planName,
+        vipExpireAt: now + planDays * 24 * 60 * 60 * 1000,
+        lastPayment: {
+          orderCode,
+          amount: price,
+          paidAt: new Date().toISOString(),
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       });
     }
+
+    // 2) Also update subscriptions by username (for checkVipExpiry middleware)
+    const subRef = db.collection(SUBSCRIPTIONS_COLLECTION).doc(username);
+    const subDoc = await subRef.get();
+
+    let newExpireAt;
+    if (subDoc.exists) {
+      const existing = subDoc.data();
+      const currentExpiry = existing.expireAt || 0;
+      const baseTime = currentExpiry > now ? currentExpiry : now;
+      newExpireAt = baseTime + planDays * 24 * 60 * 60 * 1000;
+    } else {
+      newExpireAt = now + planDays * 24 * 60 * 60 * 1000;
+    }
+
+    await subRef.set(
+      {
+        username,
+        planId,
+        planName,
+        planDays,
+        expireAt: newExpireAt,
+        lastPayment: {
+          orderCode,
+          amount: price,
+          paidAt: new Date().toISOString(),
+        },
+        updatedAt: new Date().toISOString(),
+        ...(subDoc.exists ? {} : { createdAt: new Date().toISOString() }),
+      },
+      { merge: true },
+    );
+
+    console.log(`🎖️ VIP activated: @${username} → ${planName}, expires ${new Date(newExpireAt).toISOString()}`);
   }
 
   /**
    * POST /api/payment/check-order/:orderCode
-   * Auth required: kiểm tra lại trạng thái đơn hàng từ PayOS
+   * PUBLIC: kiểm tra lại trạng thái đơn hàng từ PayOS
    */
   async recheckOrder(req, res) {
     try {
       const { orderCode } = req.params;
-      const userLocalId = req.user?.localId;
 
       if (!db) {
         return res.status(503).json({
@@ -530,12 +490,6 @@ class PaymentController {
       }
 
       const order = orderDoc.data();
-      if (order.uid !== userLocalId) {
-        return res.status(403).json({
-          success: false,
-          message: "Bạn không có quyền kiểm tra đơn hàng này",
-        });
-      }
 
       // Already paid? Return cached
       if (order.status === "PAID") {
@@ -564,43 +518,16 @@ class PaymentController {
           const payosStatus = payosRes.data?.data?.status;
 
           if (payosStatus === "PAID" && order.status !== "PAID") {
-            // Auto-activate VIP
             await orderRef.update({
               status: "PAID",
               paidAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             });
 
-            const now = Date.now();
-            const subRef = db.collection(SUBSCRIPTIONS_COLLECTION).doc(order.email);
-            const subDoc = await subRef.get();
-            let newExpireAt;
-            if (subDoc.exists) {
-              const currentExpiry = subDoc.data().expireAt || 0;
-              const baseTime = currentExpiry > now ? currentExpiry : now;
-              newExpireAt = baseTime + order.planDays * 24 * 60 * 60 * 1000;
-            } else {
-              newExpireAt = now + order.planDays * 24 * 60 * 60 * 1000;
-            }
-            await subRef.set(
-              {
-                email: order.email,
-                uid: order.uid,
-                planId: order.planId,
-                planName: order.planName,
-                planDays: order.planDays,
-                expireAt: newExpireAt,
-                lastPayment: {
-                  orderCode: Number(orderCode),
-                  amount: order.price,
-                  paidAt: new Date().toISOString(),
-                },
-                updatedAt: new Date().toISOString(),
-              },
-              { merge: true },
-            );
+            // Auto-activate VIP
+            await this._activateVip(order);
 
-            console.log(`✅ VIP auto-activated via recheck for ${order.email}`);
+            console.log(`✅ VIP auto-activated via recheck for @${order.username}`);
             return res.status(200).json({
               success: true,
               data: { ...order, status: "PAID" },

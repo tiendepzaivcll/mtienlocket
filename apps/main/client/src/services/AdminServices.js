@@ -106,3 +106,14 @@ export const deleteAdminNotification = async (id) => {
   const response = await adminApi.delete(`/notifications/${encodeURIComponent(id)}`);
   return response.data;
 };
+
+// === Payment Management ===
+export const listPaymentOrders = async () => {
+  const res = await adminApi.get("/payment-orders");
+  return res.data?.data || [];
+};
+
+export const listAdminSubscriptions = async () => {
+  const res = await adminApi.get("/subscriptions");
+  return res.data?.data || [];
+};
