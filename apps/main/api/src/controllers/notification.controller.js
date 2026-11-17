@@ -1,4 +1,5 @@
 const notificationStore = require("../services/Notifications/store");
+const { notificationsToArticles } = require("../services/Notifications/newsFeed");
 
 function createNotificationController(store = notificationStore) {
   const fail = (res, error) => res.set("Cache-Control", "no-store").status(error.status || 500).json({
@@ -30,6 +31,24 @@ function createNotificationController(store = notificationStore) {
         res.set("Cache-Control", "no-store").json({
           success: true, notifications: items.map(notificationStore.projectNotification),
         });
+      } catch (error) { fail(res, error); }
+    },
+    async publicFeeds(req, res) {
+      res.set("Cache-Control", "no-store");
+      try {
+        const articles = notificationsToArticles(await store.list());
+        if (req.query.slug !== undefined) {
+          const article = typeof req.query.slug === "string"
+            ? articles.find((item) => item.slug === req.query.slug)
+            : null;
+          if (!article) {
+            return res.status(404).json({
+              success: false, code: "NOTIFICATION_NOT_FOUND", message: "Không tìm thấy bài viết thông báo này.",
+            });
+          }
+          return res.json(article);
+        }
+        return res.json(articles);
       } catch (error) { fail(res, error); }
     },
   };

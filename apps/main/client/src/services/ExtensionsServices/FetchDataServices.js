@@ -7,29 +7,27 @@ import { CONFIG } from "@/config";
  * Lấy danh sách hoặc chi tiết bài viết.
  * @param {string} [slug] - slug của bài viết (nếu có).
  */
-export const getListNewFeeds = async (slug) => {
+export const getListNewFeeds = async (slug, { signal } = {}) => {
   try {
-    // Nếu có slug → lấy 1 bài cụ thể
-    const url = slug ? `${PUBLIC_API.feeds}?slug=${slug}` : PUBLIC_API.feeds;
-    const res = await instanceBaseData.get(url);
-
-    if (!res?.data) {
-      console.error("❌ Không có dữ liệu hợp lệ", res?.data);
-      return null;
+    const response = await axios.get(`${CONFIG.api.baseUrl}/${PUBLIC_API.feeds}`, {
+      params: slug ? { slug } : undefined,
+      timeout: 15000,
+      signal,
+    });
+    if (slug) {
+      if (!response.data || typeof response.data !== "object" || Array.isArray(response.data)) {
+        throw new Error("Không đọc được nội dung bài viết.");
+      }
+      return response.data;
     }
-
-    // Nếu là danh sách → sort theo published_at
-    if (!slug && Array.isArray(res.data)) {
-      return [...res.data].sort(
-        (a, b) => new Date(b.published_at) - new Date(a.published_at),
-      );
-    }
-
-    // Nếu là bài chi tiết → trả thẳng object
-    return res.data;
+    if (!Array.isArray(response.data)) throw new Error("Không đọc được danh sách bảng tin.");
+    return [...response.data].sort((a, b) =>
+      Number(b.pinned === true) - Number(a.pinned === true) ||
+      new Date(b.published_at) - new Date(a.published_at)
+    );
   } catch (error) {
-    console.error("🚨 Lỗi khi gọi API:", error.message);
-    return null;
+    if (slug && error.response?.status === 404) return null;
+    throw error;
   }
 };
 export const getAllTimelines = async () => {
