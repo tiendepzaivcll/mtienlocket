@@ -14,6 +14,7 @@ const Settings = React.lazy(() => import("../pages/Public/Settings"));
 const DevPage = React.lazy(() => import("../pages/Public/DevPage"));
 const AddToHomeScreenGuide = React.lazy(() => import("../pages/Public/AddToScreen"));
 const PricingPage = React.lazy(() => import("../pages/Public/Pricing"));
+const PayPage = React.lazy(() => import("../pages/Auth/PayPage"));
 const PrivacyPolicy = React.lazy(() => import("../pages/Public/PrivacyPolicy"));
 const BirthdayPage = React.lazy(() => import("../pages/Public/BirthdayPage"));
 
@@ -27,8 +28,10 @@ export const authRoutes = [
 
   { path: "/download", component: AddToHomeScreenGuide, title: `Thêm ứng dụng vào màn hình chính | ${APP_NAME}` },
 
-  { path: "/pricing", component: PricingPage, title: `LOCKET-PRO Full Access | ${APP_NAME}` },
-  { path: "/pricing/:planId", component: PricingPage, title: `LOCKET-PRO Full Access | ${APP_NAME}` },
+  { path: "/pricing", component: PricingPage, title: `Nâng cấp VIP | ${APP_NAME}` },
+  { path: "/pricing/:planId", component: PricingPage, title: `Nâng cấp VIP | ${APP_NAME}` },
+  { path: "/pay", component: PayPage, title: `Thanh toán | ${APP_NAME}` },
+  { path: "/payment/result", component: PayPage, title: `Kết quả thanh toán | ${APP_NAME}` },
 
   { path: "/profile", component: Profile, title: `Hồ sơ | ${APP_NAME}` },
   { path: "/postmoments", component: PostMoments, title: `Đăng Moment Mới | ${APP_NAME}` },

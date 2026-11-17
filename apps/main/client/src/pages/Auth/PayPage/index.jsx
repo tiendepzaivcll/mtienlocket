@@ -1,88 +1,105 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import LoadingPageMain from "@/components/pages/LoadPageMain";
-import { CheckCircle, CircleAlert, Copy, XCircle } from "lucide-react";
-import * as services from "@/services";
+import {
+  CheckCircle,
+  CircleAlert,
+  Copy,
+  XCircle,
+  Loader2,
+  ArrowLeft,
+  ExternalLink,
+  QrCode,
+  Clock,
+} from "lucide-react";
+import { instanceMain } from "@/libs/instanceMain";
 import {
   SonnerInfo,
   SonnerSuccess,
   SonnerWarning,
 } from "@/components/ui/SonnerToast";
-import QrCodeNew from "./QrCodeNew";
 import ConfirmPoup from "@/features/PoupScreen/ConfirmPoup";
 
 export default function PayPage() {
-  const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const orderId = searchParams.get("orderId");
+  const orderCode = searchParams.get("orderCode");
 
-  const [plan, SetOrder] = useState(null);
+  const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [loadingRecheck, setLoadingRecheck] = useState(false);
+  const [rechecking, setRechecking] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (!orderId) return;
-    const fetchPlan = async () => {
-      try {
-        const data = await services.GetInfoOrder(orderId);
-        SetOrder(data);
-      } catch (error) {
-        console.error("Lỗi khi lấy gói:", error);
-      } finally {
-        setLoading(false);
+    if (!orderCode) return;
+    fetchOrder();
+  }, [orderCode]);
+
+  const fetchOrder = async () => {
+    try {
+      const res = await instanceMain.get(
+        `/api/payment/order/${orderCode}`,
+      );
+      if (res.data?.success) {
+        setOrder(res.data.data);
       }
-    };
-    fetchPlan();
-  }, [orderId]);
+    } catch (error) {
+      console.error("Lỗi khi lấy đơn hàng:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const recheckOrder = async () => {
-    setLoadingRecheck(true);
+    setRechecking(true);
     try {
-      const data = await services.GetInfoOrder(orderId);
-
-      if (data?.status === "PENDING") {
-        SonnerInfo("Đơn hàng chưa được thanh toán.");
-      } else if (data?.status === "PAID") {
-        SonnerSuccess("Đơn hàng đã thanh toán thành công!");
-      } else if (data?.status === "CANCELLED") {
-        SonnerInfo("Đơn hàng đã bị huỷ.");
-      } else {
-        SonnerWarning("⚠️ Trạng thái đơn hàng không xác định.");
+      const res = await instanceMain.post(
+        `/api/payment/check-order/${orderCode}`,
+      );
+      if (res.data?.success) {
+        const data = res.data.data;
+        setOrder(data);
+        if (data.status === "PAID") {
+          SonnerSuccess("🎉 Đơn hàng đã thanh toán thành công!");
+        } else if (data.status === "CANCELLED") {
+          SonnerInfo("Đơn hàng đã bị huỷ.");
+        } else {
+          SonnerInfo("Đơn hàng chưa được thanh toán.");
+        }
       }
-
-      SetOrder(data);
     } catch (error) {
-      console.error("Lỗi khi kiểm tra lại đơn hàng:", error);
+      console.error("Lỗi khi kiểm tra đơn hàng:", error);
+      SonnerWarning("Không thể kiểm tra đơn hàng.");
     } finally {
-      setLoadingRecheck(false);
-    }
-  };
-  const handleCancelOrder = async () => {
-    try {
-      await services.CancelToOrder(plan.id);
-      SonnerSuccess("Đơn hàng đã được huỷ.");
-      navigate(-1);
-    } catch (error) {
-      console.error("❌ Lỗi khi huỷ giao dịch:", error);
-      SonnerWarning("Không thể huỷ giao dịch. Vui lòng thử lại.");
+      setRechecking(false);
     }
   };
 
-  if (loading) return <LoadingPageMain isLoading={true} />;
+  const copyText = (text, label) => {
+    navigator.clipboard.writeText(text);
+    setCopied(label);
+    setTimeout(() => setCopied(false), 1500);
+    SonnerInfo(`Đã sao chép ${label}`);
+  };
 
-  if (!plan) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-center text-gray-600">
-        <div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center text-white">
+        <div className="text-center">
           <h2 className="text-xl font-semibold mb-2">
-            Không tìm thấy gói thanh toán
+            Không tìm thấy đơn hàng
           </h2>
           <button
             onClick={() => navigate("/pricing")}
-            className="btn btn-primary mt-4"
+            className="mt-4 px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-medium transition"
           >
             Quay lại trang gói
           </button>
@@ -91,231 +108,159 @@ export default function PayPage() {
     );
   }
 
-  if (plan.status === "PAID") {
+  // ─── PAID state ────────────────────────────────────────────
+  if (order.status === "PAID") {
     return (
-      <div className="h-[84vh] bg-base-100 flex items-center justify-center p-4">
-        <div className="bg-base-200 shadow-md rounded-xl p-6 w-full max-w-sm text-center space-y-4">
-          <div className="flex justify-center">
-            <div className="bg-green-100 p-3 rounded-full text-green-600">
-              <CheckCircle className="w-6 h-6" />
-            </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center p-4 text-white">
+        <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 w-full max-w-sm text-center space-y-5">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20">
+            <CheckCircle className="w-8 h-8 text-green-400" />
           </div>
-          <h2 className="text-xl font-bold text-green-700">
-            🎉 Thanh toán thành công
-          </h2>
-          <p className="text-sm text-gray-600">
-            Cảm ơn bạn đã thanh toán. Gói của bạn đã được kích hoạt.
+          <h2 className="text-xl font-bold">🎉 Thanh toán thành công!</h2>
+          <p className="text-sm text-gray-300">
+            Gói <strong>{order.planName}</strong> đã được kích hoạt. Cảm ơn bạn!
+          </p>
+          <div className="space-y-3">
+            <button
+              onClick={() => navigate("/locket-beta")}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 font-bold text-sm hover:from-purple-600 hover:to-pink-600 transition"
+            >
+              Bắt đầu sử dụng VIP
+            </button>
+            <button
+              onClick={() => navigate("/pricing")}
+              className="w-full py-3 rounded-xl bg-white/10 font-medium text-sm hover:bg-white/20 transition"
+            >
+              Xem gói của bạn
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── CANCELLED state ───────────────────────────────────────
+  if (order.status === "CANCELLED") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center p-4 text-white">
+        <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-8 w-full max-w-sm text-center space-y-5">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20">
+            <XCircle className="w-8 h-8 text-red-400" />
+          </div>
+          <h2 className="text-xl font-bold">Đơn hàng đã huỷ</h2>
+          <p className="text-sm text-gray-300">
+            Đơn hàng #{order.orderCode} đã bị huỷ bỏ.
           </p>
           <button
             onClick={() => navigate("/pricing")}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 font-bold text-sm transition"
           >
-            Xem gói của bạn
+            Mua gói mới
           </button>
         </div>
       </div>
     );
   }
 
+  // ─── PENDING state ─────────────────────────────────────────
   return (
-    <>
-      <div className="min-h-screen bg-base-100 px-6 py-6 flex items-center justify-center">
-        <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-8 bg-base-100 shadow-2xl rounded-xl p-6">
-          {/* Bên trái: QR + thông tin cơ bản */}
-          <div className="space-y-6 flex flex-col items-center">
-            <h2 className="text-xl font-semibold text-base-content text-center">
-              Quét mã QR để thanh toán
-            </h2>
-            <QrCodeNew src={plan.checkout_qr} />
-
-            <div className="flex justify-center text-sm w-full">
-              <div className="">
-                <button
-                  className="w-full bg-indigo-500 text-white rounded-lg p-2 hover:bg-indigo-600 transition-colors"
-                  onClick={() => {
-                    if (plan.checkout_url) {
-                      navigator.clipboard.writeText(plan.checkout_url);
-                      SonnerInfo("Link thanh toán đã được copy!");
-                    } else {
-                      SonnerInfo("Link thanh toán chưa sẵn sàng.");
-                    }
-                  }}
-                >
-                  Copy link thanh toán
-                </button>
-              </div>
-            </div>
-
-            <div className="text-xs text-left text-base-content space-y-1 mt-2">
-              <p>
-                • Hệ thống sẽ xử lý trong <strong>5-10 phút</strong>.
-              </p>
-            </div>
-          </div>
-
-          {/* Bên phải: Thông tin chuyển khoản */}
-          <div className="flex flex-col justify-between space-y-6">
-            <div className="space-y-5">
-              <h2 className="text-lg font-semibold text-center text-base-content">
-                Thông tin chuyển khoản
-              </h2>
-
-              <div className="space-y-5 text-base-content text-sm">
-                {/* Ngân hàng */}
-                <div className="flex items-center">
-                  <img
-                    src={plan.bank_info?.bank_logo}
-                    alt="logo"
-                    className="h-8 w-auto"
-                  />
-                  <div>
-                    <p className="text-xs text-gray-500">Ngân hàng</p>
-                    <p className="text-sm font-medium">
-                      {plan.bank_info?.bank_fullname}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Chủ tài khoản */}
-                <div>
-                  <p className="text-xs text-gray-500">Chủ tài khoản</p>
-                  <p className="text-sm font-medium text-primary">
-                    {plan.bank_info?.account_name}
-                  </p>
-                </div>
-
-                {/* Số tài khoản */}
-                <div>
-                  <p className="text-xs text-gray-500">Số tài khoản</p>
-                  <div className="flex items-center justify-between px-3 py-2 bg-base-200 rounded-md">
-                    <span className="font-semibold text-primary">
-                      {plan.bank_info?.account_number}
-                    </span>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(
-                          plan.bank_info?.account_number,
-                        );
-                        setCopied("stk");
-                        setTimeout(() => setCopied(false), 1500);
-                      }}
-                      className="text-sm text-primary"
-                    >
-                      <Copy className="inline w-4 h-4 mr-1" /> Sao chép
-                    </button>
-                  </div>
-                  {copied === "stk" && (
-                    <p className="text-xs text-green-600 mt-1">
-                      ✓ Đã sao chép số tài khoản
-                    </p>
-                  )}
-                </div>
-
-                {/* Số tiền */}
-                <div>
-                  <p className="text-xs text-gray-500">Số tiền</p>
-                  <div className="flex items-center justify-between px-3 py-2 bg-base-200 rounded-md">
-                    <span className="font-semibold text-primary">
-                      {plan.price.toLocaleString()} VND
-                    </span>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(plan.price.toString());
-                        setCopied("price");
-                        setTimeout(() => setCopied(false), 1500);
-                      }}
-                      className="text-sm text-primary"
-                    >
-                      <Copy className="inline w-4 h-4 mr-1" /> Sao chép
-                    </button>
-                  </div>
-                  {copied === "price" && (
-                    <p className="text-xs text-green-600 mt-1">
-                      ✓ Đã sao chép số tiền
-                    </p>
-                  )}
-                </div>
-
-                {/* Nội dung */}
-                <div>
-                  <p className="text-xs text-gray-500">Nội dung</p>
-                  <div className="flex items-center justify-between px-3 py-2 bg-base-200 rounded-md">
-                    <span className="font-semibold text-primary">
-                      {plan.transfer_content}
-                    </span>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(plan.transfer_content);
-                        setCopied("content");
-                        setTimeout(() => setCopied(false), 1500);
-                      }}
-                      className="text-sm text-primary"
-                    >
-                      <Copy className="inline w-4 h-4 mr-1" /> Sao chép
-                    </button>
-                  </div>
-                  {copied === "content" && (
-                    <p className="text-xs text-green-600 mt-1">
-                      ✓ Đã sao chép nội dung
-                    </p>
-                  )}
-                </div>
-
-                {/* Lưu ý */}
-                <div className="bg-yellow-50 text-yellow-700 border border-yellow-200 p-3 rounded-md text-xs">
-                  <strong>Lưu ý:</strong> Nhập chính xác{" "}
-                  <strong>số tiền</strong> và <strong>nội dung</strong> khi
-                  chuyển khoản để hệ thống tự động xử lý.
-                </div>
-              </div>
-            </div>
-
-            {/* Nút điều hướng */}
-            <div className="flex gap-4 pt-4">
-              {plan.status !== "PAID" ? (
-                <>
-                  <button
-                    onClick={() => setOpenDeleteModal(true)}
-                    className="btn btn-outline flex-1 flex items-center justify-center gap-2"
-                  >
-                    <XCircle className="w-4 h-4" />
-                    <span>Huỷ giao dịch</span>
-                  </button>
-                  <button
-                    disabled={loadingRecheck}
-                    onClick={recheckOrder}
-                    className="btn btn-primary flex-1"
-                  >
-                    {loadingRecheck
-                      ? "Đang kiểm tra..."
-                      : "Kiểm tra thanh toán"}
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={() => navigate("/pricing")}
-                  className="btn btn-success w-full"
-                >
-                  🎉 Đơn hàng đã thanh toán - Xem gói của bạn
-                </button>
-              )}
-            </div>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white">
+      {/* Header */}
+      <div className="px-4 pt-6 pb-4 flex items-center gap-3">
+        <button
+          onClick={() => navigate("/pricing")}
+          className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <h1 className="text-lg font-bold flex-1">Thanh toán</h1>
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-400 text-xs font-bold">
+          <Clock className="w-3 h-3" />
+          Chờ thanh toán
         </div>
       </div>
-      {/* DELETE MODAL */}
-      <ConfirmPoup
-        open={openDeleteModal}
-        onClose={() => setOpenDeleteModal(false)}
-        onConfirm={handleCancelOrder}
-        title={"Xác nhận huỷ đơn hàng?"}
-        icon={<CircleAlert size={28} className="text-gray-800" />}
-        labelConfirm={"Huỷ đơn hàng"}
-      >
-        Sau khi huỷ đơn hàng, bạn có thể tạo lại đơn hàng mới để thanh toán.
-        Hành động này không thể hoàn tác. Các mã giảm giá đã sử dụng sẽ không
-        được hoàn lại.
-      </ConfirmPoup>
-    </>
+
+      <div className="px-4 pb-10 max-w-lg mx-auto space-y-5">
+        {/* Order summary */}
+        <div className="bg-white/5 rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm text-gray-400">Gói</span>
+            <span className="font-bold">{order.planName}</span>
+          </div>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm text-gray-400">Số tiền</span>
+            <span className="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+              {order.price?.toLocaleString("vi-VN")}đ
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-400">Mã đơn</span>
+            <span className="text-sm font-mono text-gray-300">
+              #{order.orderCode}
+            </span>
+          </div>
+        </div>
+
+        {/* QR Code */}
+        {order.qrCode && (
+          <div className="bg-white rounded-2xl p-6 text-center">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <QrCode className="w-5 h-5 text-purple-600" />
+              <span className="text-sm font-bold text-gray-800">
+                Quét mã để thanh toán
+              </span>
+            </div>
+            <img
+              src={order.qrCode}
+              alt="QR thanh toán"
+              className="w-56 h-56 mx-auto rounded-xl"
+            />
+          </div>
+        )}
+
+        {/* Checkout link */}
+        {order.checkoutUrl && (
+          <a
+            href={order.checkoutUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 font-bold text-sm hover:from-blue-600 hover:to-cyan-600 transition"
+          >
+            <ExternalLink className="w-4 h-4" />
+            Mở trang thanh toán PayOS
+          </a>
+        )}
+
+        {/* Actions */}
+        <div className="flex gap-3">
+          <button
+            onClick={recheckOrder}
+            disabled={rechecking}
+            className="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 font-bold text-sm hover:from-purple-600 hover:to-pink-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {rechecking ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Đang kiểm tra...
+              </>
+            ) : (
+              "Kiểm tra thanh toán"
+            )}
+          </button>
+        </div>
+
+        {/* Notes */}
+        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4 text-xs text-yellow-200/80 space-y-1">
+          <p>
+            • Hệ thống sẽ tự động kích hoạt VIP sau khi thanh toán (5-10 phút).
+          </p>
+          <p>• Nếu chưa được kích hoạt, hãy ấn "Kiểm tra thanh toán".</p>
+          <p>
+            • Liên hệ hỗ trợ nếu gặp vấn đề:{" "}
+            <strong>tienmanh6811@gmail.com</strong>
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
