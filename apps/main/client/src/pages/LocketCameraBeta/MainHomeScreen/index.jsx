@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from "react";
-import { Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
 import { CalendarClock, Camera, LoaderCircle, X } from "lucide-react";
 import { usePostStore } from "@/stores";
@@ -15,6 +15,7 @@ import MediaSizeInfo from "@/components/ui/MediaSizeInfo/index.jsx";
 
 const BottomHomeScreen = lazy(() => import("../BottomHomeScreen"));
 const SelectFriendsList = lazy(() => import("./Layout/SelectFriends"));
+const Photobooth = lazy(() => import("@/pages/Auth/Photobooth"));
 
 const RestoreFlowBanner = () => {
   const restoreFlow = usePostStore((state) => state.restoreFlow);
@@ -67,7 +68,8 @@ const RestoreFlowBanner = () => {
 };
 
 export default function MainHomeScreen() {
-  const { navigation, post } = useApp();
+  const { navigation, post, camera, useloading } = useApp();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const {
     isHomeOpen,
@@ -81,8 +83,23 @@ export default function MainHomeScreen() {
     isFriendHistoryOpen,
     setFriendHistoryOpen,
   } = navigation;
-  const { selectedFile } = post;
+  const { selectedFile, imageToCrop, videoCrop, selectedQueue } = post;
   const hasRestoreSelection = usePostStore((state) => Boolean(state.restoreFlow.selectedDate));
+  const mediaIsLocked = Boolean(selectedFile || imageToCrop || videoCrop ||
+    typeof selectedQueue === "number" || selectedQueue || hasRestoreSelection ||
+    camera.isHolding || useloading.sendLoading || useloading.uploadLoading || useloading.isAiGenerating);
+  const showPhotobooth = searchParams.get("camera") === "photobooth" && !mediaIsLocked;
+  const boothActive = !isProfileOpen && !isHomeOpen && !isBottomOpen &&
+    !isFriendHistoryOpen && !navigation.isSidebarOpen && !navigation.isFriendsTabOpen &&
+    !navigation.isChatDetailOpen && !navigation.isOptionModalOpen &&
+    !navigation.isFilterOpen && !navigation.isAiFilterOpen &&
+    !navigation.isSettingTabOpen && !post.showEmojiPicker;
+  const chooseCaptureMode = (photobooth) => {
+    const next = new URLSearchParams(searchParams);
+    if (photobooth) next.set("camera", "photobooth");
+    else next.delete("camera");
+    setSearchParams(next, { replace: true });
+  };
 
   return (
     <>
@@ -109,6 +126,12 @@ export default function MainHomeScreen() {
             <strong>LOCKET-PRO</strong><span>Admin <b>MTIEN</b></span>
           </div>
         )}
+        {!mediaIsLocked && !isBottomOpen && !isProfileOpen && !isHomeOpen && (
+          <div className="locket-pro-capture-modes" role="group" aria-label="Chế độ camera Locket">
+            <button type="button" aria-pressed={!showPhotobooth} onClick={() => chooseCaptureMode(false)}>Chụp thường</button>
+            <button type="button" aria-pressed={showPhotobooth} onClick={() => chooseCaptureMode(true)}><Camera size={14} aria-hidden="true" />Photobooth 4 ô</button>
+          </div>
+        )}
         <RestoreFlowBanner />
         <div
           className={`w-full h-full flex flex-1 flex-col transition-all duration-500 justify-center items-center ${
@@ -129,6 +152,14 @@ export default function MainHomeScreen() {
             isBottomOpen ? "fixed -translate-y-full" : "translate-x-0"
           }`}
         >
+          {showPhotobooth ? (
+            <div className="locket-pro-inline-booth-host" data-testid="locket-inline-photobooth">
+              <Suspense fallback={<p className="py-8 text-sm opacity-70" role="status">Đang mở Photobooth…</p>}>
+                <Photobooth embedded active={boothActive} onUseResult={() => chooseCaptureMode(false)} />
+              </Suspense>
+              <button type="button" className="locket-pro-booth-history" onClick={() => setIsBottomOpen(true)}>Lịch sử</button>
+            </div>
+          ) : <>
           <div className="h-10" />
           <MediaPreview />
           <MediaSizeInfo />
@@ -162,20 +193,10 @@ export default function MainHomeScreen() {
               }
             `}
             >
-              <div className="flex items-center justify-center gap-6">
-                <HistoryArrow setIsBottomOpen={setIsBottomOpen} />
-                {!selectedFile && !isBottomOpen && !hasRestoreSelection && (
-                  <Link
-                    to="/photobooth"
-                    className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-base-content/20 bg-base-100 px-3 py-2 text-xs font-semibold text-base-content transition-colors hover:bg-base-200"
-                  >
-                    <Camera className="h-4 w-4" aria-hidden="true" />
-                    Photobooth 4 ô
-                  </Link>
-                )}
-              </div>
+              <HistoryArrow setIsBottomOpen={setIsBottomOpen} />
             </div>
           </div>
+          </>}
         </div>
       </div>
     </>

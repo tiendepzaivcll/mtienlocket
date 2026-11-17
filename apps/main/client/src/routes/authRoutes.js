@@ -9,7 +9,7 @@ const NewsDetailPage = React.lazy(() => import("@/pages/Public/NewsDetailPage"))
 const AuthHome = React.lazy(() => import("../pages/Auth/Home"));
 const Profile = React.lazy(() => import("../pages/Auth/Profile"));
 const PostMoments = React.lazy(() => import("../pages/Auth/PostMoments"));
-const Photobooth = React.lazy(() => import("../pages/Auth/Photobooth"));
+const Photobooth = React.lazy(() => import("../pages/Auth/Photobooth/entry"));
 const Settings = React.lazy(() => import("../pages/Public/Settings"));
 const DevPage = React.lazy(() => import("../pages/Public/DevPage"));
 const AddToHomeScreenGuide = React.lazy(() => import("../pages/Public/AddToScreen"));
