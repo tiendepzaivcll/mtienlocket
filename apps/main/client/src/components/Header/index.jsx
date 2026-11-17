@@ -1,5 +1,5 @@
 import "./header.css";
-import { ArrowUpRight, Menu } from "lucide-react";
+import { ArrowUpRight, Crown, Menu } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
 import { useAuthStore } from "@/stores";
@@ -23,6 +23,10 @@ const Header = () => {
         </Link>
         <nav className="mtien-header-nav" aria-label="Điều hướng chính">
           <NavLink to="/" end>Trang chủ</NavLink>
+          <NavLink to="/pricing" className="mtien-vip-link">
+            <Crown size={14} aria-hidden="true" />
+            Nâng cấp VIP
+          </NavLink>
           <NavLink to="/download">Hướng dẫn</NavLink>
         </nav>
         <div className="mtien-header-actions">

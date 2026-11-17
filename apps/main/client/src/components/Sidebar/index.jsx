@@ -15,6 +15,7 @@ import {
   Newspaper,
   CalendarClock,
   MessageCircle,
+  Crown,
 } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { MenuItem } from "./MenuItem";
@@ -88,6 +89,7 @@ const Sidebar = () => {
       title: "Điều hướng",
       items: [
         { to: "/", icon: Home, text: "Trang chủ" },
+        { to: "/pricing", icon: Crown, text: "Nâng cấp VIP", badge: "Hot" },
         { to: "/newsfeed", icon: Newspaper, text: "Bảng tin", badge: "New" },
         {
           to: "/download",
@@ -134,6 +136,7 @@ const Sidebar = () => {
       title: "Điều hướng",
       items: [
         { to: "/", icon: Home, text: "Trang chủ" },
+        { to: "/pricing", icon: Crown, text: "Nâng cấp VIP", badge: "Hot" },
         { to: "/newsfeed", icon: Newspaper, text: "Bảng tin", badge: "New" },
         {
           to: "/download",
