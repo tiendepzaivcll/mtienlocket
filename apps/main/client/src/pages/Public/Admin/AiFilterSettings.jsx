@@ -45,6 +45,10 @@ export default function AiFilterSettings() {
 
   const save = async () => {
     if (!selected || saving) return;
+    if (selected.supportsImageGeneration === false) {
+      SonnerWarning("Model này chỉ chat và đọc ảnh, không tạo ảnh.");
+      return;
+    }
     if (!selected.configured) {
       SonnerWarning(
         selected.provider === "kira"
@@ -85,6 +89,8 @@ export default function AiFilterSettings() {
         </p>
       </div>
 
+      {status?.supportsImageGeneration === false && <p role="alert" className="rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm">Model hiện tại là HY4 Flash Free, chỉ hỗ trợ chat và đọc ảnh. Hãy chọn mô hình tạo ảnh để dùng AI Filter.</p>}
+
       {loading ? (
         <div className="py-5 text-center text-sm opacity-60">Đang tải cấu hình...</div>
       ) : (
@@ -106,6 +112,7 @@ export default function AiFilterSettings() {
                   name="ai-filter-model"
                   className="radio radio-primary absolute right-3 top-3 radio-sm"
                   checked={checked}
+                  disabled={saving || model.supportsImageGeneration === false}
                   onChange={() => setModelId(model.id)}
                 />
                 <Icon size={22} className={model.provider === "cloudflare" ? "text-orange-500" : "text-primary"} />
@@ -113,8 +120,8 @@ export default function AiFilterSettings() {
                 <div className="mt-1 text-xs opacity-60">
                   {model.provider === "kira" ? "Kira AI" : "Cloudflare Workers AI"}
                 </div>
-                <div className={`mt-3 text-xs font-medium ${model.configured ? "text-success" : "text-warning"}`}>
-                  {model.configured ? "Sẵn sàng" : "Thiếu API key phía server"}
+                <div className={`mt-3 text-xs font-medium ${model.configured && model.supportsImageGeneration !== false ? "text-success" : "text-warning"}`}>
+                  {model.supportsImageGeneration === false ? "Chỉ chat / đọc ảnh · không tạo ảnh" : model.configured ? "Sẵn sàng" : "Thiếu API key phía server"}
                 </div>
               </label>
             );
@@ -131,7 +138,7 @@ export default function AiFilterSettings() {
           <button
             type="button"
             className="btn btn-primary btn-sm"
-            disabled={saving || !selected || modelId === status.activeModelId}
+            disabled={saving || !selected || selected.supportsImageGeneration === false || modelId === status.activeModelId}
             onClick={save}
           >
             <Save size={15} /> {saving ? "Đang lưu..." : "Lưu và áp dụng"}

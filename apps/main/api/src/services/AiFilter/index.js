@@ -461,7 +461,7 @@ const generateWithCloudflare = async ({ inputImage, filter, selection }) => {
   };
 };
 
-const generateWithKira = async ({ imageUrl, inputImage, filter, selection }) => {
+const generateWithKira = async ({ inputImage, filter, selection }) => {
   const apiKey = String(process.env.KIRA_API_KEY || "").trim();
   if (!apiKey) {
     const error = new Error("Backend chưa cấu hình KIRA_API_KEY.");
@@ -482,7 +482,7 @@ const generateWithKira = async ({ imageUrl, inputImage, filter, selection }) => 
         prompt: filter.prompt,
         aspect_ratio: "1:1",
         size: "1024x1024",
-        reference_images: [imageUrl],
+        reference_images: [{ mime_type: inputImage.mimeType, data: inputImage.data }],
       },
       {
         timeout: KIRA_TIMEOUT_MS,
@@ -532,13 +532,19 @@ const generateFilteredImage = async ({ imageUrl, filterId }) => {
     throw error;
   }
 
-  const [inputImage, selection] = await Promise.all([
-    downloadInputImage(imageUrl),
-    getActiveModel(),
-  ]);
+  const selection = await getActiveModel();
+  if (selection.supportsImageGeneration === false) {
+    const error = new Error(
+      `${selection.label || selection.model} chỉ hỗ trợ trò chuyện và phân tích ảnh, không tạo được ảnh. Hãy chọn mô hình tạo ảnh trong trang quản trị.`,
+    );
+    error.status = 409;
+    error.code = "AI_FILTER_MODEL_NOT_IMAGE";
+    throw error;
+  }
+  const inputImage = await downloadInputImage(imageUrl);
 
   if (selection.provider === "kira") {
-    return generateWithKira({ imageUrl, inputImage, filter, selection });
+    return generateWithKira({ inputImage, filter, selection });
   }
   return generateWithCloudflare({ inputImage, filter, selection });
 };

@@ -16,6 +16,7 @@ const MODEL_OPTIONS = Object.freeze([
     label: "Kira HY4 Flash Free",
     provider: "kira",
     model: "hy4-flash-free",
+    supportsImageGeneration: false,
   }),
   Object.freeze({
     id: "cloudflare-flux-2-klein-9b",
@@ -154,6 +155,7 @@ const getSettingsStatus = async ({ force = false } = {}) => {
   const saved = settingsStore.peek();
   return {
     activeModelId: active.id,
+    supportsImageGeneration: active.supportsImageGeneration !== false,
     source: saved ? "admin" : "env",
     updatedAt: saved?.updatedAt || null,
     storageAvailable: !settingsStore.loadFailed(),
@@ -161,6 +163,7 @@ const getSettingsStatus = async ({ force = false } = {}) => {
       id: option.id,
       label: option.label,
       provider: option.provider,
+      supportsImageGeneration: option.supportsImageGeneration !== false,
       configured: isProviderConfigured(option.provider),
     })),
   };

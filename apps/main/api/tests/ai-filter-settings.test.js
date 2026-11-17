@@ -28,7 +28,23 @@ test("HY4 replaces HY Image 3.5 for new choices and legacy identifiers", () => {
     assert.equal(option.model, "hy4-flash-free");
     assert.equal(option.label, "Kira HY4 Flash Free");
     assert.equal(option.provider, "kira");
+    assert.equal(option.supportsImageGeneration, false);
   }
+});
+
+test("admin cannot select a chat-only model for image generation", async () => {
+  const controller = require("../src/controllers/aiFilterAdmin.controller");
+  let status;
+  let body;
+  const response = {
+    status(value) { status = value; return this; },
+    json(value) { body = value; return this; },
+  };
+  await controller.save({ body: { modelId: "kira-hy4-flash-free" } }, response);
+  assert.equal(status, 409);
+  assert.equal(body.code, "AI_FILTER_MODEL_NOT_IMAGE");
+  assert.equal(body.success, false);
+  assert.match(body.message, /không tạo ảnh/);
 });
 
 test("saved HY Image 3.5 settings load as HY4 and save the canonical model id", async () => {
