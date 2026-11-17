@@ -51,7 +51,7 @@ const MediaPreview = () => {
   const initialPinchZoom = useRef(1);
   const [isPinching, setIsPinching] = useState(false);
   const pinchTimeoutRef = useRef(null);
-  const [zoomRange, setZoomRange] = useState({ min: 1, max: 6 });
+  const [zoomRange, setZoomRange] = useState({ min: 0.5, max: 6 });
 
   // Kiểm tra khả năng zoom phần cứng của camera thiết bị
   const updateCameraZoomCapabilities = (track) => {
@@ -61,7 +61,7 @@ const MediaPreview = () => {
       if (caps && caps.zoom) {
         setHasHardwareZoom(true);
         setZoomRange({
-          min: caps.zoom.min || 1,
+          min: caps.zoom.min !== undefined ? Math.min(caps.zoom.min, 0.5) : 0.5,
           max: caps.zoom.max || 8,
           step: caps.zoom.step || 0.1,
         });
@@ -71,7 +71,7 @@ const MediaPreview = () => {
       console.warn("Lỗi kiểm tra capabilities zoom:", err);
     }
     setHasHardwareZoom(false);
-    setZoomRange({ min: 1, max: 6, step: 0.1 });
+    setZoomRange({ min: 0.5, max: 6, step: 0.1 });
   };
 
   const applyHardwareZoom = async (val) => {
@@ -80,7 +80,7 @@ const MediaPreview = () => {
     try {
       const caps = typeof track.getCapabilities === "function" ? track.getCapabilities() : {};
       if (caps && caps.zoom) {
-        const minZ = caps.zoom.min || 1;
+        const minZ = caps.zoom.min !== undefined ? Math.min(caps.zoom.min, 0.5) : 0.5;
         const maxZ = caps.zoom.max || 8;
         const clamped = Math.min(Math.max(val, minZ), maxZ);
         await track.applyConstraints({ advanced: [{ zoom: clamped }] });
@@ -110,7 +110,7 @@ const MediaPreview = () => {
       );
       const factor = currentDist / initialPinchDist.current;
       let nextZoom = initialPinchZoom.current * factor;
-      const minZ = zoomRange.min || 1;
+      const minZ = zoomRange.min !== undefined ? zoomRange.min : 0.5;
       const maxZ = zoomRange.max || 6;
       nextZoom = Math.min(Math.max(nextZoom, minZ), maxZ);
       const rounded = Math.round(nextZoom * 10) / 10;
@@ -120,13 +120,28 @@ const MediaPreview = () => {
     }
   };
 
-  const handleTouchEnd = (e) => {
+  const handleTouchEnd = async (e) => {
     if (e.touches.length < 2) {
       initialPinchDist.current = 0;
       if (pinchTimeoutRef.current) clearTimeout(pinchTimeoutRef.current);
       pinchTimeoutRef.current = setTimeout(() => {
         setIsPinching(false);
       }, 1000);
+
+      // Nếu người dùng chụm ngón tay thu về mức 0.5x trên cam sau
+      if (zoomScale <= 0.6 && cameraMode === "environment" && zoomLevel !== "0.5x") {
+        try {
+          const cameras = await getAvailableCameras();
+          if (cameras?.backUltraWideCamera?.deviceId) {
+            setZoomLevel("0.5x");
+            setZoomScale(1);
+            setDeviceId(cameras.backUltraWideCamera.deviceId);
+            setCameraActive(false);
+            setTimeout(() => setCameraActive(true), 250);
+            SonnerSuccess("Đã chuyển sang Camera 0.5x (Góc siêu rộng)");
+          }
+        } catch {}
+      }
     }
   };
 
@@ -273,7 +288,7 @@ const MediaPreview = () => {
         facingMode: cameraMode || "user",
       };
 
-      if (iosDevice && deviceId) {
+      if (deviceId) {
         videoConstraints.deviceId = { exact: deviceId };
       }
 
@@ -397,7 +412,7 @@ const MediaPreview = () => {
   };
 
   const handleZoomButtonClick = () => {
-    if (zoomScale > 1.05) {
+    if (Math.abs(zoomScale - 1) > 0.05) {
       setZoomScale(1);
       applyHardwareZoom(1);
       SonnerInfo("Đã đặt lại zoom 1x");
@@ -424,7 +439,7 @@ const MediaPreview = () => {
             muted
             style={{
               transform: `${cameraMode === "user" ? "scaleX(-1)" : ""} ${
-                !hasHardwareZoom && zoomScale > 1 ? `scale(${zoomScale})` : ""
+                !hasHardwareZoom && Math.abs(zoomScale - 1) > 0.05 ? `scale(${zoomScale})` : ""
               }`.trim(),
             }}
             className={`
@@ -461,9 +476,11 @@ const MediaPreview = () => {
               <button
                 onClick={handleZoomButtonClick}
                 className="pointer-events-auto min-w-[34px] h-8 px-2.5 text-primary-content font-semibold text-xs rounded-full bg-white/30 backdrop-blur-md flex items-center justify-center hover:bg-white/40 active:scale-95 transition shadow-sm"
-                title={zoomScale > 1 ? "Nhấn để trở về 1x" : `Chế độ Zoom: ${zoomLevel}`}
+                title={Math.abs(zoomScale - 1) > 0.05 ? "Nhấn để trở về 1x" : `Chế độ Zoom: ${zoomLevel}`}
               >
-                {zoomScale > 1 ? `${zoomScale.toFixed(1)}x` : zoomLevel}
+                {Math.abs(zoomScale - 1) > 0.05
+                  ? `${zoomScale.toFixed(1)}x`
+                  : zoomLevel}
               </button>
             </div>
 

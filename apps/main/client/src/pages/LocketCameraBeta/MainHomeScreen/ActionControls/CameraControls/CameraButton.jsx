@@ -264,8 +264,8 @@ const CameraButton = () => {
           ctx.scale(-1, 1);
         }
 
-        const effectiveScale = (!hasHardwareZoom && zoomScale > 1) ? zoomScale : 1;
-        const cropSide = side / effectiveScale;
+        const effectiveScale = (!hasHardwareZoom && Math.abs(zoomScale - 1) > 0.05) ? zoomScale : 1;
+        const cropSide = Math.min(side / effectiveScale, Math.min(video.videoWidth, video.videoHeight));
         const sx = (video.videoWidth - cropSide) / 2;
         const sy = (video.videoHeight - cropSide) / 2;
         ctx.drawImage(video, sx, sy, cropSide, cropSide, 0, 0, outputSize, outputSize);
@@ -369,9 +369,9 @@ const CameraButton = () => {
       canvas.height = CAMERA_CONFIG.imageSizePx;
 
       const baseSide = Math.min(video.videoWidth, video.videoHeight);
-      // Zoom kỹ thuật số nếu không có hardware zoom và zoomScale > 1
-      const effectiveScale = (!hasHardwareZoom && zoomScale > 1) ? zoomScale : 1;
-      const cropSide = baseSide / effectiveScale;
+      // Zoom kỹ thuật số nếu không có hardware zoom và zoomScale !== 1
+      const effectiveScale = (!hasHardwareZoom && Math.abs(zoomScale - 1) > 0.05) ? zoomScale : 1;
+      const cropSide = Math.min(baseSide / effectiveScale, Math.min(video.videoWidth, video.videoHeight));
 
       const sx = (video.videoWidth - cropSide) / 2;
       const sy = (video.videoHeight - cropSide) / 2;
