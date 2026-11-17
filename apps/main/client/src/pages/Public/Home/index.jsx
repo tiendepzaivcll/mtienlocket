@@ -89,7 +89,7 @@ export default function Home() {
             </div>
             <div className="lp-trust-item">
               <Sparkles size={15} className="text-amber-300" />
-              <span>Quản trị bởi <strong>MTIEN</strong></span>
+              <span>Trải nghiệm <strong>mượt mà</strong></span>
             </div>
           </div>
         </div>

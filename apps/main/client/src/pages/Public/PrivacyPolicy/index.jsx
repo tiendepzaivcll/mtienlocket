@@ -1,539 +1,359 @@
-// src/pages/PrivacyPolicy.jsx
-import { CONTACT_CONFIG } from "@/config";
-import React from "react";
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  ShieldCheck,
+  Globe,
+  Lock,
+  Camera,
+  Eye,
+  Database,
+  Cookie,
+  UserCheck,
+  Mail,
+  ArrowLeft,
+  CheckCircle2,
+  Sparkles,
+} from "lucide-react";
+import { useAuthStore } from "@/stores";
 
-const PrivacyPolicy = () => {
+export default function PrivacyPolicy() {
+  const user = useAuthStore((state) => state.user);
+  const [lang, setLang] = useState(() => {
+    return localStorage.getItem("privacy_lang") || "vi";
+  });
+
+  const switchLang = (newLang) => {
+    setLang(newLang);
+    localStorage.setItem("privacy_lang", newLang);
+  };
+
+  const isVi = lang === "vi";
+
   return (
-    <div className="p-6 max-w-4xl mx-auto text-base-content">
-      <h1 className="text-5xl font-semibold mb-4">Privacy Policy</h1>
-      <p className="mb-4">Last updated: May 27, 2025</p>
-      <p className="mb-4">
-        This Privacy Policy describes Our policies and procedures on the
-        collection, use and disclosure of Your information when You use the
-        Service and tells You about Your privacy rights and how the law protects
-        You.
-      </p>
-      <p className="mb-4">
-        We use Your Personal data to provide and improve the Service. By using
-        the Service, You agree to the collection and use of information in
-        accordance with this Privacy Policy. This Privacy Policy has been
-        created with the help of the{" "}
-        <a
-          href="https://www.freeprivacypolicy.com/free-privacy-policy-generator/"
-          target="_blank"
-        >
-          Free Privacy Policy Generator
-        </a>
-        .
-      </p>
-      <h2 className="mb-4 text-4xl font-semibold">
-        Interpretation and Definitions
-      </h2>
-      <h3 className="mb-4 text-3xl font-semibold">Interpretation</h3>
-      <p className="mb-4">
-        The words of which the initial letter is capitalized have meanings
-        defined under the following conditions. The following definitions shall
-        have the same meaning regardless of whether they appear in singular or
-        in plural.
-      </p>
-      <h3 className="mb-4 text-3xl font-semibold">Definitions</h3>
-      <p className="mb-4">For the purposes of this Privacy Policy:</p>
-      <ul className="list-disc ml-6">
-        <li className="mb-4">
-          <p>
-            <strong>Account</strong> means a unique account created for You to
-            access our Service or parts of our Service.
+    <div className="min-h-screen bg-base-100 text-base-content py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Navigation & Language Switcher Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-base-300">
+          <Link
+            to={user ? "/locket-beta" : "/"}
+            className="inline-flex items-center gap-2 text-sm font-medium text-base-content/75 hover:text-primary transition"
+          >
+            <ArrowLeft size={18} />
+            <span>{isVi ? "Quay lại" : "Back"}</span>
+          </Link>
+
+          {/* Toggle 2 ngôn ngữ */}
+          <div className="inline-flex items-center p-1 bg-base-200 rounded-full border border-base-300 shadow-sm">
+            <button
+              type="button"
+              onClick={() => switchLang("vi")}
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold transition ${
+                isVi
+                  ? "bg-primary text-primary-content shadow-sm"
+                  : "text-base-content/70 hover:text-base-content"
+              }`}
+            >
+              <span className="text-sm">🇻🇳</span>
+              <span>Tiếng Việt</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => switchLang("en")}
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold transition ${
+                !isVi
+                  ? "bg-primary text-primary-content shadow-sm"
+                  : "text-base-content/70 hover:text-base-content"
+              }`}
+            >
+              <span className="text-sm">🇺🇸</span>
+              <span>English</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Hero Header Banner */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/15 via-base-200 to-base-300/60 border border-primary/20 p-6 sm:p-8 shadow-lg">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary shadow-inner">
+              <ShieldCheck size={26} />
+            </div>
+            <div>
+              <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-semibold bg-primary/20 text-primary uppercase tracking-wider">
+                <Sparkles size={11} />
+                {isVi ? "Bảo Mật & Riêng Tư" : "Privacy & Security"}
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mt-1">
+                {isVi ? "Chính Sách Bảo Mật" : "Privacy Policy"}
+              </h1>
+            </div>
+          </div>
+          <p className="text-sm text-base-content/80 max-w-2xl leading-relaxed">
+            {isVi
+              ? "Cam kết tôn trọng và bảo vệ tuyệt đối thông tin cá nhân, hình ảnh và khoảnh khắc kết nối của bạn khi trải nghiệm Locket Web."
+              : "Our commitment to respecting and strictly protecting your personal data, photos, and private moments when using Locket Web."}
           </p>
-        </li>
-        <li className="mb-4">
-          <p>
-            <strong>Affiliate</strong> means an entity that controls, is
-            controlled by or is under common control with a party, where
-            &quot;control&quot; means ownership of 50% or more of the shares,
-            equity interest or other securities entitled to vote for election of
-            directors or other managing authority.
-          </p>
-        </li>
-        <li className="mb-4">
-          <p>
-            <strong>Company</strong> (referred to as either &quot;the
-            Company&quot;, &quot;We&quot;, &quot;Us&quot; or &quot;Our&quot; in
-            this Agreement) refers to MTIEN.
-          </p>
-        </li>
-        <li className="mb-4">
-          <p>
-            <strong>Cookies</strong> are small files that are placed on Your
-            computer, mobile device or any other device by a website, containing
-            the details of Your browsing history on that website among its many
-            uses.
-          </p>
-        </li>
-        <li className="mb-4">
-          <p>
-            <strong>Country</strong> refers to: Vietnam
-          </p>
-        </li>
-        <li className="mb-4">
-          <p>
-            <strong>Device</strong> means any device that can access the Service
-            such as a computer, a cellphone or a digital tablet.
-          </p>
-        </li>
-        <li className="mb-4">
-          <p>
-            <strong>Personal Data</strong> is any information that relates to an
-            identified or identifiable individual.
-          </p>
-        </li>
-        <li className="mb-4">
-          <p>
-            <strong>Service</strong> refers to the Website.
-          </p>
-        </li>
-        <li className="mb-4">
-          <p>
-            <strong>Service Provider</strong> means any natural or legal person
-            who processes the data on behalf of the Company. It refers to
-            third-party companies or individuals employed by the Company to
-            facilitate the Service, to provide the Service on behalf of the
-            Company, to perform services related to the Service or to assist the
-            Company in analyzing how the Service is used.
-          </p>
-        </li>
-        <li className="mb-4">
-          <p>
-            <strong>Usage Data</strong> refers to data collected automatically,
-            either generated by the use of the Service or from the Service
-            infrastructure itself (for example, the duration of a page visit).
-          </p>
-        </li>
-        <li className="mb-4">
-          <p>
-            <strong>Website</strong> refers to MTIEN, accessible from{" "}
-            <a href="/">
-              trang chủ MTIEN
-            </a>
-          </p>
-        </li>
-        <li className="mb-4">
-          <p>
-            <strong>You</strong> means the individual accessing or using the
-            Service, or the company, or other legal entity on behalf of which
-            such individual is accessing or using the Service, as applicable.
-          </p>
-        </li>
-      </ul>
-      <h2 className="mb-4 text-4xl font-semibold">
-        Collecting and Using Your Personal Data
-      </h2>
-      <h3 className="mb-4 text-3xl font-semibold">Types of Data Collected</h3>
-      <h4 className="mb-4 text-2xl font-semibold">Personal Data</h4>
-      <p className="mb-4">
-        While using Our Service, We may ask You to provide Us with certain
-        personally identifiable information that can be used to contact or
-        identify You. Personally identifiable information may include, but is
-        not limited to:
-      </p>
-      <ul className="list-disc ml-6">
-        <li className="mb-4">
-          <p>Email address</p>
-        </li>
-        <li className="mb-4">
-          <p>First name and last name</p>
-        </li>
-        <li className="mb-4">
-          <p>Usage Data</p>
-        </li>
-      </ul>
-      <h4 className="mb-4 text-2xl font-semibold">Usage Data</h4>
-      <p className="mb-4">
-        Usage Data is collected automatically when using the Service.
-      </p>
-      <p className="mb-4">
-        Usage Data may include information such as Your Device's Internet
-        Protocol address (e.g. IP address), browser type, browser version, the
-        pages of our Service that You visit, the time and date of Your visit,
-        the time spent on those pages, unique device identifiers and other
-        diagnostic data.
-      </p>
-      <p className="mb-4">
-        When You access the Service by or through a mobile device, We may
-        collect certain information automatically, including, but not limited
-        to, the type of mobile device You use, Your mobile device unique ID, the
-        IP address of Your mobile device, Your mobile operating system, the type
-        of mobile Internet browser You use, unique device identifiers and other
-        diagnostic data.
-      </p>
-      <p className="mb-4">
-        We may also collect information that Your browser sends whenever You
-        visit our Service or when You access the Service by or through a mobile
-        device.
-      </p>
-      <h4 className="mb-4 text-2xl font-semibold">
-        Tracking Technologies and Cookies
-      </h4>
-      <p className="mb-4">
-        We use Cookies and similar tracking technologies to track the activity
-        on Our Service and store certain information. Tracking technologies used
-        are beacons, tags, and scripts to collect and track information and to
-        improve and analyze Our Service. The technologies We use may include:
-      </p>
-      <ul className="list-disc ml-6">
-        <li className="mb-4">
-          <strong>Cookies or Browser Cookies.</strong> A cookie is a small file
-          placed on Your Device. You can instruct Your browser to refuse all
-          Cookies or to indicate when a Cookie is being sent. However, if You do
-          not accept Cookies, You may not be able to use some parts of our
-          Service. Unless you have adjusted Your browser setting so that it will
-          refuse Cookies, our Service may use Cookies.
-        </li>
-        <li className="mb-4">
-          <strong>Web Beacons.</strong> Certain sections of our Service and our
-          emails may contain small electronic files known as web beacons (also
-          referred to as clear gifs, pixel tags, and single-pixel gifs) that
-          permit the Company, for example, to count users who have visited those
-          pages or opened an email and for other related website statistics (for
-          example, recording the popularity of a certain section and verifying
-          system and server integrity).
-        </li>
-      </ul>
-      <p className="mb-4">
-        Cookies can be &quot;Persistent&quot; or &quot;Session&quot; Cookies.
-        Persistent Cookies remain on Your personal computer or mobile device
-        when You go offline, while Session Cookies are deleted as soon as You
-        close Your web browser. Learn more about cookies on the{" "}
-        <a
-          href="https://www.freeprivacypolicy.com/blog/sample-privacy-policy-template/#Use_Of_Cookies_And_Tracking"
-          target="_blank"
-        >
-          Free Privacy Policy website
-        </a>{" "}
-        article.
-      </p>
-      <p className="mb-4">
-        We use both Session and Persistent Cookies for the purposes set out
-        below:
-      </p>
-      <ul className="list-disc ml-6">
-        <li className="mb-4">
-          <p>
-            <strong>Necessary / Essential Cookies</strong>
-          </p>
-          <p>Type: Session Cookies</p>
-          <p>Administered by: Us</p>
-          <p>
-            Purpose: These Cookies are essential to provide You with services
-            available through the Website and to enable You to use some of its
-            features. They help to authenticate users and prevent fraudulent use
-            of user accounts. Without these Cookies, the services that You have
-            asked for cannot be provided, and We only use these Cookies to
-            provide You with those services.
-          </p>
-        </li>
-        <li className="mb-4">
-          <p>
-            <strong>Cookies Policy / Notice Acceptance Cookies</strong>
-          </p>
-          <p>Type: Persistent Cookies</p>
-          <p>Administered by: Us</p>
-          <p>
-            Purpose: These Cookies identify if users have accepted the use of
-            cookies on the Website.
-          </p>
-        </li>
-        <li className="mb-4">
-          <p>
-            <strong>Functionality Cookies</strong>
-          </p>
-          <p>Type: Persistent Cookies</p>
-          <p>Administered by: Us</p>
-          <p>
-            Purpose: These Cookies allow us to remember choices You make when
-            You use the Website, such as remembering your login details or
-            language preference. The purpose of these Cookies is to provide You
-            with a more personal experience and to avoid You having to re-enter
-            your preferences every time You use the Website.
-          </p>
-        </li>
-      </ul>
-      <p className="mb-4">
-        For more information about the cookies we use and your choices regarding
-        cookies, please visit our Cookies Policy or the Cookies section of our
-        Privacy Policy.
-      </p>
-      <h3 className="mb-4 text-3xl font-semibold">Use of Your Personal Data</h3>
-      <p>The Company may use Personal Data for the following purposes:</p>
-      <ul className="list-disc ml-6">
-        <li className="mb-4">
-          <p>
-            <strong>To provide and maintain our Service</strong>, including to
-            monitor the usage of our Service.
-          </p>
-        </li>
-        <li className="mb-4">
-          <p>
-            <strong>To manage Your Account:</strong> to manage Your registration
-            as a user of the Service. The Personal Data You provide can give You
-            access to different functionalities of the Service that are
-            available to You as a registered user.
-          </p>
-        </li>
-        <li className="mb-4">
-          <p>
-            <strong>For the performance of a contract:</strong> the development,
-            compliance and undertaking of the purchase contract for the
-            products, items or services You have purchased or of any other
-            contract with Us through the Service.
-          </p>
-        </li>
-        <li className="mb-4">
-          <p>
-            <strong>To contact You:</strong> To contact You by email, telephone
-            calls, SMS, or other equivalent forms of electronic communication,
-            such as a mobile application's push notifications regarding updates
-            or informative communications related to the functionalities,
-            products or contracted services, including the security updates,
-            when necessary or reasonable for their implementation.
-          </p>
-        </li>
-        <li className="mb-4">
-          <p>
-            <strong>To provide You</strong> with news, special offers and
-            general information about other goods, services and events which we
-            offer that are similar to those that you have already purchased or
-            enquired about unless You have opted not to receive such
-            information.
-          </p>
-        </li>
-        <li className="mb-4">
-          <p>
-            <strong>To manage Your requests:</strong> To attend and manage Your
-            requests to Us.
-          </p>
-        </li>
-        <li className="mb-4">
-          <p>
-            <strong>For business transfers:</strong> We may use Your information
-            to evaluate or conduct a merger, divestiture, restructuring,
-            reorganization, dissolution, or other sale or transfer of some or
-            all of Our assets, whether as a going concern or as part of
-            bankruptcy, liquidation, or similar proceeding, in which Personal
-            Data held by Us about our Service users is among the assets
-            transferred.
-          </p>
-        </li>
-        <li className="mb-4">
-          <p>
-            <strong>For other purposes</strong>: We may use Your information for
-            other purposes, such as data analysis, identifying usage trends,
-            determining the effectiveness of our promotional campaigns and to
-            evaluate and improve our Service, products, services, marketing and
-            your experience.
-          </p>
-        </li>
-      </ul>
-      <p className="mb-4">
-        We may share Your personal information in the following situations:
-      </p>
-      <ul className="list-disc ml-6">
-        <li className="mb-4">
-          <strong>With Service Providers:</strong> We may share Your personal
-          information with Service Providers to monitor and analyze the use of
-          our Service, to contact You.
-        </li>
-        <li className="mb-4">
-          <strong>For business transfers:</strong> We may share or transfer Your
-          personal information in connection with, or during negotiations of,
-          any merger, sale of Company assets, financing, or acquisition of all
-          or a portion of Our business to another company.
-        </li>
-        <li className="mb-4">
-          <strong>With Affiliates:</strong> We may share Your information with
-          Our affiliates, in which case we will require those affiliates to
-          honor this Privacy Policy. Affiliates include Our parent company and
-          any other subsidiaries, joint venture partners or other companies that
-          We control or that are under common control with Us.
-        </li>
-        <li className="mb-4">
-          <strong>With business partners:</strong> We may share Your information
-          with Our business partners to offer You certain products, services or
-          promotions.
-        </li>
-        <li className="mb-4">
-          <strong>With other users:</strong> when You share personal information
-          or otherwise interact in the public areas with other users, such
-          information may be viewed by all users and may be publicly distributed
-          outside.
-        </li>
-        <li className="mb-4">
-          <strong>With Your consent</strong>: We may disclose Your personal
-          information for any other purpose with Your consent.
-        </li>
-      </ul>
-      <h3 className="mb-4 text-3xl font-semibold">
-        Retention of Your Personal Data
-      </h3>
-      <p className="mb-4">
-        The Company will retain Your Personal Data only for as long as is
-        necessary for the purposes set out in this Privacy Policy. We will
-        retain and use Your Personal Data to the extent necessary to comply with
-        our legal obligations (for example, if we are required to retain your
-        data to comply with applicable laws), resolve disputes, and enforce our
-        legal agreements and policies.
-      </p>
-      <p className="mb-4">
-        The Company will also retain Usage Data for internal analysis purposes.
-        Usage Data is generally retained for a shorter period of time, except
-        when this data is used to strengthen the security or to improve the
-        functionality of Our Service, or We are legally obligated to retain this
-        data for longer time periods.
-      </p>
-      <h3 className="mb-4 text-3xl font-semibold">
-        Transfer of Your Personal Data
-      </h3>
-      <p className="mb-4">
-        Your information, including Personal Data, is processed at the Company's
-        operating offices and in any other places where the parties involved in
-        the processing are located. It means that this information may be
-        transferred to — and maintained on — computers located outside of Your
-        state, province, country or other governmental jurisdiction where the
-        data protection laws may differ than those from Your jurisdiction.
-      </p>
-      <p className="mb-4">
-        Your consent to this Privacy Policy followed by Your submission of such
-        information represents Your agreement to that transfer.
-      </p>
-      <p className="mb-4">
-        The Company will take all steps reasonably necessary to ensure that Your
-        data is treated securely and in accordance with this Privacy Policy and
-        no transfer of Your Personal Data will take place to an organization or
-        a country unless there are adequate controls in place including the
-        security of Your data and other personal information.
-      </p>
-      <h3 className="mb-4 text-3xl font-semibold">Delete Your Personal Data</h3>
-      <p className="mb-4">
-        You have the right to delete or request that We assist in deleting the
-        Personal Data that We have collected about You.
-      </p>
-      <p className="mb-4">
-        Our Service may give You the ability to delete certain information about
-        You from within the Service.
-      </p>
-      <p className="mb-4">
-        You may update, amend, or delete Your information at any time by signing
-        in to Your Account, if you have one, and visiting the account settings
-        section that allows you to manage Your personal information. You may
-        also contact Us to request access to, correct, or delete any personal
-        information that You have provided to Us.
-      </p>
-      <p className="mb-4">
-        Please note, however, that We may need to retain certain information
-        when we have a legal obligation or lawful basis to do so.
-      </p>
-      <h3 className="mb-4 text-3xl font-semibold">
-        Disclosure of Your Personal Data
-      </h3>
-      <h4 className="mb-4 text-2xl font-semibold">Business Transactions</h4>
-      <p className="mb-4">
-        If the Company is involved in a merger, acquisition or asset sale, Your
-        Personal Data may be transferred. We will provide notice before Your
-        Personal Data is transferred and becomes subject to a different Privacy
-        Policy.
-      </p>
-      <h4 className="mb-4">Law enforcement</h4>
-      <p className="mb-4">
-        Under certain circumstances, the Company may be required to disclose
-        Your Personal Data if required to do so by law or in response to valid
-        requests by public authorities (e.g. a court or a government agency).
-      </p>
-      <h4 className="mb-4 text-2xl font-semibold">Other legal requirements</h4>
-      <p className="mb-4">
-        The Company may disclose Your Personal Data in the good faith belief
-        that such action is necessary to:
-      </p>
-      <ul className="list-disc ml-6">
-        <li className="mb-4">Comply with a legal obligation</li>
-        <li className="mb-4">
-          Protect and defend the rights or property of the Company
-        </li>
-        <li className="mb-4">
-          Prevent or investigate possible wrongdoing in connection with the
-          Service
-        </li>
-        <li className="mb-4">
-          Protect the personal safety of Users of the Service or the public
-        </li>
-        <li className="mb-4">Protect against legal liability</li>
-      </ul>
-      <h3 className="mb-4 text-3xl font-semibold">
-        Security of Your Personal Data
-      </h3>
-      <p className="mb-4">
-        The security of Your Personal Data is important to Us, but remember that
-        no method of transmission over the Internet, or method of electronic
-        storage is 100% secure. While We strive to use commercially acceptable
-        means to protect Your Personal Data, We cannot guarantee its absolute
-        security.
-      </p>
-      <h2 className="mb-4 text-4xl  font-semibold">Children's Privacy</h2>
-      <p className="mb-4">
-        Our Service does not address anyone under the age of 13. We do not
-        knowingly collect personally identifiable information from anyone under
-        the age of 13. If You are a parent or guardian and You are aware that
-        Your child has provided Us with Personal Data, please contact Us. If We
-        become aware that We have collected Personal Data from anyone under the
-        age of 13 without verification of parental consent, We take steps to
-        remove that information from Our servers.
-      </p>
-      <p className="mb-4">
-        If We need to rely on consent as a legal basis for processing Your
-        information and Your country requires consent from a parent, We may
-        require Your parent's consent before We collect and use that
-        information.
-      </p>
-      <h2 className="mb-4 text-4xl font-semibold">Links to Other Websites</h2>
-      <p className="mb-4">
-        Our Service may contain links to other websites that are not operated by
-        Us. If You click on a third party link, You will be directed to that
-        third party's site. We strongly advise You to review the Privacy Policy
-        of every site You visit.
-      </p>
-      <p className="mb-4">
-        We have no control over and assume no responsibility for the content,
-        privacy policies or practices of any third party sites or services.
-      </p>
-      <h2 className="mb-4 text-4xl font-semibold">
-        Changes to this Privacy Policy
-      </h2>
-      <p className="mb-4">
-        We may update Our Privacy Policy from time to time. We will notify You
-        of any changes by posting the new Privacy Policy on this page.
-      </p>
-      <p className="mb-4">
-        We will let You know via email and/or a prominent notice on Our Service,
-        prior to the change becoming effective and update the &quot;Last
-        updated&quot; date at the top of this Privacy Policy.
-      </p>
-      <p className="mb-4">
-        You are advised to review this Privacy Policy periodically for any
-        changes. Changes to this Privacy Policy are effective when they are
-        posted on this page.
-      </p>
-      <h2 className="mb-4 text-4xl font-semibold">Contact Us</h2>
-      <p className="mb-4">
-        If you have any questions about this Privacy Policy, You can contact us:
-      </p>
-      <ul className="list-disc ml-6">
-        <li className="mb-4">
-          <p>By email: <a className="underline" href={`mailto:${CONTACT_CONFIG.supportEmail}`}>{CONTACT_CONFIG.supportEmail}</a></p>
-        </li>
-        <li className="mb-4">
-          <p>By Zalo: <a className="underline" href={CONTACT_CONFIG.zaloUrl} target="_blank" rel="noopener noreferrer">{CONTACT_CONFIG.supportNumber}</a></p>
-        </li>
-      </ul>
+          <div className="mt-4 pt-3 border-t border-base-content/10 flex items-center gap-2 text-xs text-base-content/60">
+            <Globe size={13} />
+            <span>
+              {isVi
+                ? "Cập nhật lần cuối: Tháng 11, 2026 • Phiên bản 2.5"
+                : "Last updated: November 2026 • Version 2.5"}
+            </span>
+          </div>
+        </div>
+
+        {/* Policy Content Sections */}
+        {isVi ? (
+          /* ================= TIẾNG VIỆT ================= */
+          <div className="space-y-6 text-sm leading-relaxed">
+            {/* Mục 1 */}
+            <div className="bg-base-200/50 rounded-2xl p-6 border border-base-300 shadow-sm space-y-3">
+              <div className="flex items-center gap-2.5 text-base font-bold text-primary">
+                <Lock size={19} />
+                <h2>1. Giới thiệu & Cam kết bảo mật</h2>
+              </div>
+              <p>
+                Chào mừng bạn đến với <strong>LOCKET-PRO</strong>. Chúng tôi hiểu rằng những bức ảnh, video ngắn và tin nhắn bạn chia sẻ qua Locket là những khoảnh khắc quý báu dành riêng cho bạn và bạn bè thân thiết.
+              </p>
+              <p>
+                Chính sách này giải thích minh bạch cách chúng tôi tiếp nhận, xử lý và bảo vệ dữ liệu khi bạn sử dụng dịch vụ trên trình duyệt web và thiết bị di động.
+              </p>
+            </div>
+
+            {/* Mục 2 */}
+            <div className="bg-base-200/50 rounded-2xl p-6 border border-base-300 shadow-sm space-y-3">
+              <div className="flex items-center gap-2.5 text-base font-bold text-primary">
+                <Database size={19} />
+                <h2>2. Thông tin chúng tôi thu thập</h2>
+              </div>
+              <ul className="space-y-2 list-none pl-1">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 size={16} className="text-success shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Thông tin tài khoản:</strong> Tên hiển thị, username, ảnh đại diện và mã định danh người dùng (UID) để đồng bộ trải nghiệm Locket.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 size={16} className="text-success shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Khoảnh khắc (Ảnh & Video):</strong> Các tệp hình ảnh, video bạn chụp hoặc đăng tải để gửi đến danh sách bạn bè đã chọn.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 size={16} className="text-success shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Dữ liệu kỹ thuật & thiết bị:</strong> Loại thiết bị, hệ điều hành, khả năng zoom và đèn flash của camera nhằm tối ưu hiển thị khung hình và tốc độ tải.
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Mục 3 */}
+            <div className="bg-base-200/50 rounded-2xl p-6 border border-base-300 shadow-sm space-y-3">
+              <div className="flex items-center gap-2.5 text-base font-bold text-primary">
+                <Camera size={19} />
+                <h2>3. Quyền truy cập thiết bị (Camera & Micro)</h2>
+              </div>
+              <p>
+                Để cung cấp đầy đủ trải nghiệm chụp ảnh, photobooth và quay video Locket:
+              </p>
+              <ul className="space-y-1.5 list-disc pl-5 text-base-content/85">
+                <li>
+                  <strong>Quyền Camera:</strong> Chỉ được kích hoạt khi bạn ở giao diện chụp ảnh/video. Ứng dụng không bao giờ truy cập camera ngầm khi bạn rời khỏi trang.
+                </li>
+                <li>
+                  <strong>Quyền Microphone:</strong> Dùng để ghi âm thanh cho video 15s. Bạn hoàn toàn có thể bật/tắt quyền micro bất cứ lúc nào qua nút mic trực tiếp trên màn hình camera.
+                </li>
+              </ul>
+            </div>
+
+            {/* Mục 4 */}
+            <div className="bg-base-200/50 rounded-2xl p-6 border border-base-300 shadow-sm space-y-3">
+              <div className="flex items-center gap-2.5 text-base font-bold text-primary">
+                <Eye size={19} />
+                <h2>4. Quyền riêng tư & Quản lý trạng thái xem</h2>
+              </div>
+              <p>
+                Bạn có toàn quyền kiểm soát người nhận cho từng khoảnh khắc (Gửi tất cả, Riêng tư, hoặc chọn từng bạn bè cụ thể).
+              </p>
+              <p>
+                Ngoài ra, tính năng <em>"Trạng thái xem Moments"</em> trong mục Cài đặt cho phép bạn tùy ý bật hoặc tắt việc hiển thị cho người khác biết bạn đã xem ảnh của họ.
+              </p>
+            </div>
+
+            {/* Mục 5 */}
+            <div className="bg-base-200/50 rounded-2xl p-6 border border-base-300 shadow-sm space-y-3">
+              <div className="flex items-center gap-2.5 text-base font-bold text-primary">
+                <Cookie size={19} />
+                <h2>5. Bộ nhớ cục bộ & Lưu trữ phiên (Local Storage)</h2>
+              </div>
+              <p>
+                Chúng tôi sử dụng <code>localStorage</code> và <code>IndexedDB</code> ngay trên trình duyệt của bạn để:
+              </p>
+              <ul className="space-y-1.5 list-disc pl-5 text-base-content/85">
+                <li>Ghi nhớ tùy chọn giao diện, bộ lọc và chủ đề màu sắc bạn yêu thích.</li>
+                <li>Lưu bộ đệm tạm thời ảnh và danh sách bạn bè giúp ứng dụng tải nhanh mượt mà.</li>
+                <li>
+                  Bạn có thể chủ động xóa sạch toàn bộ dữ liệu này bất cứ lúc nào bằng nút <strong>"Xoá toàn bộ dữ liệu trên trình duyệt"</strong> trong menu cài đặt.
+                </li>
+              </ul>
+            </div>
+
+            {/* Mục 6 */}
+            <div className="bg-base-200/50 rounded-2xl p-6 border border-base-300 shadow-sm space-y-3">
+              <div className="flex items-center gap-2.5 text-base font-bold text-primary">
+                <UserCheck size={19} />
+                <h2>6. Quyền của bạn & Xóa tài khoản</h2>
+              </div>
+              <p>
+                Bạn sở hữu toàn quyền đối với dữ liệu của mình. Khi đăng xuất, toàn bộ thông tin phiên làm việc cục bộ được xóa ngay lập tức và đưa bạn về màn hình đăng nhập.
+              </p>
+            </div>
+
+            {/* Mục 7 */}
+            <div className="bg-base-200/50 rounded-2xl p-6 border border-base-300 shadow-sm space-y-3">
+              <div className="flex items-center gap-2.5 text-base font-bold text-primary">
+                <Mail size={19} />
+                <h2>7. Liên hệ phản hồi</h2>
+              </div>
+              <p>
+                Nếu bạn có bất kỳ thắc mắc, đề xuất hoặc phản hồi nào liên quan đến quyền riêng tư, vui lòng liên hệ với chúng tôi qua trang{" "}
+                <Link to="/contact" className="text-primary font-semibold underline">
+                  Liên hệ hỗ trợ
+                </Link>
+                .
+              </p>
+            </div>
+          </div>
+        ) : (
+          /* ================= ENGLISH ================= */
+          <div className="space-y-6 text-sm leading-relaxed">
+            {/* Section 1 */}
+            <div className="bg-base-200/50 rounded-2xl p-6 border border-base-300 shadow-sm space-y-3">
+              <div className="flex items-center gap-2.5 text-base font-bold text-primary">
+                <Lock size={19} />
+                <h2>1. Introduction & Privacy Commitment</h2>
+              </div>
+              <p>
+                Welcome to <strong>LOCKET-PRO</strong>. We recognize that the photos, short videos, and messages you share on Locket represent intimate moments intended exclusively for you and your trusted friends.
+              </p>
+              <p>
+                This policy outlines transparently how we collect, process, and safeguard your personal information when using our web application across devices.
+              </p>
+            </div>
+
+            {/* Section 2 */}
+            <div className="bg-base-200/50 rounded-2xl p-6 border border-base-300 shadow-sm space-y-3">
+              <div className="flex items-center gap-2.5 text-base font-bold text-primary">
+                <Database size={19} />
+                <h2>2. Information We Collect</h2>
+              </div>
+              <ul className="space-y-2 list-none pl-1">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 size={16} className="text-success shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Account Details:</strong> Display name, username, avatar, and user identifier (UID) required to sync your Locket experience.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 size={16} className="text-success shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Moments (Photos & Videos):</strong> Media files captured or uploaded by you to share with your designated friends.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 size={16} className="text-success shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Device & Technical Data:</strong> Browser environment, camera capabilities (zoom range, hardware flash support) to ensure optimal capture performance.
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Section 3 */}
+            <div className="bg-base-200/50 rounded-2xl p-6 border border-base-300 shadow-sm space-y-3">
+              <div className="flex items-center gap-2.5 text-base font-bold text-primary">
+                <Camera size={19} />
+                <h2>3. Hardware Access (Camera & Microphone)</h2>
+              </div>
+              <p>
+                To provide camera capture, photobooth, and video recording features:
+              </p>
+              <ul className="space-y-1.5 list-disc pl-5 text-base-content/85">
+                <li>
+                  <strong>Camera Permission:</strong> Only active when you are on the camera screen. The application never accesses your camera in the background.
+                </li>
+                <li>
+                  <strong>Microphone Permission:</strong> Used to capture clear audio for 15-second videos. You can toggle audio on or off anytime via the mic button on the camera viewfinder.
+                </li>
+              </ul>
+            </div>
+
+            {/* Section 4 */}
+            <div className="bg-base-200/50 rounded-2xl p-6 border border-base-300 shadow-sm space-y-3">
+              <div className="flex items-center gap-2.5 text-base font-bold text-primary">
+                <Eye size={19} />
+                <h2>4. Privacy & Read Receipts Control</h2>
+              </div>
+              <p>
+                You retain full control over the recipients of each moment (All friends, Private, or selected individuals).
+              </p>
+              <p>
+                Furthermore, the <em>"Moment Seen Status"</em> toggle in Settings allows you to enable or disable whether other users can see that you have viewed their moments.
+              </p>
+            </div>
+
+            {/* Section 5 */}
+            <div className="bg-base-200/50 rounded-2xl p-6 border border-base-300 shadow-sm space-y-3">
+              <div className="flex items-center gap-2.5 text-base font-bold text-primary">
+                <Cookie size={19} />
+                <h2>5. Local Storage & Session Data</h2>
+              </div>
+              <p>
+                We utilize <code>localStorage</code> and client-side <code>IndexedDB</code> on your device to:
+              </p>
+              <ul className="space-y-1.5 list-disc pl-5 text-base-content/85">
+                <li>Persist your chosen theme, overlay preferences, and flash preferences.</li>
+                <li>Cache media thumbnails and friend lists locally for instant loading.</li>
+                <li>
+                  You can purge all stored browser data at any time via the <strong>"Clear all browser data"</strong> option in your settings sheet.
+                </li>
+              </ul>
+            </div>
+
+            {/* Section 6 */}
+            <div className="bg-base-200/50 rounded-2xl p-6 border border-base-300 shadow-sm space-y-3">
+              <div className="flex items-center gap-2.5 text-base font-bold text-primary">
+                <UserCheck size={19} />
+                <h2>6. Your Rights & Logout Behavior</h2>
+              </div>
+              <p>
+                You maintain complete ownership of your data. When logging out, all active session tokens and local credentials are immediately cleared, and you are directed straight to the login screen.
+              </p>
+            </div>
+
+            {/* Section 7 */}
+            <div className="bg-base-200/50 rounded-2xl p-6 border border-base-300 shadow-sm space-y-3">
+              <div className="flex items-center gap-2.5 text-base font-bold text-primary">
+                <Mail size={19} />
+                <h2>7. Contact & Support</h2>
+              </div>
+              <p>
+                If you have questions, feedback, or concerns regarding your privacy, please visit our{" "}
+                <Link to="/contact" className="text-primary font-semibold underline">
+                  Support & Contact Page
+                </Link>
+                .
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Footer info */}
+        <div className="text-center pt-4 pb-8 text-xs text-base-content/50">
+          <p>© {new Date().getFullYear()} LOCKET-PRO. All rights reserved.</p>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default PrivacyPolicy;
+}

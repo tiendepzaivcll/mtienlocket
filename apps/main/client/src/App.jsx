@@ -33,7 +33,7 @@ import { CONTACT_CONFIG } from "@/config";
 
 const allRoutes = [...publicRoutes, ...authRoutes, ...locketRoutes];
 const privateRoutes = [...authRoutes, ...locketRoutes];
-const sharedPublicPaths = ["/admin", "/contact"];
+const sharedPublicPaths = ["/", "/home", "/privacy", "/admin", "/contact", "/download", "/newsfeed"];
 
 function App() {
   return (

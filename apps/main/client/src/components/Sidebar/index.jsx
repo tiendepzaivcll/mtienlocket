@@ -87,7 +87,7 @@ const Sidebar = () => {
     {
       title: "Điều hướng",
       items: [
-        { to: "/locket-beta", icon: Home, text: "Trang chủ" },
+        { to: "/", icon: Home, text: "Trang chủ" },
         { to: "/newsfeed", icon: Newspaper, text: "Bảng tin", badge: "New" },
         {
           to: "/download",
