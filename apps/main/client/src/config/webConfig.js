@@ -1,10 +1,11 @@
 //config/webConfig.js
 
 const LOCAL_API_URL = "http://localhost:5001";
-const PRODUCTION_API_URL = "https://vip-15s-production.up.railway.app";
+const PRODUCTION_API_URL = "https://api-production-beb52581.up.railway.app";
 const LEGACY_API_URLS = new Set([
   "https://api-t97.up.railway.app",
   "https://t97-api.up.railway.app",
+  "https://vip-15s-production.up.railway.app",
 ]);
 
 const runtimeHostname =
