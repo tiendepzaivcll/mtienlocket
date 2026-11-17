@@ -44,7 +44,7 @@
 }
 
 .bg-locket {
-  background: linear-gradient(rgb(0, 0, 0), #8f6700);
+  background: linear-gradient(135deg, #101418 0%, #1a2520 50%, #1c1e28 100%);
   background-size: 200% 200%;
   /* animation: gradientMove 5s ease infinite; */
   color: white;

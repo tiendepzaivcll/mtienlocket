@@ -11,9 +11,9 @@
 .mtien-login-welcome>span{color:var(--mt-muted);font-size:10px;font-weight:600;letter-spacing:1.7px}
 .mtien-login-form-section h1{font-size:35px;font-weight:600;line-height:1.2;letter-spacing:-1.6px;margin:0 0 12px}
 .mtien-login-subtitle{font-size:13px;color:var(--mt-muted);line-height:1.8;margin:0}
-.mtien-login-method{display:grid;grid-template-columns:1fr 1fr;gap:5px;background:#1c221e;border:1px solid var(--mt-line);padding:5px;border-radius:11px;margin-top:28px;margin-bottom:27px}
-.mtien-login-method>button{display:flex;align-items:center;justify-content:center;gap:9px;min-height:41px;border-radius:7px;border:0;background:transparent;color:var(--mt-muted);font-size:13px;font-weight:550;cursor:pointer}
-.mtien-login-method>button[aria-pressed=true]{background:var(--mt-mint);color:#15251b}
+.mtien-login-method{display:grid;grid-template-columns:1fr 1fr;gap:5px;background:#151b22;border:1px solid var(--mt-line);padding:5px;border-radius:11px;margin-top:28px;margin-bottom:27px}
+.mtien-login-method>button{display:flex;align-items:center;justify-content:center;gap:9px;min-height:41px;border-radius:7px;border:0;background:transparent;color:var(--mt-muted);font-size:13px;font-weight:550;cursor:pointer;transition:background 160ms,color 160ms}
+.mtien-login-method>button[aria-pressed=true]{background:var(--mt-mint);color:#0e1a16}
 .mtien-login-method>button:focus-visible,.mtien-password-toggle:focus-visible{outline:2px solid var(--mt-mint);outline-offset:4px}
 .mtien-login-form{display:flex;flex-direction:column;gap:21px}
 .mtien-field>label,.mtien-field-label>label{color:var(--mt-text);font-size:12px;font-weight:550;display:block;margin-bottom:10px}

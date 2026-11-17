@@ -1,4 +1,4 @@
-.mtien-home,.mtien-login,.mtien-auth-home{--mt-bg:#111413;--mt-surface:#191d1b;--mt-surface-soft:#202622;--mt-text:#f2f5f3;--mt-muted:#a3ada6;--mt-mint:#b2f5cf;--mt-line:#303a33;background:var(--mt-bg);color:var(--mt-text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.mtien-home,.mtien-login,.mtien-auth-home{--mt-bg:#101418;--mt-surface:#171c22;--mt-surface-soft:#1e242c;--mt-text:#e8ecf0;--mt-muted:#8a95a3;--mt-mint:#7ec8b0;--mt-line:#262e38;background:var(--mt-bg);color:var(--mt-text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .mtien-container{max-width:1232px;margin:0 auto;padding-left:40px;padding-right:40px}
 .mtien-hero{display:grid;grid-template-columns:1.12fr 1fr;gap:74px;align-items:center;padding-top:80px;padding-bottom:88px;min-height:740px}
 .mtien-eyebrow{display:flex;align-items:center;gap:9px;color:var(--mt-muted);font-size:10px;line-height:1.6;font-weight:650;letter-spacing:1.6px}
@@ -9,8 +9,8 @@
 .mtien-hero-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:33px}
 .mtien-button{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:49px;padding:13px 21px;border:1px solid transparent;border-radius:9px;font-size:13px;font-weight:650;text-decoration:none;transition:background .2s,transform .2s;cursor:pointer;line-height:1.5}
 .mtien-button:focus-visible,.mtien-discover:focus-visible,.mtien-story button:focus-visible{outline:2px solid var(--mt-mint);outline-offset:5px}
-.mtien-button-primary{background:var(--mt-mint);color:#15251b}
-.mtien-button-primary:hover{background:#d1ffe3;transform:translateY(-1px)}
+.mtien-button-primary{background:var(--mt-mint);color:#0e1a16}
+.mtien-button-primary:hover{background:#94d4bf;transform:translateY(-1px);box-shadow:0 4px 20px rgba(126,200,176,.18)}
 .mtien-button-quiet{border-color:var(--mt-line);color:var(--mt-text);background:transparent}
 .mtien-button-quiet:hover{background:var(--mt-surface-soft)}
 .mtien-discover{margin-top:49px;display:inline-flex;align-items:center;gap:9px;color:var(--mt-muted);font-size:12px;text-decoration:none}
@@ -37,7 +37,8 @@
 .mtien-section-heading h2{font-size:38px;font-weight:550;letter-spacing:-1.5px;line-height:1.2;margin:18px 0 0}
 .mtien-section-heading>p{max-width:345px;color:var(--mt-muted);font-size:14px;line-height:1.85;margin:0}
 .mtien-features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
-.mtien-feature{padding:28px;background:var(--mt-surface);border:1px solid #252e28;border-radius:12px}
+.mtien-feature{padding:28px;background:var(--mt-surface);border:1px solid #1e2830;border-radius:12px;transition:border-color 200ms,box-shadow 200ms}
+.mtien-feature:hover{border-color:#2e3a44;box-shadow:0 2px 16px rgba(126,200,176,.06)}
 .mtien-feature-top{display:flex;justify-content:space-between;align-items:center;color:var(--mt-mint);margin-bottom:34px}
 .mtien-feature-top>span{font-size:11px;font-weight:500;letter-spacing:1px;color:var(--mt-muted)}
 .mtien-feature h3{font-size:17px;font-weight:600;letter-spacing:-.4px;margin:0 0 12px}

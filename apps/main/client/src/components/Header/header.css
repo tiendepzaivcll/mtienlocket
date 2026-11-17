@@ -1,17 +1,17 @@
-.mtien-header { position: fixed; inset: 0 0 auto; z-index: 50; height: 76px; background: rgba(17, 20, 19, 0.94); color: #f2f5f3; border-bottom: 1px solid #303a33; backdrop-filter: blur(18px); }
+.mtien-header { position: fixed; inset: 0 0 auto; z-index: 50; height: 76px; background: rgba(16, 20, 24, 0.92); color: #e8ecf0; border-bottom: 1px solid #262e38; backdrop-filter: blur(18px); }
 .mtien-header-inner { width: min(1200px, calc(100% - 64px)); height: 100%; margin-inline: auto; display: flex; align-items: center; justify-content: space-between; gap: 28px; }
-.mtien-wordmark { display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; color: #f2f5f3; text-decoration: none; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.8px; }
+.mtien-wordmark { display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0; color: #e8ecf0; text-decoration: none; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.8px; }
 .mtien-wordmark img { flex-shrink: 0; }
-.mtien-wordmark-dot { color: #b2f5cf; }
+.mtien-wordmark-dot { color: #7ec8b0; }
 .mtien-header-nav { display: flex; align-items: center; gap: 30px; }
-.mtien-header-nav a { color: #a3ada6; text-decoration: none; font-size: 14px; font-weight: 500; transition: color 160ms; }
-.mtien-header-nav a:hover, .mtien-header-nav a.active { color: #f2f5f3; }
+.mtien-header-nav a { color: #8a95a3; text-decoration: none; font-size: 14px; font-weight: 500; transition: color 160ms; }
+.mtien-header-nav a:hover, .mtien-header-nav a.active { color: #e8ecf0; }
 .mtien-header-actions { display: flex; align-items: center; gap: 12px; }
-.mtien-header-cta { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 10px 18px; border-radius: 12px; background: #b2f5cf; color: #112219; text-decoration: none; font-size: 13px; font-weight: 700; transition: background 160ms; }
-.mtien-header-cta:hover { background: #cbf9de; }
-.mtien-menu-trigger { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; padding: 0; border: 1px solid #303a33; border-radius: 12px; background: transparent; color: #f2f5f3; cursor: pointer; transition: background 160ms; }
-.mtien-menu-trigger:hover { background: #202622; }
-.mtien-header a:focus-visible, .mtien-header button:focus-visible { outline: 2px solid #b2f5cf; outline-offset: 4px; }
+.mtien-header-cta { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 10px 18px; border-radius: 12px; background: #7ec8b0; color: #0e1a16; text-decoration: none; font-size: 13px; font-weight: 700; transition: background 160ms, box-shadow 200ms; }
+.mtien-header-cta:hover { background: #94d4bf; box-shadow: 0 0 20px rgba(126, 200, 176, 0.2); }
+.mtien-menu-trigger { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; padding: 0; border: 1px solid #262e38; border-radius: 12px; background: transparent; color: #e8ecf0; cursor: pointer; transition: background 160ms; }
+.mtien-menu-trigger:hover { background: #1e242c; }
+.mtien-header a:focus-visible, .mtien-header button:focus-visible { outline: 2px solid #7ec8b0; outline-offset: 4px; }
 @media (max-width: 640px) {
   .mtien-header { height: 68px; }
   .mtien-header-inner { width: calc(100% - 36px); gap: 12px; }
@@ -26,8 +26,8 @@
 @media(max-width:360px){.mtien-header-inner{gap:8px}.mtien-wordmark{font-size:18px;gap:6px}.mtien-wordmark img{width:26px;height:26px}.mtien-header-cta{font-size:12px;padding-inline:10px}.mtien-header-actions{gap:7px}}
 .mtien-brand-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
 .mtien-brand-name { font-size: 20px; line-height: 1.15; white-space: nowrap; }
-.mtien-brand-admin { color: #a3ada6; font-size: 10px; line-height: 1.3; font-weight: 500; letter-spacing: 0.2px; white-space: nowrap; }
-.mtien-brand-admin strong { color: #c5e9d3; font-weight: 600; }
+.mtien-brand-admin { color: #8a95a3; font-size: 10px; line-height: 1.3; font-weight: 500; letter-spacing: 0.2px; white-space: nowrap; }
+.mtien-brand-admin strong { color: #94d4bf; font-weight: 600; }
 @media (max-width: 760px) { .mtien-header-nav { display: none; } }
 @media (max-width: 640px) { .mtien-brand-name { font-size: 17px; } .mtien-header .mtien-wordmark { gap: 8px; } }
 @media (max-width: 380px) {
