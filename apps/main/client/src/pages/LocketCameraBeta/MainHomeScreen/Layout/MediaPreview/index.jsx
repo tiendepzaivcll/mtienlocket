@@ -793,9 +793,38 @@ const MediaPreview = () => {
         )}
       </div>
 
-      {/* Sáng toàn màn hình khi ấn chụp bằng camera trước (Screen Flash) */}
+      {/* Sáng toàn màn hình khi ấn chụp bằng camera trước (Screen Flash) - Rực sáng tối đa như Locket thật */}
       {isScreenFlashing && (
-        <div className="fixed inset-0 z-[9999] bg-white pointer-events-none transition-opacity duration-150 animate-in fade-in" />
+        <>
+          {/* Lớp nền trắng chính - opacity 100%, z-index cực cao */}
+          <div
+            className="fixed inset-0 pointer-events-none"
+            style={{
+              zIndex: 2147483647,
+              backgroundColor: '#FFFFFF',
+              opacity: 1,
+              animation: 'screenFlashIn 100ms ease-out forwards',
+            }}
+          />
+          {/* Lớp phụ mix-blend-mode: screen để tăng thêm độ sáng */}
+          <div
+            className="fixed inset-0 pointer-events-none"
+            style={{
+              zIndex: 2147483646,
+              backgroundColor: '#FFFFFF',
+              opacity: 1,
+              mixBlendMode: 'screen',
+              animation: 'screenFlashIn 100ms ease-out forwards',
+            }}
+          />
+          {/* Inject keyframes animation cho screen flash */}
+          <style>{`
+            @keyframes screenFlashIn {
+              0% { opacity: 0.7; }
+              100% { opacity: 1; }
+            }
+          `}</style>
+        </>
       )}
     </>
   );

@@ -21,6 +21,8 @@ import {
   Copy,
   Check,
   Crown,
+  Clock,
+  Sparkles,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore, useUploadQueueStore } from "@/stores";
@@ -32,7 +34,7 @@ import ThemeSelector from "@/components/Theme/ThemeSelector";
 
 export default function UserSettingsModal({ isOpen, onClose }) {
   const navigate = useNavigate();
-  const { user, clearAndlogout } = useAuthStore();
+  const { user, clearAndlogout, accessRole, vipPlanName, vipExpireAt } = useAuthStore();
   const { camera, useloading } = useApp();
   const queueBusy = useUploadQueueStore((state) => state.isQueueRunning ||
     state.uploadItems.some((item) => item.status === "queued" || item.status === "uploading"));
@@ -215,6 +217,111 @@ export default function UserSettingsModal({ isOpen, onClose }) {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Section: Gói dịch vụ */}
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 px-2 mb-2">
+              Gói dịch vụ
+            </h3>
+            {accessRole === "vip" ? (
+              <div
+                className="rounded-2xl border border-amber-500/30 overflow-hidden"
+                style={{
+                  background: "linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(217,119,6,0.08) 50%, rgba(180,83,9,0.12) 100%)",
+                }}
+              >
+                <div className="p-4 space-y-3">
+                  {/* VIP Badge & Plan Name */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400/30 to-orange-500/30 border border-amber-400/40 flex items-center justify-center shrink-0">
+                      <Crown size={20} className="text-amber-400" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-bold text-amber-300">
+                          {vipPlanName || "VIP"}
+                        </p>
+                        <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                          Đang hoạt động
+                        </span>
+                      </div>
+                      <p className="text-xs text-amber-200/60 mt-0.5">Thành viên cao cấp</p>
+                    </div>
+                  </div>
+
+                  {/* Validity Period */}
+                  {vipExpireAt && (
+                    <>
+                      <div className="h-px bg-amber-500/15" />
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                          <CalendarClock size={16} className="text-amber-400/70" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs text-gray-400">Thời hạn</p>
+                          <p className="text-sm text-amber-200/90 font-medium">
+                            {(() => {
+                              const now = Date.now();
+                              const expireDate = new Date(vipExpireAt);
+                              const planDaysMap = { "VIP 1 Năm": 365, "VIP 6 Tháng": 180, "VIP 3 Tháng": 90, "VIP 1 Tháng": 30 };
+                              const days = planDaysMap[vipPlanName] || 30;
+                              const startDate = new Date(vipExpireAt - days * 24 * 60 * 60 * 1000);
+                              return `${startDate.toLocaleDateString("vi-VN")} → ${expireDate.toLocaleDateString("vi-VN")}`;
+                            })()}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                          <Clock size={16} className="text-amber-400/70" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs text-gray-400">Còn lại</p>
+                          <p className="text-sm font-semibold text-amber-300">
+                            {(() => {
+                              const remaining = Math.ceil((vipExpireAt - Date.now()) / (24 * 60 * 60 * 1000));
+                              return remaining > 0 ? `${remaining} ngày` : "Đã hết hạn";
+                            })()}
+                          </p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-2xl bg-white/[0.04] border border-white/5 overflow-hidden">
+                <div className="p-4 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gray-500/15 border border-gray-500/30 flex items-center justify-center shrink-0">
+                      <Sparkles size={20} className="text-gray-400" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-white">Gói Miễn Phí</p>
+                      <p className="text-xs text-gray-400">Nâng cấp để mở khóa tính năng cao cấp</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      navigate("/pricing");
+                    }}
+                    className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition"
+                    style={{
+                      background: "linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%)",
+                    }}
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      <Crown size={16} />
+                      Nâng cấp VIP
+                    </span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Section 2: Chung */}

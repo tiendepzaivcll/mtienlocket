@@ -89,6 +89,8 @@ export const useAuthStore = create((set) => ({
   accessDenied: null,
   accessRole: null,
   aiFilterEnabled: false,
+  vipPlanName: null,
+  vipExpireAt: null,
 
   setAccessRole: (role) => {
     const accessRole = saveAccessRole(role);
@@ -111,7 +113,12 @@ export const useAuthStore = create((set) => ({
       if (!isCurrentAccount(localId, getToken())) return null;
       const accessRole = saveAccessRole(access?.role);
       const aiFilterEnabled = saveAiFilterAccess(access?.features?.aiFilter);
-      set({ accessRole, aiFilterEnabled });
+      set({
+        accessRole,
+        aiFilterEnabled,
+        vipPlanName: access?.vipPlanName || null,
+        vipExpireAt: access?.vipExpireAt || null,
+      });
       return access;
     } catch (error) {
       console.warn("Không thể làm mới quyền truy cập:", error);
@@ -133,6 +140,8 @@ export const useAuthStore = create((set) => ({
         loading: false,
         accessRole: null,
         aiFilterEnabled: false,
+        vipPlanName: null,
+        vipExpireAt: null,
       });
       return;
     }
@@ -171,6 +180,8 @@ export const useAuthStore = create((set) => ({
         loading: false,
         accessRole: null,
         aiFilterEnabled: false,
+        vipPlanName: null,
+        vipExpireAt: null,
       });
       return;
     }
@@ -206,6 +217,8 @@ export const useAuthStore = create((set) => ({
       set({
         accessRole,
         aiFilterEnabled,
+        vipPlanName: access?.vipPlanName || null,
+        vipExpireAt: access?.vipExpireAt || null,
         isAuth: true,
         loading: false,
       });
@@ -233,6 +246,8 @@ export const useAuthStore = create((set) => ({
         loading: false,
         accessRole: null,
         aiFilterEnabled: false,
+        vipPlanName: null,
+        vipExpireAt: null,
         accessDenied: isAccessDenied
           ? {
               username: err?.data?.username || null,
@@ -286,6 +301,8 @@ export const useAuthStore = create((set) => ({
         accessDenied: null,
         accessRole: null,
         aiFilterEnabled: false,
+        vipPlanName: null,
+        vipExpireAt: null,
       });
     }
   },

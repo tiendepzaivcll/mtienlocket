@@ -333,7 +333,7 @@ const CameraButton = () => {
         }
       } else if (cameraMode === "user") {
         setIsScreenFlashing(true);
-        await new Promise((r) => setTimeout(r, 240));
+        await new Promise((r) => setTimeout(r, 350));
       }
     }
 
@@ -390,7 +390,7 @@ const CameraButton = () => {
             await videoTrack.applyConstraints({ advanced: [{ torch: false }] });
           } catch (e) {}
         } else if (cameraMode === "user") {
-          setIsScreenFlashing(false);
+          setTimeout(() => setIsScreenFlashing(false), 150);
         }
       }
     }
@@ -475,10 +475,10 @@ const CameraButton = () => {
           console.warn("Lỗi bật torch cam sau:", err);
         }
       } else if (cameraMode === "user") {
-        // Cam trước: Toàn màn hình sáng trắng rực rỡ để chiếu sáng mặt lúc bấm chụp
+        // Cam trước: Toàn màn hình sáng trắng rực rỡ tối đa để chiếu sáng mặt (giống Locket thật)
         setIsScreenFlashing(true);
-        // Đợi 240ms để khuôn mặt được chiếu sáng rõ nét
-        await new Promise((r) => setTimeout(r, 240));
+        // Đợi 350ms để khuôn mặt được chiếu sáng rõ nét tối đa trước khi chụp
+        await new Promise((r) => setTimeout(r, 350));
       }
     }
 
@@ -538,8 +538,8 @@ const CameraButton = () => {
             await videoTrack.applyConstraints({ advanced: [{ torch: false }] });
           } catch (e) {}
         } else if (cameraMode === "user") {
-          // Màn hình trở lại bình thường ngay sau khi chụp xong
-          setIsScreenFlashing(false);
+          // Giữ sáng thêm chút rồi tắt mượt (fade-out tự nhiên)
+          setTimeout(() => setIsScreenFlashing(false), 150);
         }
       }
     }

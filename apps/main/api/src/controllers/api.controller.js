@@ -375,6 +375,39 @@ class ApiController {
         { merge: true },
       );
 
+      // Fetch VIP subscription data if user has VIP role
+      let vipPlanName = null;
+      let vipExpireAt = null;
+      if (approval.role === "vip" && db) {
+        try {
+          const userEmail = (userInfo?.email || "").toLowerCase();
+          if (userEmail) {
+            const subDoc = await db.collection("subscriptions").doc(userEmail).get();
+            if (subDoc.exists) {
+              const subData = subDoc.data();
+              const planDays = subData.planDays;
+              vipExpireAt = subData.expireAt || null;
+              // Map planDays to Vietnamese plan name
+              if (planDays === 365 || planDays === 366) {
+                vipPlanName = "VIP 1 Năm";
+              } else if (planDays === 180 || planDays === 183) {
+                vipPlanName = "VIP 6 Tháng";
+              } else if (planDays === 90 || planDays === 91) {
+                vipPlanName = "VIP 3 Tháng";
+              } else if (planDays === 30 || planDays === 31) {
+                vipPlanName = "VIP 1 Tháng";
+              } else if (planDays) {
+                vipPlanName = `VIP ${planDays} Ngày`;
+              } else {
+                vipPlanName = "VIP";
+              }
+            }
+          }
+        } catch (vipErr) {
+          console.warn("⚠️ Không lấy được thông tin VIP:", vipErr.message);
+        }
+      }
+
       return res.status(200).json({
         success: true,
         data: {
@@ -384,6 +417,8 @@ class ApiController {
           features: {
             aiFilter: approval.aiFilterEnabled,
           },
+          vipPlanName,
+          vipExpireAt,
           source: "firestore",
         },
       });
