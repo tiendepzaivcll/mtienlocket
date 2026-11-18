@@ -66,6 +66,11 @@ const CameraButton = () => {
     e.preventDefault();
     if (showPhotobooth) return;
 
+    // Chặn mouse events trùng với touch events trên thiết bị cảm ứng
+    if (e.type === "mousedown" && e.nativeEvent?.sourceCapabilities?.firesTouchEvents) return;
+    // Nếu đang xử lý rồi thì bỏ qua (tránh double-fire)
+    if (isTryingToRecordRef.current) return;
+
     isTryingToRecordRef.current = true;
     isRecordingRef.current = false; // Reset recording state
     holdStartTimeRef.current = Date.now();
@@ -395,6 +400,12 @@ const CameraButton = () => {
     // Prevent default để tránh conflict trên iOS
     e.preventDefault();
 
+    // Chặn mouse events trùng với touch events trên thiết bị cảm ứng
+    if (e.type?.startsWith("mouse") && e.nativeEvent?.sourceCapabilities?.firesTouchEvents) return;
+
+    // Nếu không có hold nào đang active thì bỏ qua (tránh double-fire)
+    if (!isTryingToRecordRef.current && !isHolding && !isRecordingRef.current) return;
+
     if (showPhotobooth) {
       if (isComposing) return;
       capturePhotoboothStep();
@@ -589,11 +600,33 @@ const CameraButton = () => {
       <button
         onMouseDown={startHold}
         onMouseUp={endHold}
-        onMouseLeave={endHold}
+        onMouseLeave={(e) => {
+          // Chỉ cancel recording khi mouse thật sự rời nút (không chụp ảnh)
+          if (isTryingToRecordRef.current || isRecordingRef.current || isHolding) {
+            clearTimeout(holdTimeoutRef.current);
+            clearInterval(intervalRef.current);
+            isTryingToRecordRef.current = false;
+            if (mediaRecorderRef.current?.state === "recording") {
+              mediaRecorderRef.current.stop();
+            } else {
+              setIsHolding(false);
+            }
+          }
+        }}
         onTouchStart={startHold}
         onTouchEnd={endHold}
         // Thêm các event cho iOS
-        onTouchCancel={endHold}
+        onTouchCancel={(e) => {
+          e.preventDefault();
+          clearTimeout(holdTimeoutRef.current);
+          clearInterval(intervalRef.current);
+          isTryingToRecordRef.current = false;
+          if (mediaRecorderRef.current?.state === "recording") {
+            mediaRecorderRef.current.stop();
+          } else {
+            setIsHolding(false);
+          }
+        }}
         onContextMenu={(e) => e.preventDefault()} // Prevent long press menu on iOS
         className="relative flex items-center justify-center w-24 h-24 active:scale-97"
         style={{
