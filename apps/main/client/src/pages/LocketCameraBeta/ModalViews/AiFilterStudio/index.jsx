@@ -36,8 +36,7 @@ function OpenFilterStudio() {
   const aiCredits = useAuthStore((state) => state.aiCredits);
   const aiFilterEnabled = useAuthStore((state) => state.aiFilterEnabled);
   const isVip = accessRole === "vip" || accessRole === "celebrity";
-  const hasAiCredits = (aiCredits || 0) > 0;
-  const canUseAi = (isVip || hasAiCredits) && hasAiCredits;
+  const canUseAi = isVip && (aiCredits || 0) > 0;
   const refreshAccessRole = useAuthStore((state) => state.refreshAccessRole);
   const scrollRef = useRef(null);
   const aiSectionRef = useRef(null);
@@ -240,12 +239,12 @@ function OpenFilterStudio() {
             <p>Chọn phong cách để tạo ảnh AI.</p>
             {!aiSectionVisible ? (
               <div className="filter-studio-status">Cuộn để xem AI Filter.</div>
-            ) : (!isVip && !hasAiCredits) ? (
+            ) : !isVip ? (
               <div className="filter-studio-status">
                 <LockKeyhole size={20} />
-                <span>Tính năng AI Filter dành cho VIP hoặc có lượt chụp AI.</span>
+                <span>Tính năng AI Filter chỉ dành cho thành viên VIP.</span>
                 <a href="/pricing" onClick={(e) => { e.preventDefault(); window.location.href = "/pricing"; }}>
-                  Nâng cấp VIP / Nạp lượt
+                  Nâng cấp VIP
                 </a>
               </div>
             ) : (aiCredits || 0) <= 0 ? (

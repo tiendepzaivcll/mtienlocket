@@ -81,15 +81,15 @@ const requireAiFilterAccess = async (req, res, next) => {
       });
     }
 
-    // 1. Phải là thành viên VIP còn hạn HOẶC có số lượt aiCredits > 0
-    if (!resolved.isVipActive && resolved.aiCredits <= 0) {
+    // 1. Phải là thành viên VIP còn hạn
+    if (!resolved.isVipActive) {
       return res.status(403).json({
         success: false,
         code: "AI_FILTER_VIP_REQUIRED",
-        message: "Tính năng AI Filter chỉ dành cho thành viên VIP hoặc người có lượt chụp AI. Vui lòng nạp gói để tiếp tục!",
+        message: "Tính năng AI Filter chỉ dành cho thành viên VIP. Vui lòng nâng cấp VIP trước!",
         data: {
-          title: "Cần nâng cấp",
-          description: "Nâng cấp VIP hoặc nạp thêm lượt AI để sử dụng AI Filter.",
+          title: "Cần nâng cấp VIP",
+          description: "Gói VIP của bạn đã hết hạn hoặc chưa kích hoạt. Nâng cấp VIP để sử dụng AI Filter.",
         },
       });
     }

@@ -267,7 +267,38 @@ class PaymentController {
         });
       }
 
-      // Cho phép mua AI Filter thoải mái (kể cả Free user lẫn VIP user đều mua được)
+      // BẮT BUỘC: Phải có gói VIP còn hạn mới được phép mua gói AI Filter
+      if (plan.category === "ai_filter" && db) {
+        let userDoc = await db.collection(APPROVED_USERS_COLLECTION).doc(normalizedUsername).get();
+        if (!userDoc.exists) {
+          const querySnap = await db
+            .collection(APPROVED_USERS_COLLECTION)
+            .where("username", "in", [normalizedUsername, `@${normalizedUsername}`])
+            .limit(1)
+            .get();
+          if (!querySnap.empty) {
+            userDoc = querySnap.docs[0];
+          }
+        }
+
+        if (!userDoc || !userDoc.exists) {
+          return res.status(400).json({
+            success: false,
+            code: "VIP_REQUIRED_FOR_AI",
+            message: "Bạn cần có gói VIP trước khi mua lượt AI Filter. Vui lòng nâng cấp VIP trước!",
+          });
+        }
+
+        const access = resolveEffectiveAccess(userDoc.data(), Date.now());
+        if (!access.isVipActive) {
+          return res.status(400).json({
+            success: false,
+            code: "VIP_REQUIRED_FOR_AI",
+            message: "Gói AI Filter chỉ dành cho thành viên VIP. Gói VIP của bạn đã hết hạn hoặc chưa kích hoạt, vui lòng nâng cấp VIP trước!",
+          });
+        }
+      }
+
       const clientId = PAYOS_CLIENT_ID();
       const apiKey = PAYOS_API_KEY();
       const checksumKey = PAYOS_CHECKSUM_KEY();

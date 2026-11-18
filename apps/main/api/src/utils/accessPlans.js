@@ -233,8 +233,8 @@ const resolveEffectiveAccess = (data = {}, now = Date.now()) => {
   const aiCredits = Math.max(0, Number(data.aiCredits ?? (data.aiFilterEnabled ? 20 : 0)));
   const hasUsedTrial = Boolean(data.hasUsedTrial);
 
-  // AI Filter is effective if user has active VIP with credits, or has explicit purchased aiCredits
-  const effectiveAiEnabled = (isVipActive || aiCredits > 0) && aiCredits > 0;
+  // AI Filter is effective ONLY if user has active VIP AND aiCredits > 0
+  const effectiveAiEnabled = isVipActive && aiCredits > 0;
 
   const downgradePatch = {};
   if (vipExpired) {
