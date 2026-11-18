@@ -60,43 +60,57 @@ const VIP_PLANS = [
 const AI_FILTER_PLANS = [
   {
     id: "ai_10k",
-    name: "AI 10 Ảnh",
-    description: "Gói trải nghiệm 10 lượt tạo ảnh AI",
+    name: "Gói 15 Ảnh",
+    description: "Gói trải nghiệm 15 lượt tạo ảnh AI",
     price: 10000,
-    credits: 10,
+    credits: 15,
+    buttonText: "15 ảnh",
     category: "ai_filter",
     badge: null,
   },
   {
     id: "ai_20k",
-    name: "AI 25 Ảnh",
-    description: "Gói tiêu chuẩn 25 lượt tạo ảnh AI",
+    name: "Gói 35 Ảnh",
+    description: "Gói tiêu chuẩn 35 lượt tạo ảnh AI (30 + 5)",
     price: 20000,
-    credits: 25,
+    credits: 35,
+    buttonText: "30 + 5 ảnh",
     category: "ai_filter",
     badge: "Phổ biến",
   },
   {
+    id: "ai_40k",
+    name: "Gói 70 Ảnh",
+    description: "Gói cao cấp 70 lượt tạo ảnh AI (60 + 10)",
+    price: 40000,
+    credits: 70,
+    buttonText: "60 + 10 ảnh",
+    category: "ai_filter",
+    badge: "Tiết kiệm",
+  },
+];
+
+// Giữ lại các mã gói cũ để đơn hàng lịch sử vẫn tra cứu được tên
+const LEGACY_AI_PLANS = [
+  {
     id: "ai_49k",
-    name: "AI 65 Ảnh",
+    name: "AI 65 Ảnh (Cũ)",
     description: "Gói cao cấp 65 lượt tạo ảnh AI",
     price: 49000,
     credits: 65,
     category: "ai_filter",
-    badge: "Tiết kiệm",
   },
   {
     id: "ai_99k",
-    name: "AI 140 Ảnh",
+    name: "AI 140 Ảnh (Cũ)",
     description: "Gói siêu cấp 140 lượt tạo ảnh AI",
     price: 99000,
     credits: 140,
     category: "ai_filter",
-    badge: "Hời nhất",
   },
 ];
 
-const ALL_PLANS = [...VIP_PLANS, ...AI_FILTER_PLANS];
+const ALL_PLANS = [...VIP_PLANS, ...AI_FILTER_PLANS, ...LEGACY_AI_PLANS];
 const PLANS_MAP = new Map(ALL_PLANS.map((plan) => [plan.id, plan]));
 
 const VALID_ROLES = new Set(["vip", "celebrity", "free"]);

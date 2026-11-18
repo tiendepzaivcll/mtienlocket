@@ -783,27 +783,27 @@ export default function AdminPanel() {
                       <div className="mt-1 flex items-center gap-1">
                         <button
                           type="button"
-                          onClick={() => handleAddCredits(user, 10)}
+                          onClick={() => handleAddCredits(user, 15)}
                           className="btn btn-ghost btn-xs px-1.5 text-[10px] text-cyan-400 border border-cyan-400/30"
-                          title="Cộng 10 lượt"
+                          title="Cộng 15 lượt"
                         >
-                          +10
+                          +15
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleAddCredits(user, 25)}
+                          onClick={() => handleAddCredits(user, 35)}
                           className="btn btn-ghost btn-xs px-1.5 text-[10px] text-violet-400 border border-violet-400/30"
-                          title="Cộng 25 lượt"
+                          title="Cộng 35 lượt"
                         >
-                          +25
+                          +35
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleAddCredits(user, 65)}
+                          onClick={() => handleAddCredits(user, 70)}
                           className="btn btn-ghost btn-xs px-1.5 text-[10px] text-amber-400 border border-amber-400/30"
-                          title="Cộng 65 lượt"
+                          title="Cộng 70 lượt"
                         >
-                          +65
+                          +70
                         </button>
                       </div>
                     </td>

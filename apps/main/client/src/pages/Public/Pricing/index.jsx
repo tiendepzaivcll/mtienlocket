@@ -38,10 +38,9 @@ const DEFAULT_VIP_PLANS = [
 ];
 
 const DEFAULT_AI_PLANS = [
-  { id: "ai_10k", name: "AI 10 Ảnh", price: 10000, credits: 10, badge: null, category: "ai_filter" },
-  { id: "ai_20k", name: "AI 25 Ảnh", price: 20000, credits: 25, badge: "Phổ biến", category: "ai_filter" },
-  { id: "ai_49k", name: "AI 65 Ảnh", price: 49000, credits: 65, badge: "Tiết kiệm", category: "ai_filter" },
-  { id: "ai_99k", name: "AI 140 Ảnh", price: 99000, credits: 140, badge: "Hời nhất", category: "ai_filter" },
+  { id: "ai_10k", name: "Gói 15 Ảnh", price: 10000, credits: 15, buttonText: "15 ảnh", description: "Gói trải nghiệm 15 lượt tạo ảnh AI", badge: null, category: "ai_filter" },
+  { id: "ai_20k", name: "Gói 35 Ảnh", price: 20000, credits: 35, buttonText: "30 + 5 ảnh", description: "Gói tiêu chuẩn 35 lượt tạo ảnh AI (30 + 5)", badge: "Phổ biến", category: "ai_filter" },
+  { id: "ai_40k", name: "Gói 70 Ảnh", price: 40000, credits: 70, buttonText: "60 + 10 ảnh", description: "Gói cao cấp 70 lượt tạo ảnh AI (60 + 10)", badge: "Tiết kiệm", category: "ai_filter" },
 ];
 
 const FEATURE_ROWS = [
@@ -519,7 +518,7 @@ export default function PricingPage() {
                   ) : !isVip ? (
                     "Cần VIP"
                   ) : (
-                    "Nạp ngay"
+                    plan.buttonText || "Nạp ngay"
                   )}
                 </button>
               </div>
