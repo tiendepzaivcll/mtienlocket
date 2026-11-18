@@ -59,7 +59,7 @@ const manifestForPlugIn = {
     background_color: "#101614",
     theme_color: "#101614",
     scope: "/",
-    start_url: "/",
+    start_url: "/locket-beta",
     orientation: "portrait",
     icons: [
       {
