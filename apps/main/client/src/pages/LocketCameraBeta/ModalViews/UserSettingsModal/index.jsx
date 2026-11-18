@@ -429,26 +429,6 @@ export default function UserSettingsModal({ isOpen, onClose }) {
               Tính năng Locket
             </h3>
             <div className="rounded-2xl bg-white/[0.04] border border-white/5 divide-y divide-white/5 overflow-hidden">
-              {/* Nâng cấp VIP */}
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  navigate("/pricing");
-                }}
-                className="w-full flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition text-left group"
-              >
-                <div className="flex items-center gap-3.5">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500/25 to-orange-500/25 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
-                    <Crown size={19} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-amber-300 group-hover:text-amber-200">Nâng cấp VIP</p>
-                    <p className="text-xs text-gray-400">Mở khóa tất cả tính năng cao cấp</p>
-                  </div>
-                </div>
-                <ChevronRight size={17} className="text-amber-500/50" />
-              </button>
               <button
                 type="button"
                 onClick={() => {
