@@ -8,6 +8,9 @@ export const FULL_ACCESS_LIMITS = {
   video_record_max_length: CONFIG.app.camera.limits.maxRecordTime,
 };
 
+// Free tier: 10s, VIP: 15s (from config)
+const FREE_VIDEO_RECORD_LIMIT = 10;
+
 export const useFeatureVisible = (feature) => {
   const accessRole = useAuthStore((state) => state.accessRole);
   return accessRole === "vip" || feature === "celebrity_tool";
@@ -21,5 +24,10 @@ export const getMaxUploads = () => ({
   storage_limit_mb: FULL_ACCESS_LIMITS.storage_limit_mb,
 });
 
-export const getVideoRecordLimit = () =>
-  FULL_ACCESS_LIMITS.video_record_max_length;
+export const getVideoRecordLimit = () => {
+  const accessRole = useAuthStore.getState().accessRole;
+  if (accessRole === "vip") {
+    return FULL_ACCESS_LIMITS.video_record_max_length;
+  }
+  return FREE_VIDEO_RECORD_LIMIT;
+};

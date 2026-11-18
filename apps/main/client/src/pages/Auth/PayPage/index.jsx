@@ -10,6 +10,7 @@ import {
   Clock,
   User,
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { instanceMain } from "@/libs/instanceMain";
 import {
   SonnerInfo,
@@ -221,12 +222,16 @@ export default function PayPage() {
                 Quét mã để thanh toán
               </span>
             </div>
-            <img
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(order.checkoutUrl)}`}
-              alt="QR thanh toán"
-              className="w-56 h-56 mx-auto rounded-xl"
-              onError={(e) => { e.target.style.display = "none"; }}
-            />
+            <div className="flex justify-center">
+              <QRCodeSVG
+                value={order.checkoutUrl}
+                size={224}
+                level="M"
+                includeMargin={true}
+                bgColor="#FFFFFF"
+                fgColor="#000000"
+              />
+            </div>
             <p className="text-xs text-gray-500 mt-2">
               Quét mã QR hoặc ấn nút bên dưới để thanh toán
             </p>

@@ -1,4 +1,4 @@
-import { Palette, X } from "lucide-react";
+import { Palette, X, Lock } from "lucide-react";
 import React, { useEffect, useRef, useCallback } from "react";
 import { useApp } from "@/context/AppContext";
 import CaptionIconSelector from "./CaptionItems/CaptionIconSelector";
@@ -12,6 +12,7 @@ import FeatureGate from "@/components/common/FeatureGate";
 import SuggestCaption from "./CaptionItems/SuggestCaption";
 import { useOverlayStore } from "@/stores";
 import { stripLeadingIcon } from "@/utils/captionIcon";
+import { useNavigate } from "react-router-dom";
 
 const DEFAULT_CAPTION_MEDIA_COLORS = ["#3A3A3C", "#1C1C1E"];
 const LOCKET_ARIES_ICON = {
@@ -42,6 +43,7 @@ const createStarSignBackground = (colors) => ({
 const ScreenCustomeStudio = () => {
   const popupRef = useRef(null);
   const { navigation, post } = useApp();
+  const navigate = useNavigate();
 
   const { isFilterOpen, setIsFilterOpen } = navigation;
   const { setPostOverlay } = post;
@@ -49,6 +51,7 @@ const ScreenCustomeStudio = () => {
 
   const canUseCaptionIcon = useFeatureVisible("caption_icon");
   const canUseCaptionimage = useFeatureVisible("caption_image");
+  const isVip = useFeatureVisible("caption_all");
 
   // Debug: Track CustomeStudio renders
   console.log(`🔄 CustomeStudio render - isFilterOpen:`, isFilterOpen);
@@ -295,38 +298,62 @@ const ScreenCustomeStudio = () => {
             presets={captionOverlays.holiday}
             onSelect={handleCustomeSelect}
           />
-          <SuggestCaption
-            title="🎨 Suggest Caption"
-            presets={captionOverlays.suggest}
-            onSelect={handleCustomeSelect}
-          />
-          {/* Decorative by Locket */}
-          <ThemesCustomes
-            title="🎨 Decorative by Locket"
-            presets={captionOverlays.decorative}
-            onSelect={handleCustomeSelect}
-          />
-          <ThemesCustomes
-            title="🎨 Decorative by MTIEN"
-            presets={captionOverlays.custome}
-            onSelect={handleCustomeSelect}
-          />
-          <FeatureGate canUse={canUseCaptionIcon}>
-            <CaptionIconSelector
-              title="🎨 Caption Icon - Truy cập sớm"
-              captionThemes={captionOverlays}
-              onSelect={handleCustomeSelectTest}
-            />
-          </FeatureGate>
-          <FeatureGate canUse={canUseCaptionimage}>
-            <ImageCaptionSelector title="🎨 Caption Ảnh - Truy cập sớm" />
-          </FeatureGate>
-          <div className="px-4 pb-6">
-            <h2 className="text-md font-semibold text-primary">
-              🎨 Caption Logo
-            </h2>
-            <p className="text-xs">Comming Soon?...</p>
-          </div>
+
+          {/* === VIP ONLY SECTIONS === */}
+          {isVip ? (
+            <>
+              <SuggestCaption
+                title="🎨 Suggest Caption"
+                presets={captionOverlays.suggest}
+                onSelect={handleCustomeSelect}
+              />
+              {/* Decorative by Locket */}
+              <ThemesCustomes
+                title="🎨 Decorative by Locket"
+                presets={captionOverlays.decorative}
+                onSelect={handleCustomeSelect}
+              />
+              <ThemesCustomes
+                title="🎨 Decorative by MTIEN"
+                presets={captionOverlays.custome}
+                onSelect={handleCustomeSelect}
+              />
+              <FeatureGate canUse={canUseCaptionIcon}>
+                <CaptionIconSelector
+                  title="🎨 Caption Icon - Truy cập sớm"
+                  captionThemes={captionOverlays}
+                  onSelect={handleCustomeSelectTest}
+                />
+              </FeatureGate>
+              <FeatureGate canUse={canUseCaptionimage}>
+                <ImageCaptionSelector title="🎨 Caption Ảnh - Truy cập sớm" />
+              </FeatureGate>
+              <div className="px-4 pb-6">
+                <h2 className="text-md font-semibold text-primary">
+                  🎨 Caption Logo
+                </h2>
+                <p className="text-xs">Comming Soon?...</p>
+              </div>
+            </>
+          ) : (
+            <div className="px-4 py-6">
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-center space-y-3">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-500/20">
+                  <Lock className="w-6 h-6 text-purple-400" />
+                </div>
+                <h3 className="text-base font-bold text-white">Nâng cấp VIP để mở khoá tất cả Caption</h3>
+                <p className="text-sm text-gray-400">
+                  Suggest, Decorative, Icon, Ảnh và nhiều hơn nữa...
+                </p>
+                <button
+                  onClick={() => navigate("/pricing")}
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 font-bold text-sm text-white transition hover:opacity-90"
+                >
+                  ✨ Nâng cấp VIP
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
