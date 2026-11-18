@@ -90,7 +90,11 @@ export const useAuthStore = create((set) => ({
   accessRole: null,
   aiFilterEnabled: false,
   vipPlanName: null,
+  vipPlanDays: null,
   vipExpireAt: null,
+  aiFilterPlanName: null,
+  aiFilterPlanDays: null,
+  aiFilterExpireAt: null,
 
   setAccessRole: (role) => {
     const accessRole = saveAccessRole(role);
@@ -117,7 +121,11 @@ export const useAuthStore = create((set) => ({
         accessRole,
         aiFilterEnabled,
         vipPlanName: access?.vipPlanName || null,
+        vipPlanDays: access?.vipPlanDays || null,
         vipExpireAt: access?.vipExpireAt || null,
+        aiFilterPlanName: access?.aiFilterPlanName || null,
+        aiFilterPlanDays: access?.aiFilterPlanDays || null,
+        aiFilterExpireAt: access?.aiFilterExpireAt || null,
       });
       return access;
     } catch (error) {
@@ -218,7 +226,11 @@ export const useAuthStore = create((set) => ({
         accessRole,
         aiFilterEnabled,
         vipPlanName: access?.vipPlanName || null,
+        vipPlanDays: access?.vipPlanDays || null,
         vipExpireAt: access?.vipExpireAt || null,
+        aiFilterPlanName: access?.aiFilterPlanName || null,
+        aiFilterPlanDays: access?.aiFilterPlanDays || null,
+        aiFilterExpireAt: access?.aiFilterExpireAt || null,
         isAuth: true,
         loading: false,
       });

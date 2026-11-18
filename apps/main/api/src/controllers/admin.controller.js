@@ -1,10 +1,18 @@
 const jwt = require("jsonwebtoken");
 const { admin, db } = require("../config/firebase-admin-config");
+const {
+  VALID_ROLES,
+  normalizeAccessRole,
+  resolveAdminVipSelection,
+  resolveAdminAiSelection,
+  resolveEffectiveAccess,
+  toTimestampMs,
+} = require("../utils/accessPlans");
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const JWT_SECRET = process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET || ADMIN_PASSWORD;
 const APPROVED_USER_COLLECTION = "approved_users";
-const ACCESS_ROLES = new Set(["vip", "celebrity"]);
+const SUBSCRIPTIONS_COLLECTION = "subscriptions";
 
 const normalizeUsername = (value = "") =>
   String(value || "")
@@ -12,15 +20,32 @@ const normalizeUsername = (value = "") =>
     .replace(/^@+/, "")
     .toLowerCase();
 
-const normalizeRole = (value = "vip") =>
-  ACCESS_ROLES.has(String(value || "").trim().toLowerCase())
-    ? String(value).trim().toLowerCase()
-    : "vip";
-
 const getNow = () =>
   admin?.firestore?.FieldValue?.serverTimestamp
     ? admin.firestore.FieldValue.serverTimestamp()
     : new Date().toISOString();
+
+const formatAdminUserDoc = (id, data = {}, resolved = resolveEffectiveAccess(data)) => ({
+  id,
+  username: data.username || id,
+  role: resolved.effectiveRole,
+  active: data.active !== false,
+  aiFilterEnabled: resolved.effectiveAiEnabled,
+  aiFilterPlanId: resolved.aiFilterPlanId,
+  aiFilterPlanName: resolved.aiFilterPlanName,
+  aiFilterPlanDays: resolved.aiFilterPlanDays,
+  aiFilterExpireAt: resolved.aiFilterExpireAt,
+  note: data.note || "",
+  vipPlanId: resolved.vipPlanId,
+  vipPlanName: resolved.vipPlanName,
+  vipPlanDays: resolved.vipPlanDays,
+  vipExpireAt: resolved.vipExpireAt,
+  lastExpiredVipPlan: resolved.lastExpiredVipPlan || null,
+  lastExpiredVipAt: resolved.lastExpiredVipAt || null,
+  lastPayment: data.lastPayment || null,
+  createdAt: data.createdAt || null,
+  updatedAt: data.updatedAt || null,
+});
 
 class AdminController {
   // === ĐĂNG NHẬP ===
@@ -61,19 +86,26 @@ class AdminController {
       }
 
       const snapshot = await db.collection(APPROVED_USER_COLLECTION).get();
-      const users = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        username: doc.data().username || doc.id,
-        role: normalizeRole(doc.data().role),
-        active: doc.data().active !== false,
-        aiFilterEnabled: doc.data().aiFilterEnabled === true,
-        note: doc.data().note || "",
-        vipPlanName: doc.data().vipPlanName || null,
-        vipExpireAt: doc.data().vipExpireAt || null,
-        lastPayment: doc.data().lastPayment || null,
-        createdAt: doc.data().createdAt || null,
-        updatedAt: doc.data().updatedAt || null,
-      }));
+      const now = Date.now();
+      const persistPromises = [];
+
+      const users = snapshot.docs.map((doc) => {
+        const raw = doc.data() || {};
+        const resolved = resolveEffectiveAccess(raw, now);
+        if (resolved.needsPersist) {
+          persistPromises.push(
+            doc.ref.set(resolved.downgradePatch, { merge: true }).catch((err) => {
+              console.warn(`⚠️ Không lưu được trạng thái hết hạn cho @${doc.id}:`, err.message);
+            }),
+          );
+        }
+        return formatAdminUserDoc(doc.id, raw, resolved);
+      });
+
+      if (persistPromises.length > 0) {
+        await Promise.all(persistPromises);
+      }
+
       users.sort((a, b) => (a.username || "").localeCompare(b.username || ""));
 
       res.status(200).json({ success: true, data: users });
@@ -96,36 +128,106 @@ class AdminController {
       if (!username) {
         return res.status(400).json({ success: false, message: "Thiếu username" });
       }
-      if (!ACCESS_ROLES.has(requestedRole)) {
+      if (!VALID_ROLES.has(requestedRole)) {
         return res.status(400).json({ success: false, message: "Quyền truy cập không hợp lệ" });
       }
 
-      const role = normalizeRole(requestedRole);
+      const role = normalizeAccessRole(requestedRole, "vip");
+      const now = Date.now();
+      const nowIso = new Date(now).toISOString();
+
+      let vipFields = {
+        vipPlanId: null,
+        vipPlanName: null,
+        vipPlanDays: null,
+        vipExpireAt: null,
+      };
+
+      if (role === "vip") {
+        vipFields = resolveAdminVipSelection(
+          {
+            vipPlanId: req.body?.vipPlanId,
+            planDays: req.body?.planDays,
+          },
+          now,
+        );
+      }
+
+      let aiFields = {
+        aiFilterEnabled: false,
+        aiFilterPlanId: null,
+        aiFilterPlanName: null,
+        aiFilterPlanDays: null,
+        aiFilterExpireAt: null,
+      };
+
+      if (aiFilterEnabled) {
+        aiFields = {
+          aiFilterEnabled: true,
+          ...resolveAdminAiSelection(
+            {
+              aiFilterPlanId: req.body?.aiFilterPlanId,
+              aiFilterPlanDays: req.body?.aiFilterPlanDays,
+            },
+            now,
+          ),
+        };
+      }
 
       const ref = db.collection(APPROVED_USER_COLLECTION).doc(username);
-      await ref.set(
-        {
-          username,
-          role,
-          active: true,
-          aiFilterEnabled,
-          note,
-          createdAt: getNow(),
-          updatedAt: getNow(),
-        },
-        { merge: true },
-      );
+      const record = {
+        username,
+        role,
+        active: true,
+        approved: true,
+        enabled: true,
+        note,
+        ...vipFields,
+        ...aiFields,
+        createdAt: getNow(),
+        updatedAt: getNow(),
+      };
+
+      await ref.set(record, { merge: true });
+
+      if (role === "vip" && vipFields.vipExpireAt) {
+        await db.collection(SUBSCRIPTIONS_COLLECTION).doc(username).set(
+          {
+            username,
+            category: "vip",
+            planId: vipFields.vipPlanId,
+            planName: vipFields.vipPlanName,
+            planDays: vipFields.vipPlanDays,
+            expireAt: vipFields.vipExpireAt,
+            updatedAt: nowIso,
+            createdAt: nowIso,
+          },
+          { merge: true },
+        );
+      }
+
+      if (aiFilterEnabled && aiFields.aiFilterExpireAt) {
+        await db.collection(SUBSCRIPTIONS_COLLECTION).doc(`${username}__ai_filter`).set(
+          {
+            username,
+            category: "ai_filter",
+            planId: aiFields.aiFilterPlanId,
+            planName: aiFields.aiFilterPlanName,
+            planDays: aiFields.aiFilterPlanDays,
+            expireAt: aiFields.aiFilterExpireAt,
+            updatedAt: nowIso,
+            createdAt: nowIso,
+          },
+          { merge: true },
+        );
+      }
+
+      const savedDoc = await ref.get();
+      const savedData = savedDoc.data() || record;
 
       res.status(201).json({
         success: true,
-        data: {
-          id: username,
-          username,
-          role,
-          active: true,
-          aiFilterEnabled,
-          note,
-        },
+        data: formatAdminUserDoc(username, savedData),
       });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
@@ -143,29 +245,122 @@ class AdminController {
         return res.status(400).json({ success: false, message: "Thiếu username" });
       }
 
+      const now = Date.now();
+      const nowIso = new Date(now).toISOString();
+      const ref = db.collection(APPROVED_USER_COLLECTION).doc(username);
+      const existingSnap = await ref.get();
+      const existing = existingSnap.exists ? existingSnap.data() || {} : {};
+
       const data = {
+        username,
         updatedAt: getNow(),
       };
 
       if (typeof req.body?.active === "boolean") {
         data.active = req.body.active;
       }
-      if (typeof req.body?.aiFilterEnabled === "boolean") {
-        data.aiFilterEnabled = req.body.aiFilterEnabled;
-      }
       if (typeof req.body?.note === "string") {
         data.note = req.body.note.trim();
       }
+
       if (req.body?.role !== undefined) {
         const requestedRole = String(req.body.role || "").trim().toLowerCase();
-        if (!ACCESS_ROLES.has(requestedRole)) {
+        if (!VALID_ROLES.has(requestedRole)) {
           return res.status(400).json({ success: false, message: "Quyền truy cập không hợp lệ" });
         }
         data.role = requestedRole;
+
+        if (requestedRole !== "vip") {
+          data.vipPlanId = null;
+          data.vipPlanName = null;
+          data.vipPlanDays = null;
+          data.vipExpireAt = null;
+        } else if (
+          req.body?.vipPlanId === undefined &&
+          req.body?.planDays === undefined &&
+          !existing.vipPlanName
+        ) {
+          // Default to VIP 1 Tháng if upgraded from Free without specifying plan, or keep existing
+          const vipSel = resolveAdminVipSelection({ vipPlanId: "vip_1month" }, now);
+          Object.assign(data, vipSel);
+        }
       }
 
-      await db.collection(APPROVED_USER_COLLECTION).doc(username).set(data, { merge: true });
-      res.status(200).json({ success: true, message: "Đã cập nhật" });
+      if (req.body?.vipPlanId !== undefined || req.body?.planDays !== undefined) {
+        data.role = "vip";
+        const vipSel = resolveAdminVipSelection(
+          {
+            vipPlanId: req.body?.vipPlanId,
+            planDays: req.body?.planDays,
+          },
+          now,
+        );
+        Object.assign(data, vipSel);
+
+        if (vipSel.vipExpireAt) {
+          await db.collection(SUBSCRIPTIONS_COLLECTION).doc(username).set(
+            {
+              username,
+              category: "vip",
+              planId: vipSel.vipPlanId,
+              planName: vipSel.vipPlanName,
+              planDays: vipSel.vipPlanDays,
+              expireAt: vipSel.vipExpireAt,
+              updatedAt: nowIso,
+            },
+            { merge: true },
+          );
+        }
+      }
+
+      if (typeof req.body?.aiFilterEnabled === "boolean") {
+        data.aiFilterEnabled = req.body.aiFilterEnabled;
+        if (!req.body.aiFilterEnabled) {
+          data.aiFilterPlanId = null;
+          data.aiFilterPlanName = null;
+          data.aiFilterPlanDays = null;
+          data.aiFilterExpireAt = null;
+        } else if (
+          req.body?.aiFilterPlanId !== undefined ||
+          req.body?.aiFilterPlanDays !== undefined
+        ) {
+          Object.assign(
+            data,
+            resolveAdminAiSelection(
+              {
+                aiFilterPlanId: req.body?.aiFilterPlanId,
+                aiFilterPlanDays: req.body?.aiFilterPlanDays,
+              },
+              now,
+            ),
+          );
+        } else if (!existing.aiFilterPlanName) {
+          Object.assign(data, resolveAdminAiSelection({ aiFilterPlanId: "ai_lifetime" }, now));
+        }
+      } else if (
+        req.body?.aiFilterPlanId !== undefined ||
+        req.body?.aiFilterPlanDays !== undefined
+      ) {
+        data.aiFilterEnabled = true;
+        const aiSel = resolveAdminAiSelection(
+          {
+            aiFilterPlanId: req.body?.aiFilterPlanId,
+            aiFilterPlanDays: req.body?.aiFilterPlanDays,
+          },
+          now,
+        );
+        Object.assign(data, aiSel);
+      }
+
+      await ref.set(data, { merge: true });
+      const updatedSnap = await ref.get();
+      const updatedData = updatedSnap.data() || { ...existing, ...data };
+
+      res.status(200).json({
+        success: true,
+        message: "Đã cập nhật",
+        data: formatAdminUserDoc(username, updatedData),
+      });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
     }
@@ -192,8 +387,8 @@ class AdminController {
   // === LẤY DANH SÁCH VIP ===
   async getVipEmails(req, res) {
     try {
-      const snapshot = await db.collection("subscriptions").get();
-      const emails = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const snapshot = await db.collection(SUBSCRIPTIONS_COLLECTION).get();
+      const emails = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       res.status(200).json({ success: true, data: emails });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
@@ -204,7 +399,7 @@ class AdminController {
   async addVipEmail(req, res) {
     try {
       const data = req.body;
-      const docRef = await db.collection("subscriptions").add(data);
+      const docRef = await db.collection(SUBSCRIPTIONS_COLLECTION).add(data);
       res.status(201).json({ success: true, id: docRef.id, ...data });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
@@ -216,7 +411,7 @@ class AdminController {
     try {
       const { id } = req.params;
       const data = req.body;
-      await db.collection("subscriptions").doc(id).update(data);
+      await db.collection(SUBSCRIPTIONS_COLLECTION).doc(id).update(data);
       res.status(200).json({ success: true, message: "Đã cập nhật thành công" });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
@@ -227,7 +422,7 @@ class AdminController {
   async deleteVipEmail(req, res) {
     try {
       const { id } = req.params;
-      await db.collection("subscriptions").doc(id).delete();
+      await db.collection(SUBSCRIPTIONS_COLLECTION).doc(id).delete();
       res.status(200).json({ success: true, message: "Đã xóa thành công" });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
@@ -258,25 +453,31 @@ class AdminController {
     }
   }
 
-  // === LẤY DANH SÁCH SUBSCRIPTIONS (VIP) ===
+  // === LẤY DANH SÁCH SUBSCRIPTIONS (VIP & AI FILTER) ===
   async listSubscriptions(req, res) {
     try {
       if (!db) {
         return res.status(500).json({ success: false, message: "Firestore chưa sẵn sàng" });
       }
 
-      const snapshot = await db.collection("subscriptions").get();
+      const snapshot = await db.collection(SUBSCRIPTIONS_COLLECTION).get();
       const now = Date.now();
       const subs = snapshot.docs.map((doc) => {
         const data = doc.data();
+        const expireAt = toTimestampMs(data.expireAt);
         return {
           id: doc.id,
-          username: data.username || doc.id,
+          username: data.username || doc.id.replace(/__ai_filter$/, ""),
+          category:
+            data.category ||
+            (String(data.planId || "").startsWith("ai_") || doc.id.endsWith("__ai_filter")
+              ? "ai_filter"
+              : "vip"),
           planId: data.planId || null,
           planName: data.planName || null,
           planDays: data.planDays || null,
-          expireAt: data.expireAt || null,
-          isExpired: data.expireAt ? data.expireAt < now : true,
+          expireAt,
+          isExpired: expireAt ? expireAt < now : true,
           lastPayment: data.lastPayment || null,
           createdAt: data.createdAt || null,
           updatedAt: data.updatedAt || null,
@@ -284,7 +485,6 @@ class AdminController {
         };
       });
 
-      // Sort: active first, then by expireAt desc
       subs.sort((a, b) => {
         if (a.isExpired !== b.isExpired) return a.isExpired ? 1 : -1;
         return (b.expireAt || 0) - (a.expireAt || 0);
@@ -299,25 +499,27 @@ class AdminController {
   // === XÓA TRÙNG LẶP (QUÉT RÁC) ===
   async removeDuplicates(req, res) {
     try {
-      const snapshot = await db.collection("subscriptions").get();
+      const snapshot = await db.collection(SUBSCRIPTIONS_COLLECTION).get();
       const seen = new Set();
       const duplicates = [];
-      
-      snapshot.forEach(doc => {
+
+      snapshot.forEach((doc) => {
         const email = doc.data().email;
-        if (seen.has(email)) {
+        if (email && seen.has(email)) {
           duplicates.push(doc.id);
-        } else {
+        } else if (email) {
           seen.add(email);
         }
       });
 
-      // Lặp qua mảng rác và xóa
       for (const id of duplicates) {
-        await db.collection("subscriptions").doc(id).delete();
+        await db.collection(SUBSCRIPTIONS_COLLECTION).doc(id).delete();
       }
 
-      res.status(200).json({ success: true, message: `Đã dọn dẹp sạch sẽ ${duplicates.length} mục trùng lặp!` });
+      res.status(200).json({
+        success: true,
+        message: `Đã dọn dẹp sạch sẽ ${duplicates.length} mục trùng lặp!`,
+      });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
     }

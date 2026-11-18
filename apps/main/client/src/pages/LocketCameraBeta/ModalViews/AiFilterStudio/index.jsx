@@ -230,8 +230,8 @@ function OpenFilterStudio() {
             {!aiSectionVisible ? <div className="filter-studio-status">Cuộn để xem AI Filter.</div> : !aiFilterEnabled ? (
               <div className="filter-studio-status">
                 {checkingAccess || !accessChecked ? <><LoaderCircle className="animate-spin" size={19} /><span>Đang kiểm tra quyền AI Filter…</span></> : <>
-                  <LockKeyhole size={20} /><span>Liên hệ admin MTIEN để bật quyền AI Filter.</span>
-                  <a href="https://zalo.me/0359153413" target="_blank" rel="noopener noreferrer">Liên hệ MTIEN</a>
+                  <LockKeyhole size={20} /><span>Mua gói AI Filter để sử dụng tính năng này.</span>
+                  <a href="/pricing?tab=ai" onClick={(e) => { e.preventDefault(); window.location.href = "/pricing?tab=ai"; }}>Mua AI Filter</a>
                 </>}
               </div>
             ) : <>

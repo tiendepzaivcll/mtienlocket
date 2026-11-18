@@ -39,7 +39,7 @@ const GenerateAiButton = () => {
   const generate = async () => {
     if (!aiFilterEnabled) {
       setSelectedAiFilter(null);
-      SonnerWarning("Tính năng trả phí", "Liên hệ admin để sử dụng");
+      SonnerWarning("AI Filter (Bán riêng)", "Mua gói AI Filter tại trang Nâng cấp");
       return;
     }
     if (!selectedFile?.type?.startsWith("image/")) {
@@ -69,7 +69,7 @@ const GenerateAiButton = () => {
     } catch (error) {
       if (error?.response?.data?.code === "AI_FILTER_PAYMENT_REQUIRED") {
         setSelectedAiFilter(null);
-        SonnerWarning("Tính năng trả phí", "Liên hệ admin để sử dụng");
+        SonnerWarning("AI Filter (Bán riêng)", "Mua gói AI Filter tại trang Nâng cấp");
         return;
       }
       SonnerError("Tạo ảnh AI thất bại", errorMessage(error));

@@ -54,13 +54,21 @@ export const addApprovedUser = async ({
   username,
   note,
   role,
+  vipPlanId,
+  planDays,
   aiFilterEnabled,
+  aiFilterPlanId,
+  aiFilterPlanDays,
 }) => {
   const res = await adminApi.post("/approved-users", {
     username,
     note,
     role,
+    vipPlanId,
+    planDays,
     aiFilterEnabled,
+    aiFilterPlanId,
+    aiFilterPlanDays,
   });
   return res.data?.data;
 };

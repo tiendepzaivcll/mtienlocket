@@ -13,6 +13,7 @@ const NewsDetailPage = React.lazy(() => import("@/pages/Public/NewsDetailPage"))
 const ForgotPassword = React.lazy(() => import("@/pages/Public/ForgotPassword"));
 const PrivacyPolicy = React.lazy(() => import("../pages/Public/PrivacyPolicy"));
 const PricingPage = React.lazy(() => import("../pages/Public/Pricing"));
+const PayPage = React.lazy(() => import("../pages/Auth/PayPage"));
 const Settings = React.lazy(() => import("../pages/Public/Settings"));
 const DevPage = React.lazy(() => import("../pages/Public/DevPage"));
 const AddToHomeScreenGuide = React.lazy(() => import("../pages/Public/AddToScreen"));
@@ -40,6 +41,8 @@ export const publicRoutes = [
   { path: "/privacy", component: PrivacyPolicy, title: `Chính sách riêng tư | ${APP_NAME}` },
   { path: "/pricing", component: PricingPage, title: `Nâng cấp VIP | ${APP_NAME}` },
   { path: "/pricing/:planId", component: PricingPage, title: `Nâng cấp VIP | ${APP_NAME}` },
+  { path: "/pay", component: PayPage, title: `Thanh toán | ${APP_NAME}` },
+  { path: "/payment/result", component: PayPage, title: `Kết quả thanh toán | ${APP_NAME}` },
   { path: "/tools", component: ToolsLocket, title: `Công cụ mở rộng | ${APP_NAME}` },
 
   { path: "/settings", component: Settings, title: `Cài đặt | ${APP_NAME}` },

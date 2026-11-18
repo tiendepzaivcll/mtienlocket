@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   CheckCircle,
@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { instanceMain } from "@/libs/instanceMain";
+import { useAuthStore } from "@/stores";
 import {
   SonnerInfo,
   SonnerSuccess,
@@ -21,19 +22,71 @@ import {
 export default function PayPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const refreshAccessRole = useAuthStore((state) => state.refreshAccessRole);
   const searchParams = new URLSearchParams(location.search);
   const orderCode = searchParams.get("orderCode");
+  const returnCancel = searchParams.get("cancel") === "true";
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [rechecking, setRechecking] = useState(false);
+  const syncedPaidRef = useRef(false);
+
+  const isAiPlan =
+    order?.planCategory === "ai_filter" ||
+    String(order?.planId || "").startsWith("ai_");
+
+  const syncEntitlementAfterPaid = useCallback(async () => {
+    if (syncedPaidRef.current) return;
+    syncedPaidRef.current = true;
+    try {
+      await refreshAccessRole();
+    } catch {
+      // Ignore if guest user (not logged in yet)
+    }
+  }, [refreshAccessRole]);
 
   useEffect(() => {
-    if (!orderCode) return;
-    fetchOrder();
-  }, [orderCode]);
+    if (!orderCode) {
+      setLoading(false);
+      return;
+    }
+    const load = async () => {
+      try {
+        const res = await instanceMain.get(`/api/payment/order/${orderCode}`);
+        if (res.data?.success) {
+          const data = res.data.data;
+          setOrder(data);
+          if (data.status === "PAID") {
+            await syncEntitlementAfterPaid();
+          } else if (data.status === "PENDING" && !returnCancel) {
+            // Kiểm tra trực tiếp PayOS ngay khi vừa mở / quay về trang kết quả
+            try {
+              const checkRes = await instanceMain.post(
+                `/api/payment/check-order/${orderCode}`,
+              );
+              if (checkRes.data?.success && checkRes.data.data) {
+                setOrder(checkRes.data.data);
+                if (checkRes.data.data.status === "PAID") {
+                  await syncEntitlementAfterPaid();
+                  SonnerSuccess("🎉 Thanh toán thành công! Đã kích hoạt tự động.");
+                }
+              }
+            } catch {
+              // Bỏ qua nếu đang chờ khách quét mã
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy đơn hàng:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [orderCode, returnCancel, syncEntitlementAfterPaid]);
 
-  // Auto-polling: kiểm tra mỗi 5 giây khi đơn hàng đang PENDING
+  // Auto-polling: kiểm tra mỗi 3 giây khi đơn hàng đang PENDING
   useEffect(() => {
     if (!orderCode || !order || order.status !== "PENDING") return;
     const interval = setInterval(async () => {
@@ -43,7 +96,10 @@ export default function PayPage() {
           const data = res.data.data;
           if (data.status === "PAID") {
             setOrder(data);
-            SonnerSuccess("🎉 Thanh toán thành công! VIP đã được kích hoạt.");
+            await syncEntitlementAfterPaid();
+            SonnerSuccess(
+              `🎉 Thanh toán thành công! ${data.planName || "Gói dịch vụ"} đã được kích hoạt.`,
+            );
             clearInterval(interval);
           } else if (data.status === "CANCELLED") {
             setOrder(data);
@@ -51,25 +107,12 @@ export default function PayPage() {
             clearInterval(interval);
           }
         }
-      } catch (err) {
-        // im lặng, không cần báo lỗi khi auto-check
+      } catch {
+        // im lặng khi auto-check
       }
-    }, 5000);
+    }, 3000);
     return () => clearInterval(interval);
-  }, [orderCode, order?.status]);
-
-  const fetchOrder = async () => {
-    try {
-      const res = await instanceMain.get(`/api/payment/order/${orderCode}`);
-      if (res.data?.success) {
-        setOrder(res.data.data);
-      }
-    } catch (error) {
-      console.error("Lỗi khi lấy đơn hàng:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [orderCode, order?.status, syncEntitlementAfterPaid]);
 
   const recheckOrder = async () => {
     setRechecking(true);
@@ -79,14 +122,17 @@ export default function PayPage() {
         const data = res.data.data;
         setOrder(data);
         if (data.status === "PAID") {
-          SonnerSuccess("🎉 Thanh toán thành công! VIP đã được kích hoạt.");
+          await syncEntitlementAfterPaid();
+          SonnerSuccess(
+            `🎉 Thanh toán thành công! ${data.planName || "Gói dịch vụ"} đã được kích hoạt.`,
+          );
         } else if (data.status === "CANCELLED") {
           SonnerInfo("Đơn hàng đã bị huỷ.");
         } else {
-          SonnerInfo("Đơn hàng chưa được thanh toán. Hệ thống sẽ tự kiểm tra lại sau vài giây.");
+          SonnerInfo("Đơn hàng chưa nhận thanh toán. Hệ thống vẫn đang tự kiểm tra mỗi 3 giây.");
         }
       }
-    } catch (error) {
+    } catch {
       SonnerWarning("Không thể kiểm tra đơn hàng.");
     } finally {
       setRechecking(false);
@@ -127,15 +173,18 @@ export default function PayPage() {
           </div>
           <h2 className="text-xl font-bold">🎉 Thanh toán thành công!</h2>
           <p className="text-sm text-gray-300">
-            Gói <strong>{order.planName}</strong> đã được kích hoạt cho{" "}
+            Gói <strong>{order.planName}</strong> đã được kích hoạt tự động cho{" "}
             <strong>@{order.username}</strong>
           </p>
           <div className="space-y-3">
             <button
-              onClick={() => navigate("/locket-beta")}
+              onClick={async () => {
+                await refreshAccessRole();
+                navigate("/locket-beta");
+              }}
               className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 font-bold text-sm transition"
             >
-              Bắt đầu sử dụng VIP
+              {isAiPlan ? "Dùng ngay AI Filter" : "Bắt đầu sử dụng VIP"}
             </button>
             <button
               onClick={() => navigate("/pricing")}
@@ -169,6 +218,8 @@ export default function PayPage() {
     );
   }
 
+  const qrPayload = order.qrCode || order.checkoutUrl;
+
   // ─── PENDING ───────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white">
@@ -198,7 +249,7 @@ export default function PayPage() {
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-400">Gói</span>
+            <span className="text-sm text-gray-400">Gói đăng ký</span>
             <span className="font-bold">{order.planName}</span>
           </div>
           <div className="flex items-center justify-between">
@@ -213,18 +264,18 @@ export default function PayPage() {
           </div>
         </div>
 
-        {/* QR Code */}
-        {order.checkoutUrl && (
+        {/* QR Code VietQR */}
+        {qrPayload && (
           <div className="bg-white rounded-2xl p-6 text-center">
             <div className="flex items-center justify-center gap-2 mb-3">
               <QrCode className="w-5 h-5 text-purple-600" />
               <span className="text-sm font-bold text-gray-800">
-                Quét mã để thanh toán
+                Quét mã VietQR bằng App Ngân hàng
               </span>
             </div>
             <div className="flex justify-center">
               <QRCodeSVG
-                value={order.checkoutUrl}
+                value={qrPayload}
                 size={224}
                 level="M"
                 includeMargin={true}
@@ -233,7 +284,7 @@ export default function PayPage() {
               />
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              Quét mã QR hoặc ấn nút bên dưới để thanh toán
+              Quét trực tiếp bằng app ngân hàng hoặc mở trang PayOS bên dưới
             </p>
           </div>
         )}
@@ -269,8 +320,8 @@ export default function PayPage() {
 
         {/* Notes */}
         <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4 text-xs text-yellow-200/80 space-y-1">
-          <p>• Hệ thống sẽ <strong>tự động kiểm tra</strong> và kích hoạt VIP sau khi thanh toán.</p>
-          <p>• Hoặc ấn "Kiểm tra ngay" nếu muốn kiểm tra thủ công.</p>
+          <p>• Hệ thống <strong>tự động kiểm tra mỗi 3 giây</strong> và kích hoạt ngay sau khi chuyển khoản.</p>
+          <p>• Không sửa nội dung chuyển khoản khi quét VietQR.</p>
           <p>• Liên hệ hỗ trợ: <strong>tienmanh6811@gmail.com</strong></p>
         </div>
       </div>

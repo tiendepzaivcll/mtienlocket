@@ -10,6 +10,9 @@ import {
   Star,
   Trash2,
   X,
+  Clock,
+  CalendarClock,
+  AlertTriangle,
 } from "lucide-react";
 import {
   addApprovedUser,
@@ -35,6 +38,127 @@ import PaymentManagement from "./PaymentManagement";
 const normalizeUsername = (value = "") =>
   value.trim().replace(/^@+/, "").toLowerCase();
 
+const VIP_PLAN_OPTIONS = [
+  { value: "", label: "— Không —" },
+  { value: "vip_1month", label: "VIP 1 Tháng (30 ngày)" },
+  { value: "vip_6months", label: "VIP 6 Tháng (180 ngày)" },
+  { value: "vip_1year", label: "VIP 1 Năm (365 ngày)" },
+];
+
+const AI_PLAN_OPTIONS = [
+  { value: "", label: "— Tắt —" },
+  { value: "ai_1month", label: "AI Filter 1 Tháng (30 ngày)" },
+  { value: "ai_6months", label: "AI Filter 6 Tháng (180 ngày)" },
+  { value: "ai_1year", label: "AI Filter 1 Năm (365 ngày)" },
+];
+
+const formatDate = (val) => {
+  if (!val) return "—";
+  const d = typeof val === "number" ? new Date(val) : new Date(val);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
+const formatDateFull = (val) => {
+  if (!val) return "—";
+  const d = typeof val === "number" ? new Date(val) : new Date(val);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const isExpired = (expireAt) => {
+  if (!expireAt) return false;
+  const ts = typeof expireAt === "number" ? expireAt : new Date(expireAt).getTime();
+  return ts <= Date.now();
+};
+
+const remainingDays = (expireAt) => {
+  if (!expireAt) return null;
+  const ts = typeof expireAt === "number" ? expireAt : new Date(expireAt).getTime();
+  return Math.max(0, Math.ceil((ts - Date.now()) / (24 * 60 * 60 * 1000)));
+};
+
+const VipPlanBadge = ({ user }) => {
+  if (user.role === "celebrity") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-info/15 text-info border border-info/30 px-2 py-0.5 text-xs font-semibold">
+        <Star size={12} /> Celebrity
+      </span>
+    );
+  }
+  if (user.role !== "vip" || !user.vipPlanName) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-gray-500/15 text-gray-400 border border-gray-500/30 px-2 py-0.5 text-xs font-semibold">
+        Free
+      </span>
+    );
+  }
+  const expired = isExpired(user.vipExpireAt);
+  if (expired) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-error/15 text-error border border-error/30 px-2 py-0.5 text-xs font-semibold">
+        <AlertTriangle size={12} /> Hết hạn
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 text-warning border border-warning/30 px-2 py-0.5 text-xs font-semibold">
+      <Crown size={12} /> {user.vipPlanName}
+    </span>
+  );
+};
+
+const AiFilterBadge = ({ user }) => {
+  if (!user.aiFilterEnabled) {
+    return <span className="text-xs text-gray-500">Tắt</span>;
+  }
+  if (!user.aiFilterExpireAt) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-secondary/15 text-secondary border border-secondary/30 px-2 py-0.5 text-xs font-semibold">
+        <Sparkles size={12} /> Bật (Vĩnh viễn)
+      </span>
+    );
+  }
+  const expired = isExpired(user.aiFilterExpireAt);
+  if (expired) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-error/15 text-error border border-error/30 px-2 py-0.5 text-xs font-semibold">
+        <AlertTriangle size={12} /> AI Hết hạn
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/15 text-violet-400 border border-violet-500/30 px-2 py-0.5 text-xs font-semibold">
+      <Sparkles size={12} /> {user.aiFilterPlanName || "AI Filter"}
+    </span>
+  );
+};
+
+const ExpireInfo = ({ expireAt, label, colorClass = "text-gray-400" }) => {
+  if (!expireAt) return null;
+  const days = remainingDays(expireAt);
+  const expired = days === 0 && isExpired(expireAt);
+  return (
+    <div className="text-[11px] leading-tight mt-0.5">
+      <span className="opacity-60">{label}:</span>{" "}
+      <span className={expired ? "text-error font-semibold" : colorClass}>
+        {expired ? "Hết hạn" : `${days} ngày`}
+      </span>
+      <span className="opacity-50 ml-1">({formatDate(expireAt)})</span>
+    </div>
+  );
+};
+
 export default function AdminPanel() {
   const currentUser = useAuthStore((state) => state.user);
   const setAccessRole = useAuthStore((state) => state.setAccessRole);
@@ -45,7 +169,8 @@ export default function AdminPanel() {
   const [username, setUsername] = useState("");
   const [note, setNote] = useState("");
   const [role, setRole] = useState("vip");
-  const [newUserAiFilterEnabled, setNewUserAiFilterEnabled] = useState(false);
+  const [vipPlanId, setVipPlanId] = useState("vip_1month");
+  const [aiFilterPlanId, setAiFilterPlanId] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -54,7 +179,7 @@ export default function AdminPanel() {
     [users],
   );
   const vipCount = useMemo(
-    () => users.filter((user) => user.active !== false && user.role !== "celebrity").length,
+    () => users.filter((user) => user.active !== false && user.role === "vip" && !isExpired(user.vipExpireAt)).length,
     [users],
   );
   const celebrityCount = useMemo(
@@ -62,7 +187,11 @@ export default function AdminPanel() {
     [users],
   );
   const aiFilterCount = useMemo(
-    () => users.filter((user) => user.active !== false && user.aiFilterEnabled === true).length,
+    () => users.filter((user) => user.active !== false && user.aiFilterEnabled === true && !isExpired(user.aiFilterExpireAt)).length,
+    [users],
+  );
+  const expiredVipCount = useMemo(
+    () => users.filter((user) => user.lastExpiredVipPlan || (user.vipExpireAt && isExpired(user.vipExpireAt))).length,
     [users],
   );
 
@@ -132,7 +261,11 @@ export default function AdminPanel() {
         username: cleanUsername,
         note,
         role,
-        aiFilterEnabled: newUserAiFilterEnabled,
+        vipPlanId: role === "vip" ? vipPlanId : undefined,
+        planDays: undefined,
+        aiFilterEnabled: Boolean(aiFilterPlanId),
+        aiFilterPlanId: aiFilterPlanId || undefined,
+        aiFilterPlanDays: undefined,
       });
       setUsers((current) => [
         ...current.filter((item) => item.username !== cleanUsername),
@@ -141,7 +274,8 @@ export default function AdminPanel() {
       setUsername("");
       setNote("");
       setRole("vip");
-      setNewUserAiFilterEnabled(false);
+      setVipPlanId("vip_1month");
+      setAiFilterPlanId("");
       SonnerSuccess(`Đã phê duyệt @${cleanUsername}.`);
     } catch (error) {
       SonnerError(error.response?.data?.message || "Không thêm được username.");
@@ -163,9 +297,61 @@ export default function AdminPanel() {
       ) {
         setAccessRole(nextRole);
       }
-      SonnerSuccess(`Đã đổi @${user.username} sang ${nextRole === "vip" ? "VIP" : "Celebrity"}.`);
+      SonnerSuccess(`Đã đổi @${user.username} sang ${nextRole === "vip" ? "VIP" : nextRole === "celebrity" ? "Celebrity" : "Free"}.`);
     } catch {
       SonnerError("Không cập nhật được loại quyền.");
+    }
+  };
+
+  const handleVipPlanChange = async (user, planId) => {
+    try {
+      if (!planId) {
+        // Downgrade to free
+        await updateApprovedUser(user.username, { role: "free" });
+        setUsers((current) =>
+          current.map((item) =>
+            item.username === user.username
+              ? { ...item, role: "free", vipPlanId: null, vipPlanName: null, vipPlanDays: null, vipExpireAt: null }
+              : item,
+          ),
+        );
+        SonnerSuccess(`Đã hạ @${user.username} về Free.`);
+      } else {
+        await updateApprovedUser(user.username, { vipPlanId: planId });
+        // Refresh the user list to get updated data
+        fetchUsers();
+        SonnerSuccess(`Đã cập nhật gói VIP cho @${user.username}.`);
+      }
+    } catch {
+      SonnerError("Không cập nhật được gói VIP.");
+    }
+  };
+
+  const handleAiPlanChange = async (user, planId) => {
+    try {
+      if (!planId) {
+        await updateApprovedUser(user.username, { aiFilterEnabled: false });
+        setUsers((current) =>
+          current.map((item) =>
+            item.username === user.username
+              ? { ...item, aiFilterEnabled: false, aiFilterPlanId: null, aiFilterPlanName: null, aiFilterPlanDays: null, aiFilterExpireAt: null }
+              : item,
+          ),
+        );
+        if (normalizeUsername(currentUser?.username) === normalizeUsername(user.username)) {
+          setAiFilterEnabled(false);
+        }
+        SonnerSuccess(`Đã tắt AI Filter cho @${user.username}.`);
+      } else {
+        await updateApprovedUser(user.username, { aiFilterEnabled: true, aiFilterPlanId: planId });
+        fetchUsers();
+        if (normalizeUsername(currentUser?.username) === normalizeUsername(user.username)) {
+          setAiFilterEnabled(true);
+        }
+        SonnerSuccess(`Đã cập nhật gói AI Filter cho @${user.username}.`);
+      }
+    } catch {
+      SonnerError("Không cập nhật được AI Filter.");
     }
   };
 
@@ -178,31 +364,6 @@ export default function AdminPanel() {
       ));
     } catch {
       SonnerError("Không cập nhật được trạng thái.");
-    }
-  };
-
-  const handleAiFilterToggle = async (user) => {
-    try {
-      const aiFilterEnabled = user.aiFilterEnabled !== true;
-      await updateApprovedUser(user.username, { aiFilterEnabled });
-      setUsers((current) =>
-        current.map((item) =>
-          item.username === user.username
-            ? { ...item, aiFilterEnabled }
-            : item,
-        ),
-      );
-      if (
-        normalizeUsername(currentUser?.username) === normalizeUsername(user.username)
-      ) {
-        setAiFilterEnabled(aiFilterEnabled);
-      }
-      SonnerSuccess(
-        aiFilterEnabled ? "Đã bật AI Filter" : "Đã tắt AI Filter",
-        `@${user.username}`,
-      );
-    } catch {
-      SonnerError("Không cập nhật được quyền AI Filter.");
     }
   };
 
@@ -253,7 +414,7 @@ export default function AdminPanel() {
 
   return (
     <main className="min-h-[84vh] bg-base-100 px-4 py-6 text-base-content">
-      <section className="mx-auto max-w-5xl space-y-6">
+      <section className="mx-auto max-w-6xl space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold">Admin MTIEN</h1>
@@ -270,6 +431,11 @@ export default function AdminPanel() {
               <span className="inline-flex items-center gap-1 rounded-md bg-secondary/15 px-2 py-1 text-secondary">
                 <Sparkles size={13} /> {aiFilterCount} AI Filter
               </span>
+              {expiredVipCount > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-md bg-error/15 px-2 py-1 text-error">
+                  <AlertTriangle size={13} /> {expiredVipCount} Hết hạn
+                </span>
+              )}
             </div>
           </div>
           <div className="flex gap-2">
@@ -295,168 +461,265 @@ export default function AdminPanel() {
         <AppCheckSettings />
         <AiFilterSettings />
         <CaptionSettings />
+
+        {/* Add User Form */}
         <form
           onSubmit={handleAdd}
-          className="grid gap-3 rounded-lg border border-base-300 bg-base-200/50 p-4 md:grid-cols-2 lg:grid-cols-[1fr_1fr_220px_150px_auto]"
+          className="rounded-lg border border-base-300 bg-base-200/50 p-4 space-y-3"
         >
-          <label className="form-control">
-            <span className="label-text">Username Locket</span>
-            <input
-              className="input input-bordered mt-1 w-full"
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              placeholder="vd: t97"
-            />
-          </label>
-          <label className="form-control">
-            <span className="label-text">Ghi chú</span>
-            <input
-              className="input input-bordered mt-1 w-full"
-              value={note}
-              onChange={(event) => setNote(event.target.value)}
-              placeholder="Tuỳ chọn"
-            />
-          </label>
-          <fieldset>
-            <legend className="label-text">Loại quyền</legend>
-            <div className="mt-1 grid h-12 grid-cols-2 rounded-lg border border-base-300 bg-base-100 p-1">
-              <button
-                type="button"
-                onClick={() => setRole("vip")}
-                className={`flex items-center justify-center gap-1 rounded-md text-sm font-semibold ${
-                  role === "vip" ? "bg-warning text-warning-content" : "hover:bg-base-200"
-                }`}
+          <h3 className="text-sm font-bold opacity-80">Thêm username mới</h3>
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            <label className="form-control">
+              <span className="label-text">Username Locket</span>
+              <input
+                className="input input-bordered mt-1 w-full"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                placeholder="vd: t97"
+              />
+            </label>
+            <label className="form-control">
+              <span className="label-text">Ghi chú</span>
+              <input
+                className="input input-bordered mt-1 w-full"
+                value={note}
+                onChange={(event) => setNote(event.target.value)}
+                placeholder="Tuỳ chọn"
+              />
+            </label>
+            <label className="form-control">
+              <span className="label-text">Gói VIP</span>
+              <select
+                className="select select-bordered mt-1 w-full"
+                value={role === "celebrity" ? "" : vipPlanId}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    setRole("vip");
+                    setVipPlanId(e.target.value);
+                  } else {
+                    setRole("vip");
+                    setVipPlanId("");
+                  }
+                }}
               >
-                <Crown size={15} /> VIP
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole("celebrity")}
-                className={`flex items-center justify-center gap-1 rounded-md text-sm font-semibold ${
-                  role === "celebrity" ? "bg-info text-info-content" : "hover:bg-base-200"
-                }`}
+                {VIP_PLAN_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </label>
+            <label className="form-control">
+              <span className="label-text">AI Filter (Riêng)</span>
+              <select
+                className="select select-bordered mt-1 w-full"
+                value={aiFilterPlanId}
+                onChange={(e) => setAiFilterPlanId(e.target.value)}
               >
-                <Star size={15} /> Celebrity
-              </button>
-            </div>
-          </fieldset>
-          <label className="flex h-12 items-center justify-between gap-3 self-end rounded-lg border border-base-300 bg-base-100 px-3">
-            <span className="inline-flex items-center gap-2 text-sm font-semibold">
-              <Sparkles size={16} /> AI Filter
-            </span>
-            <input
-              type="checkbox"
-              className="toggle toggle-secondary toggle-sm"
-              checked={newUserAiFilterEnabled}
-              onChange={(event) => setNewUserAiFilterEnabled(event.target.checked)}
-              aria-label="Cấp quyền AI Filter cho tài khoản mới"
-            />
-          </label>
-          <button className="btn btn-primary self-end" disabled={saving}>
-            <Plus size={16} />
-            Thêm
-          </button>
-        </form>
-
-        <div className="overflow-hidden rounded-lg border border-base-300">
-          <div className="grid grid-cols-[1fr_90px_96px] gap-2 bg-base-200 px-4 py-3 text-xs font-semibold uppercase tracking-wide opacity-80 md:grid-cols-[1fr_1fr_130px_100px_90px_120px]">
-            <span>Username</span>
-            <span className="hidden md:block">Ghi chú</span>
-            <span className="hidden md:block">Loại quyền</span>
-            <span className="hidden md:block">AI Filter</span>
-            <span>Trạng thái</span>
-            <span className="text-right">Thao tác</span>
+                {AI_PLAN_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </label>
           </div>
-
-          {loading ? (
-            <div className="px-4 py-8 text-center opacity-70">Đang tải...</div>
-          ) : users.length === 0 ? (
-            <div className="px-4 py-8 text-center opacity-70">
-              Chưa có username nào được phê duyệt.
-            </div>
-          ) : (
-            users.map((user) => (
-              <div
-                key={user.id || user.username}
-                className="grid grid-cols-[1fr_90px_96px] items-center gap-2 border-t border-base-300 px-4 py-3 md:grid-cols-[1fr_1fr_130px_100px_90px_120px]"
-              >
-                <div className="min-w-0">
-                  <div className="truncate font-semibold">@{user.username}</div>
-                  <select
-                    className="select select-bordered select-xs mt-1 w-full md:hidden"
-                    value={user.role === "celebrity" ? "celebrity" : "vip"}
-                    onChange={(event) => handleRoleChange(user, event.target.value)}
-                    aria-label={`Loại quyền của @${user.username}`}
-                  >
-                    <option value="vip">VIP</option>
-                    <option value="celebrity">Celebrity</option>
-                  </select>
-                  <label className="mt-2 flex items-center justify-between gap-2 text-xs md:hidden">
-                    <span className="inline-flex items-center gap-1">
-                      <Sparkles size={12} /> AI Filter
-                    </span>
-                    <input
-                      type="checkbox"
-                      className="toggle toggle-secondary toggle-xs"
-                      checked={user.aiFilterEnabled === true}
-                      onChange={() => handleAiFilterToggle(user)}
-                      aria-label={`Quyền AI Filter của @${user.username}`}
-                    />
-                  </label>
-                </div>
-                <div className="hidden truncate text-sm opacity-70 md:block">
-                  {user.note || "-"}
-                </div>
-                <select
-                  className="select select-bordered select-sm hidden w-full md:block"
-                  value={user.role === "celebrity" ? "celebrity" : "vip"}
-                  onChange={(event) => handleRoleChange(user, event.target.value)}
-                  aria-label={`Loại quyền của @${user.username}`}
-                >
-                  <option value="vip">VIP</option>
-                  <option value="celebrity">Celebrity</option>
-                </select>
-                <label className="hidden items-center gap-2 md:flex">
-                  <input
-                    type="checkbox"
-                    className="toggle toggle-secondary toggle-sm"
-                    checked={user.aiFilterEnabled === true}
-                    onChange={() => handleAiFilterToggle(user)}
-                    aria-label={`Quyền AI Filter của @${user.username}`}
-                  />
-                  <span className="text-xs font-medium">
-                    {user.aiFilterEnabled === true ? "Bật" : "Tắt"}
-                  </span>
-                </label>
-                <span
-                  className={`inline-flex w-fit items-center gap-1 rounded-full px-2 py-1 text-xs ${
-                    user.active === false
-                      ? "bg-error/15 text-error"
-                      : "bg-success/15 text-success"
+          <div className="flex items-center gap-3">
+            <fieldset>
+              <legend className="label-text mb-1">Loại quyền</legend>
+              <div className="grid h-10 grid-cols-3 rounded-lg border border-base-300 bg-base-100 p-1 w-fit">
+                <button
+                  type="button"
+                  onClick={() => setRole("vip")}
+                  className={`flex items-center justify-center gap-1 rounded-md px-3 text-xs font-semibold ${
+                    role === "vip" ? "bg-warning text-warning-content" : "hover:bg-base-200"
                   }`}
                 >
-                  {user.active === false ? <X size={12} /> : <Check size={12} />}
-                  {user.active === false ? "Tắt" : "Bật"}
-                </span>
-                <div className="flex justify-end gap-1">
-                  <button
-                    className="btn btn-ghost btn-xs"
-                    onClick={() => handleToggle(user)}
-                    title={user.active === false ? "Bật lại" : "Tắt quyền"}
-                  >
-                    {user.active === false ? <Check size={15} /> : <X size={15} />}
-                  </button>
-                  <button
-                    className="btn btn-ghost btn-xs text-error"
-                    onClick={() => handleDelete(user)}
-                    title="Xoá"
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
+                  <Crown size={13} /> VIP
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole("celebrity")}
+                  className={`flex items-center justify-center gap-1 rounded-md px-3 text-xs font-semibold ${
+                    role === "celebrity" ? "bg-info text-info-content" : "hover:bg-base-200"
+                  }`}
+                >
+                  <Star size={13} /> Celebrity
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole("free")}
+                  className={`flex items-center justify-center gap-1 rounded-md px-3 text-xs font-semibold ${
+                    role === "free" ? "bg-neutral text-neutral-content" : "hover:bg-base-200"
+                  }`}
+                >
+                  Free
+                </button>
               </div>
-            ))
-          )}
+            </fieldset>
+            <button className="btn btn-primary self-end" disabled={saving}>
+              <Plus size={16} />
+              Thêm
+            </button>
+          </div>
+        </form>
+
+        {/* User Table */}
+        <div className="overflow-x-auto rounded-lg border border-base-300">
+          <table className="table table-sm w-full">
+            <thead className="bg-base-200">
+              <tr>
+                <th className="text-xs">Username</th>
+                <th className="text-xs hidden md:table-cell">Ghi chú</th>
+                <th className="text-xs">Gói VIP</th>
+                <th className="text-xs hidden lg:table-cell">VIP Hết hạn</th>
+                <th className="text-xs">AI Filter</th>
+                <th className="text-xs hidden lg:table-cell">AI Hết hạn</th>
+                <th className="text-xs">Trạng thái</th>
+                <th className="text-xs text-right">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="text-center py-8 opacity-70">Đang tải...</td>
+                </tr>
+              ) : users.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="text-center py-8 opacity-70">
+                    Chưa có username nào được phê duyệt.
+                  </td>
+                </tr>
+              ) : (
+                users.map((user) => (
+                  <tr key={user.id || user.username} className="hover:bg-base-200/30">
+                    {/* Username */}
+                    <td>
+                      <div className="font-semibold">@{user.username}</div>
+                      {/* Mobile-only: show plan info inline */}
+                      <div className="lg:hidden mt-1 space-y-0.5">
+                        <ExpireInfo expireAt={user.vipExpireAt} label="VIP" colorClass="text-warning" />
+                        <ExpireInfo expireAt={user.aiFilterExpireAt} label="AI" colorClass="text-violet-400" />
+                      </div>
+                      {user.lastExpiredVipPlan && (
+                        <div className="text-[10px] text-error/70 mt-0.5">
+                          Gói cũ: {user.lastExpiredVipPlan}
+                        </div>
+                      )}
+                    </td>
+
+                    {/* Ghi chú */}
+                    <td className="hidden md:table-cell">
+                      <span className="text-sm opacity-70 truncate max-w-[120px] inline-block">
+                        {user.note || "—"}
+                      </span>
+                    </td>
+
+                    {/* Gói VIP */}
+                    <td>
+                      <VipPlanBadge user={user} />
+                      <div className="mt-1">
+                        <select
+                          className="select select-bordered select-xs w-full max-w-[140px]"
+                          value={user.role === "celebrity" ? "__celebrity" : user.role === "free" ? "" : (user.vipPlanId || "vip_1month")}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === "__celebrity") {
+                              handleRoleChange(user, "celebrity");
+                            } else if (val === "") {
+                              handleVipPlanChange(user, "");
+                            } else {
+                              handleVipPlanChange(user, val);
+                            }
+                          }}
+                        >
+                          <option value="">Free</option>
+                          {VIP_PLAN_OPTIONS.filter((o) => o.value).map((opt) => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          ))}
+                          <option value="__celebrity">Celebrity</option>
+                        </select>
+                      </div>
+                    </td>
+
+                    {/* VIP Hết hạn */}
+                    <td className="hidden lg:table-cell">
+                      {user.vipExpireAt ? (
+                        <div className="text-xs">
+                          <div className="opacity-70">{formatDate(user.vipExpireAt)}</div>
+                          <div className={`font-semibold ${isExpired(user.vipExpireAt) ? "text-error" : "text-success"}`}>
+                            {isExpired(user.vipExpireAt) ? "Hết hạn" : `Còn ${remainingDays(user.vipExpireAt)} ngày`}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-xs opacity-40">—</span>
+                      )}
+                    </td>
+
+                    {/* AI Filter */}
+                    <td>
+                      <AiFilterBadge user={user} />
+                      <div className="mt-1">
+                        <select
+                          className="select select-bordered select-xs w-full max-w-[140px]"
+                          value={user.aiFilterEnabled ? (user.aiFilterPlanId || "ai_1month") : ""}
+                          onChange={(e) => handleAiPlanChange(user, e.target.value)}
+                        >
+                          {AI_PLAN_OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </td>
+
+                    {/* AI Hết hạn */}
+                    <td className="hidden lg:table-cell">
+                      {user.aiFilterExpireAt ? (
+                        <div className="text-xs">
+                          <div className="opacity-70">{formatDate(user.aiFilterExpireAt)}</div>
+                          <div className={`font-semibold ${isExpired(user.aiFilterExpireAt) ? "text-error" : "text-success"}`}>
+                            {isExpired(user.aiFilterExpireAt) ? "Hết hạn" : `Còn ${remainingDays(user.aiFilterExpireAt)} ngày`}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-xs opacity-40">—</span>
+                      )}
+                    </td>
+
+                    {/* Trạng thái */}
+                    <td>
+                      <span
+                        className={`inline-flex w-fit items-center gap-1 rounded-full px-2 py-1 text-xs ${
+                          user.active === false
+                            ? "bg-error/15 text-error"
+                            : "bg-success/15 text-success"
+                        }`}
+                      >
+                        {user.active === false ? <X size={12} /> : <Check size={12} />}
+                        {user.active === false ? "Tắt" : "Bật"}
+                      </span>
+                    </td>
+
+                    {/* Thao tác */}
+                    <td>
+                      <div className="flex justify-end gap-1">
+                        <button
+                          className="btn btn-ghost btn-xs"
+                          onClick={() => handleToggle(user)}
+                          title={user.active === false ? "Bật lại" : "Tắt quyền"}
+                        >
+                          {user.active === false ? <Check size={15} /> : <X size={15} />}
+                        </button>
+                        <button
+                          className="btn btn-ghost btn-xs text-error"
+                          onClick={() => handleDelete(user)}
+                          title="Xoá"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </section>
     </main>

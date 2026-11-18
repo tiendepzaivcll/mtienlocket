@@ -9,8 +9,12 @@ const {
 } = require("../services/Extensions/weatherCache");
 
 const APPROVED_USER_COLLECTION = "approved_users";
-const ACCESS_ROLES = new Set(["vip", "celebrity"]);
 const weatherCache = createWeatherCache();
+const {
+  resolveEffectiveAccess,
+  formatVipPlanName,
+  toTimestampMs,
+} = require("../utils/accessPlans");
 
 const normalizeAccessId = (value = "") =>
   String(value || "")
@@ -18,35 +22,66 @@ const normalizeAccessId = (value = "") =>
     .replace(/^@+/, "")
     .toLowerCase();
 
-const isApprovedDocEnabled = (data = {}) =>
-  data.active !== false &&
-  data.approved !== false &&
-  data.enabled !== false &&
-  data.disabled !== true;
-
-const normalizeAccessRole = (value = "vip") =>
-  ACCESS_ROLES.has(String(value || "").trim().toLowerCase())
-    ? String(value).trim().toLowerCase()
-    : "vip";
-
-const checkFirestoreApproval = async (username) => {
+const checkFirestoreApproval = async (username, userEmail = "") => {
   if (!db || !username) return { status: "not_found" };
 
-  const doc = await db.collection(APPROVED_USER_COLLECTION).doc(username).get();
+  const docRef = db.collection(APPROVED_USER_COLLECTION).doc(username);
+  const doc = await docRef.get();
   if (!doc.exists) return { status: "not_found" };
 
-  const data = doc.data();
+  let data = doc.data() || {};
 
-  // User exists but is disabled (active = false)
-  if (!isApprovedDocEnabled(data)) {
-    return { status: "disabled", ref: doc.ref };
+  // Backfill legacy subscription data if VIP doc didn't store vipExpireAt directly yet
+  if (data.role === "vip" && !data.vipExpireAt && !data.vipPlanId) {
+    try {
+      let subDoc = await db.collection("subscriptions").doc(username).get();
+      if (!subDoc.exists && userEmail) {
+        subDoc = await db.collection("subscriptions").doc(userEmail.toLowerCase()).get();
+      }
+      if (subDoc.exists) {
+        const subData = subDoc.data() || {};
+        const subExpire = toTimestampMs(subData.expireAt);
+        if (subExpire) {
+          const backfill = {
+            vipPlanId: subData.planId || null,
+            vipPlanName:
+              subData.planName ||
+              formatVipPlanName({ vipPlanDays: subData.planDays, role: "vip" }),
+            vipPlanDays: Number(subData.planDays) || null,
+            vipExpireAt: subExpire,
+          };
+          data = { ...data, ...backfill };
+          await docRef.set(backfill, { merge: true });
+        }
+      }
+    } catch (subErr) {
+      console.warn("⚠️ Không đọc được dữ liệu subscription dự phòng:", subErr.message);
+    }
+  }
+
+  const resolved = resolveEffectiveAccess(data);
+
+  if (!resolved.isEnabled) {
+    return { status: "disabled", ref: docRef };
+  }
+
+  if (resolved.needsPersist) {
+    await docRef.set(resolved.downgradePatch, { merge: true });
   }
 
   return {
     status: "approved",
-    role: normalizeAccessRole(data.role),
-    aiFilterEnabled: data.aiFilterEnabled === true,
-    ref: doc.ref,
+    role: resolved.effectiveRole,
+    aiFilterEnabled: resolved.effectiveAiEnabled,
+    vipPlanId: resolved.vipPlanId,
+    vipPlanName: resolved.vipPlanName,
+    vipPlanDays: resolved.vipPlanDays,
+    vipExpireAt: resolved.vipExpireAt,
+    aiFilterPlanId: resolved.aiFilterPlanId,
+    aiFilterPlanName: resolved.aiFilterPlanName,
+    aiFilterPlanDays: resolved.aiFilterPlanDays,
+    aiFilterExpireAt: resolved.aiFilterExpireAt,
+    ref: docRef,
   };
 };
 
@@ -329,7 +364,7 @@ class ApiController {
       const userInfo = await authServices.getUserInfoV2(idToken, localId);
       const username = normalizeAccessId(userInfo?.username);
 
-      const approval = await checkFirestoreApproval(username);
+      const approval = await checkFirestoreApproval(username, userInfo?.email || "");
 
       // User bị tắt (disabled) → chặn truy cập
       if (approval.status === "disabled") {
@@ -352,6 +387,11 @@ class ApiController {
             features: {
               aiFilter: false,
             },
+            vipPlanName: null,
+            vipPlanDays: null,
+            vipExpireAt: null,
+            aiFilterPlanName: null,
+            aiFilterExpireAt: null,
             source: "default",
           },
         });
@@ -375,39 +415,6 @@ class ApiController {
         { merge: true },
       );
 
-      // Fetch VIP subscription data if user has VIP role
-      let vipPlanName = null;
-      let vipExpireAt = null;
-      if (approval.role === "vip" && db) {
-        try {
-          const userEmail = (userInfo?.email || "").toLowerCase();
-          if (userEmail) {
-            const subDoc = await db.collection("subscriptions").doc(userEmail).get();
-            if (subDoc.exists) {
-              const subData = subDoc.data();
-              const planDays = subData.planDays;
-              vipExpireAt = subData.expireAt || null;
-              // Map planDays to Vietnamese plan name
-              if (planDays === 365 || planDays === 366) {
-                vipPlanName = "VIP 1 Năm";
-              } else if (planDays === 180 || planDays === 183) {
-                vipPlanName = "VIP 6 Tháng";
-              } else if (planDays === 90 || planDays === 91) {
-                vipPlanName = "VIP 3 Tháng";
-              } else if (planDays === 30 || planDays === 31) {
-                vipPlanName = "VIP 1 Tháng";
-              } else if (planDays) {
-                vipPlanName = `VIP ${planDays} Ngày`;
-              } else {
-                vipPlanName = "VIP";
-              }
-            }
-          }
-        } catch (vipErr) {
-          console.warn("⚠️ Không lấy được thông tin VIP:", vipErr.message);
-        }
-      }
-
       return res.status(200).json({
         success: true,
         data: {
@@ -417,8 +424,14 @@ class ApiController {
           features: {
             aiFilter: approval.aiFilterEnabled,
           },
-          vipPlanName,
-          vipExpireAt,
+          vipPlanId: approval.vipPlanId,
+          vipPlanName: approval.vipPlanName,
+          vipPlanDays: approval.vipPlanDays,
+          vipExpireAt: approval.vipExpireAt,
+          aiFilterPlanId: approval.aiFilterPlanId,
+          aiFilterPlanName: approval.aiFilterPlanName,
+          aiFilterPlanDays: approval.aiFilterPlanDays,
+          aiFilterExpireAt: approval.aiFilterExpireAt,
           source: "firestore",
         },
       });

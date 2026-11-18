@@ -1,15 +1,18 @@
 const { db } = require("../config/firebase-admin-config");
+const {
+  isApprovedDocEnabled,
+  toTimestampMs,
+  resolveEffectiveAccess,
+} = require("../utils/accessPlans");
 
 const APPROVED_USER_COLLECTION = "approved_users";
 
-const isApprovedDocEnabled = (data = {}) =>
-  data.active !== false &&
-  data.approved !== false &&
-  data.enabled !== false &&
-  data.disabled !== true;
-
-const hasAiFilterAccess = (data = {}) =>
-  isApprovedDocEnabled(data) && data.aiFilterEnabled === true;
+const hasAiFilterAccess = (data = {}, now = Date.now()) => {
+  if (!isApprovedDocEnabled(data) || data.aiFilterEnabled !== true) return false;
+  const expireAt = toTimestampMs(data.aiFilterExpireAt);
+  if (expireAt !== null && now > expireAt) return false;
+  return true;
+};
 
 const requireAiFilterAccess = async (req, res, next) => {
   try {
@@ -30,16 +33,26 @@ const requireAiFilterAccess = async (req, res, next) => {
       .where("uid", "==", uid)
       .limit(1)
       .get();
-    const access = snapshot.docs[0]?.data() || null;
+    const approvedDoc = snapshot.docs[0];
+    const access = approvedDoc?.data() || null;
+
+    if (access) {
+      const resolved = resolveEffectiveAccess(access);
+      if (resolved.needsPersist && approvedDoc?.ref) {
+        approvedDoc.ref.set(resolved.downgradePatch, { merge: true }).catch((err) => {
+          console.warn("⚠️ Không thể lưu trạng thái hết hạn AI Filter:", err.message);
+        });
+      }
+    }
 
     if (!access || !hasAiFilterAccess(access)) {
       return res.status(403).json({
         success: false,
         code: "AI_FILTER_PAYMENT_REQUIRED",
-        message: "Tính năng trả phí",
+        message: "AI Filter là gói bán riêng",
         data: {
-          title: "Tính năng trả phí",
-          description: "Liên hệ admin để sử dụng",
+          title: "AI Filter (Bán riêng)",
+          description: "Mua gói AI Filter tại trang Nâng cấp để sử dụng",
         },
       });
     }

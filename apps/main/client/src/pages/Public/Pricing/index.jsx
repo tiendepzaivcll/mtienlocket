@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Crown,
   Check,
@@ -26,6 +26,18 @@ import {
   SonnerWarning,
 } from "@/components/ui/SonnerToast";
 import { useAuthStore } from "@/stores/AuthStore";
+
+const DEFAULT_VIP_PLANS = [
+  { id: "vip_1month", name: "VIP 1 Tháng", price: 25000, days: 30, badge: null, category: "vip" },
+  { id: "vip_6months", name: "VIP 6 Tháng", price: 99000, days: 180, badge: "Phổ biến", category: "vip" },
+  { id: "vip_1year", name: "VIP 1 Năm", price: 149000, days: 365, badge: "Tốt nhất", category: "vip" },
+];
+
+const DEFAULT_AI_PLANS = [
+  { id: "ai_1month", name: "AI Filter 1 Tháng", price: 19000, days: 30, badge: null, category: "ai_filter" },
+  { id: "ai_6months", name: "AI Filter 6 Tháng", price: 79000, days: 180, badge: "Phổ biến", category: "ai_filter" },
+  { id: "ai_1year", name: "AI Filter 1 Năm", price: 129000, days: 365, badge: "Tốt nhất", category: "ai_filter" },
+];
 
 // ─── Feature comparison data ────────────────────────────────────────
 const FEATURE_ROWS = [
@@ -57,13 +69,6 @@ const FEATURE_ROWS = [
     isBoolean: true,
   },
   {
-    icon: Wand2,
-    label: "Bộ lọc AI",
-    free: false,
-    vip: true,
-    isBoolean: true,
-  },
-  {
     icon: Flame,
     label: "Khôi phục streak",
     free: false,
@@ -84,15 +89,30 @@ const FEATURE_ROWS = [
     vip: true,
     isBoolean: true,
   },
+  {
+    icon: Wand2,
+    label: "Bộ lọc AI (AI Filter)",
+    free: "Bán riêng",
+    vip: "Bán riêng",
+    isAddon: true,
+  },
 ];
 
 export default function PricingPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const user = useAuthStore((s) => s.user);
+  const aiSectionRef = useRef(null);
+
   const [plans, setPlans] = useState([]);
+  const [aiPlans, setAiPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(null);
   const [username, setUsername] = useState("");
+  const [activeTab, setActiveTab] = useState(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("tab") === "ai" ? "ai" : "vip";
+  });
 
   // Auto-fill username from logged-in user
   useEffect(() => {
@@ -102,19 +122,26 @@ export default function PricingPage() {
   }, [user]);
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("tab") === "ai") {
+      setActiveTab("ai");
+    }
+  }, [location.search]);
+
+  useEffect(() => {
     fetchPlans();
   }, []);
 
   const fetchPlans = async () => {
     try {
       const res = await instanceMain.get("/api/payment/plans");
-      setPlans(res.data?.data?.plans || []);
+      const fetchedVip = res.data?.data?.plans;
+      const fetchedAi = res.data?.data?.aiPlans;
+      setPlans(Array.isArray(fetchedVip) && fetchedVip.length ? fetchedVip : DEFAULT_VIP_PLANS);
+      setAiPlans(Array.isArray(fetchedAi) && fetchedAi.length ? fetchedAi : DEFAULT_AI_PLANS);
     } catch {
-      setPlans([
-        { id: "vip_1month", name: "VIP 1 Tháng", price: 25000, days: 30, badge: null },
-        { id: "vip_6months", name: "VIP 6 Tháng", price: 99000, days: 180, badge: "Phổ biến" },
-        { id: "vip_1year", name: "VIP 1 Năm", price: 149000, days: 365, badge: "Tốt nhất" },
-      ]);
+      setPlans(DEFAULT_VIP_PLANS);
+      setAiPlans(DEFAULT_AI_PLANS);
     } finally {
       setLoading(false);
     }
@@ -153,13 +180,110 @@ export default function PricingPage() {
     return Math.round(plan.price / months);
   };
 
-  const discount = (plan) => {
-    if (plans.length === 0) return 0;
-    const basePrice = plans[0]?.price;
+  const discount = (plan, list) => {
+    if (!list || list.length === 0) return 0;
+    const basePrice = list[0]?.price;
+    if (!basePrice) return 0;
     const months = plan.days / 30;
     const fullPrice = basePrice * months;
     return Math.round(((fullPrice - plan.price) / fullPrice) * 100);
   };
+
+  const renderPlanList = (planList, isAiCategory = false) => (
+    <div className="space-y-4">
+      {planList.map((plan) => {
+        const isPopular = plan.badge === "Phổ biến";
+        const isBest = plan.badge === "Tốt nhất";
+        const isHighlighted = isPopular || isBest;
+        const disc = discount(plan, planList);
+
+        return (
+          <div
+            key={plan.id}
+            className={`relative rounded-2xl p-[2px] transition-all ${
+              isHighlighted
+                ? isAiCategory
+                  ? "bg-gradient-to-r from-cyan-400 via-fuchsia-500 to-purple-500"
+                  : "bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500"
+                : "bg-white/10"
+            }`}
+          >
+            {plan.badge && (
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                <span
+                  className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
+                    isBest
+                      ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-black"
+                      : isAiCategory
+                        ? "bg-gradient-to-r from-cyan-500 to-fuchsia-500 text-white"
+                        : "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                  }`}
+                >
+                  {isBest ? <Star className="w-3 h-3" /> : <Zap className="w-3 h-3" />}
+                  {plan.badge}
+                </span>
+              </div>
+            )}
+
+            <div className={`rounded-2xl p-5 ${isHighlighted ? "bg-gray-900" : "bg-white/5"}`}>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-bold flex items-center gap-1.5">
+                    {isAiCategory && <Wand2 className="w-4 h-4 text-cyan-400" />}
+                    {plan.name}
+                  </h3>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span
+                      className={`text-2xl font-extrabold text-transparent bg-clip-text ${
+                        isAiCategory
+                          ? "bg-gradient-to-r from-cyan-300 to-fuchsia-400"
+                          : "bg-gradient-to-r from-purple-400 to-pink-400"
+                      }`}
+                    >
+                      {plan.price.toLocaleString("vi-VN")}đ
+                    </span>
+                    {disc > 0 && planList[0] && (
+                      <span className="text-xs line-through text-gray-500">
+                        {(planList[0].price * (plan.days / 30)).toLocaleString("vi-VN")}đ
+                      </span>
+                    )}
+                  </div>
+                  {plan.days > 30 ? (
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      ~{pricePerMonth(plan).toLocaleString("vi-VN")}đ/tháng
+                      {disc > 0 && (
+                        <span className="ml-2 text-green-400 font-bold">-{disc}%</span>
+                      )}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-gray-400 mt-0.5">Thời hạn {plan.days} ngày</p>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => handlePurchase(plan.id)}
+                  disabled={creating !== null}
+                  className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all shrink-0 ${
+                    isHighlighted
+                      ? isAiCategory
+                        ? "bg-gradient-to-r from-cyan-500 to-fuchsia-500 hover:from-cyan-600 hover:to-fuchsia-600 text-white shadow-lg shadow-cyan-500/20"
+                        : "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg shadow-purple-500/25"
+                      : "bg-white/10 hover:bg-white/20 text-white"
+                  } disabled:opacity-50`}
+                >
+                  {creating === plan.id ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    "Mua ngay"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 
   if (loading) {
     return (
@@ -186,11 +310,11 @@ export default function PricingPage() {
         <div className="text-center mb-6">
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold px-4 py-1.5 rounded-full text-sm mb-4">
             <Crown className="w-4 h-4" />
-            LOCKET VIP
+            CỬA HÀNG DỊCH VỤ
           </div>
           <h1 className="text-2xl font-bold mb-2">Nâng cấp trải nghiệm</h1>
           <p className="text-sm text-gray-400">
-            Mở khoá tất cả tính năng cao cấp
+            Chọn gói Locket VIP hoặc gói AI Filter bán riêng
           </p>
         </div>
 
@@ -211,87 +335,54 @@ export default function PricingPage() {
             />
           </div>
           <p className="text-xs text-gray-500 mt-1.5">
-            Nhập đúng username để hệ thống tự kích hoạt VIP sau thanh toán
+            Nhập đúng username Locket để hệ thống tự kích hoạt ngay sau khi chuyển khoản
           </p>
         </div>
 
-        {/* Plan cards */}
-        <div className="space-y-4 mb-8">
-          {plans.map((plan) => {
-            const isPopular = plan.badge === "Phổ biến";
-            const isBest = plan.badge === "Tốt nhất";
-            const isHighlighted = isPopular || isBest;
-            const disc = discount(plan);
-
-            return (
-              <div
-                key={plan.id}
-                className={`relative rounded-2xl p-[2px] transition-all ${
-                  isHighlighted
-                    ? "bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500"
-                    : "bg-white/10"
-                }`}
-              >
-                {plan.badge && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                    <span
-                      className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
-                        isBest
-                          ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-black"
-                          : "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
-                      }`}
-                    >
-                      {isBest ? <Star className="w-3 h-3" /> : <Zap className="w-3 h-3" />}
-                      {plan.badge}
-                    </span>
-                  </div>
-                )}
-
-                <div className={`rounded-2xl p-5 ${isHighlighted ? "bg-gray-900" : "bg-white/5"}`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-bold">{plan.name}</h3>
-                      <div className="flex items-baseline gap-2 mt-1">
-                        <span className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-                          {plan.price.toLocaleString("vi-VN")}đ
-                        </span>
-                        {disc > 0 && (
-                          <span className="text-xs line-through text-gray-500">
-                            {(plans[0].price * (plan.days / 30)).toLocaleString("vi-VN")}đ
-                          </span>
-                        )}
-                      </div>
-                      {plan.days > 30 && (
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          ~{pricePerMonth(plan).toLocaleString("vi-VN")}đ/tháng
-                          {disc > 0 && (
-                            <span className="ml-2 text-green-400 font-bold">-{disc}%</span>
-                          )}
-                        </p>
-                      )}
-                    </div>
-
-                    <button
-                      onClick={() => handlePurchase(plan.id)}
-                      disabled={creating !== null}
-                      className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
-                        isHighlighted
-                          ? "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg shadow-purple-500/25"
-                          : "bg-white/10 hover:bg-white/20 text-white"
-                      } disabled:opacity-50`}
-                    >
-                      {creating === plan.id ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        "Mua ngay"
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+        {/* Category Switcher */}
+        <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-white/5 border border-white/10 mb-6">
+          <button
+            type="button"
+            onClick={() => setActiveTab("vip")}
+            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold transition ${
+              activeTab === "vip"
+                ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-black shadow-md"
+                : "text-gray-300 hover:bg-white/5"
+            }`}
+          >
+            <Crown className="w-4 h-4" />
+            Gói VIP
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("ai")}
+            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold transition ${
+              activeTab === "ai"
+                ? "bg-gradient-to-r from-cyan-400 to-fuchsia-500 text-white shadow-md"
+                : "text-gray-300 hover:bg-white/5"
+            }`}
+          >
+            <Wand2 className="w-4 h-4" />
+            AI Filter (Riêng)
+          </button>
         </div>
+
+        {activeTab === "vip" ? (
+          <div className="mb-8 space-y-4">
+            <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 px-4 py-2.5 text-xs text-amber-200/90">
+              👑 <strong>Gói Locket VIP:</strong> Mở khoá Video dài, Photobooth 4 ô, Khung Camera, Caption đầy đủ, Công cụ Locket & Khôi phục chuỗi.{" "}
+              <span className="opacity-80">(Không bao gồm AI Filter — AI Filter bán riêng bên tab cạnh).</span>
+            </div>
+            {renderPlanList(plans, false)}
+          </div>
+        ) : (
+          <div ref={aiSectionRef} className="mb-8 space-y-4">
+            <div className="rounded-xl bg-cyan-500/10 border border-cyan-400/25 px-4 py-2.5 text-xs text-cyan-200/90">
+              ✨ <strong>Gói AI Filter (Bán riêng):</strong> Mở khoá toàn bộ kho hiệu ứng biến đổi ảnh bằng AI. Mua riêng độc lập — dùng được cho cả tài khoản <strong>Miễn phí</strong> lẫn <strong>VIP</strong>!
+            </div>
+            {renderPlanList(aiPlans, true)}
+          </div>
+        )}
 
         {/* Feature comparison */}
         <div className="bg-white/5 rounded-2xl p-5">
@@ -307,14 +398,22 @@ export default function PricingPage() {
           </div>
 
           <div className="space-y-3">
-            {FEATURE_ROWS.map(({ icon: Icon, label, free, vip, isBoolean }) => (
+            {FEATURE_ROWS.map(({ icon: Icon, label, free, vip, isBoolean, isAddon }) => (
               <div key={label} className="grid grid-cols-3 items-center text-xs">
                 <div className="flex items-center gap-2 text-gray-300">
                   <Icon className="w-3.5 h-3.5 flex-shrink-0 text-gray-500" />
                   <span>{label}</span>
                 </div>
                 <div className="text-center text-gray-500">
-                  {isBoolean ? (
+                  {isAddon ? (
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("ai")}
+                      className="px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-[11px] font-semibold hover:bg-cyan-500/25 transition"
+                    >
+                      {free}
+                    </button>
+                  ) : isBoolean ? (
                     free ? (
                       <Check className="w-4 h-4 text-green-500 mx-auto" />
                     ) : (
@@ -325,7 +424,15 @@ export default function PricingPage() {
                   )}
                 </div>
                 <div className="text-center text-green-400 font-medium">
-                  {isBoolean ? (
+                  {isAddon ? (
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("ai")}
+                      className="px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-[11px] font-semibold hover:bg-cyan-500/25 transition"
+                    >
+                      {vip}
+                    </button>
+                  ) : isBoolean ? (
                     vip ? (
                       <Check className="w-4 h-4 text-green-400 mx-auto" />
                     ) : (
@@ -342,7 +449,7 @@ export default function PricingPage() {
 
         {/* Footer note */}
         <p className="text-center text-xs text-gray-500 mt-6">
-          Thanh toán an toàn qua PayOS • Kích hoạt tự động sau thanh toán
+          Thanh toán an toàn qua PayOS • Tự động kích hoạt & tự rớt về Free khi hết hạn
         </p>
         <p className="text-center text-xs text-gray-500 mt-2 italic">
           ✨ Các tính năng VIP mới sẽ được admin cập nhật thêm trong tương lai

@@ -33,7 +33,7 @@ import { CONTACT_CONFIG } from "@/config";
 
 const allRoutes = [...publicRoutes, ...authRoutes, ...locketRoutes];
 const privateRoutes = [...authRoutes, ...locketRoutes];
-const sharedPublicPaths = ["/", "/home", "/privacy", "/admin", "/contact", "/download", "/newsfeed"];
+const sharedPublicPaths = ["/", "/home", "/privacy", "/admin", "/contact", "/download", "/newsfeed", "/pricing", "/pay", "/payment/result"];
 
 function App() {
   return (
@@ -225,7 +225,11 @@ function AppContent() {
           {(isAuth
             ? [
                 ...privateRoutes,
-                ...publicRoutes.filter((route) => sharedPublicPaths.includes(route.path)),
+                ...publicRoutes.filter(
+                  (route) =>
+                    sharedPublicPaths.includes(route.path) &&
+                    !privateRoutes.some((pr) => pr.path === route.path),
+                ),
               ]
             : publicRoutes
           ).map(

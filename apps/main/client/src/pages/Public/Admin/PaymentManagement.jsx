@@ -11,6 +11,7 @@ import {
   Search,
   Calendar,
   DollarSign,
+  Sparkles,
 } from "lucide-react";
 import {
   listPaymentOrders,
@@ -34,6 +35,21 @@ const formatDate = (val) => {
 const formatCurrency = (val) => {
   if (!val) return "—";
   return Number(val).toLocaleString("vi-VN") + "đ";
+};
+
+const CategoryBadge = ({ category }) => {
+  if (category === "ai_filter") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/15 text-violet-400 border border-violet-500/30 px-2 py-0.5 text-xs font-semibold">
+        <Sparkles size={11} /> AI Filter
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 px-2 py-0.5 text-xs font-semibold">
+      <Crown size={11} /> VIP
+    </span>
+  );
 };
 
 const StatusBadge = ({ status }) => {
@@ -167,9 +183,9 @@ export default function PaymentManagement({ onAuthExpired }) {
             <CreditCard size={18} />
           </div>
           <div className="text-left">
-            <h3 className="text-sm font-bold">Quản lý thanh toán VIP</h3>
+            <h3 className="text-sm font-bold">Quản lý thanh toán</h3>
             <p className="text-xs opacity-60">
-              {stats.paidOrders} đã thanh toán • {stats.activeSubs} VIP đang hoạt động •{" "}
+              {stats.paidOrders} đã thanh toán • {stats.activeSubs} đang hoạt động •{" "}
               {formatCurrency(stats.totalRevenue)} doanh thu
             </p>
           </div>
@@ -220,7 +236,7 @@ export default function PaymentManagement({ onAuthExpired }) {
                 }`}
               >
                 <Crown size={14} />
-                VIP ({subs.length})
+                VIP / AI ({subs.length})
               </button>
             </div>
 
@@ -268,6 +284,7 @@ export default function PaymentManagement({ onAuthExpired }) {
                   <tr>
                     <th className="text-xs">Mã đơn</th>
                     <th className="text-xs">Username</th>
+                    <th className="text-xs">Loại</th>
                     <th className="text-xs">Gói</th>
                     <th className="text-xs">Số tiền</th>
                     <th className="text-xs">Trạng thái</th>
@@ -278,7 +295,7 @@ export default function PaymentManagement({ onAuthExpired }) {
                 <tbody>
                   {filteredOrders.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="text-center py-6 opacity-50">
+                      <td colSpan={8} className="text-center py-6 opacity-50">
                         Không có đơn hàng nào
                       </td>
                     </tr>
@@ -287,6 +304,7 @@ export default function PaymentManagement({ onAuthExpired }) {
                       <tr key={order.id} className="hover:bg-base-200/30">
                         <td className="font-mono text-xs">#{order.orderCode}</td>
                         <td className="font-semibold">@{order.username || "—"}</td>
+                        <td><CategoryBadge category={order.planCategory} /></td>
                         <td className="text-xs">{order.planName || "—"}</td>
                         <td className="text-xs font-semibold">{formatCurrency(order.price)}</td>
                         <td><StatusBadge status={order.status} /></td>
@@ -304,7 +322,8 @@ export default function PaymentManagement({ onAuthExpired }) {
                 <thead className="bg-base-200">
                   <tr>
                     <th className="text-xs">Username</th>
-                    <th className="text-xs">Gói VIP</th>
+                    <th className="text-xs">Loại</th>
+                    <th className="text-xs">Gói</th>
                     <th className="text-xs">Thời hạn</th>
                     <th className="text-xs">Hết hạn</th>
                     <th className="text-xs">Trạng thái</th>
@@ -314,14 +333,15 @@ export default function PaymentManagement({ onAuthExpired }) {
                 <tbody>
                   {filteredSubs.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="text-center py-6 opacity-50">
-                        Chưa có gói VIP nào
+                      <td colSpan={7} className="text-center py-6 opacity-50">
+                        Chưa có gói nào
                       </td>
                     </tr>
                   ) : (
                     filteredSubs.map((sub) => (
                       <tr key={sub.id} className="hover:bg-base-200/30">
                         <td className="font-semibold">@{sub.username || sub.email || "—"}</td>
+                        <td><CategoryBadge category={sub.category} /></td>
                         <td className="text-xs">{sub.planName || "—"}</td>
                         <td className="text-xs">{sub.planDays ? `${sub.planDays} ngày` : "—"}</td>
                         <td className="text-xs opacity-70">{formatDate(sub.expireAt)}</td>

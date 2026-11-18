@@ -1,17 +1,11 @@
 const { db } = require("../config/firebase-admin-config");
+const { resolveEffectiveAccess } = require("../utils/accessPlans");
 
 const APPROVED_USER_COLLECTION = "approved_users";
 
-const isApprovedDocEnabled = (data = {}) =>
-  data.active !== false &&
-  data.approved !== false &&
-  data.enabled !== false &&
-  data.disabled !== true;
-
 /**
- * Middleware: cho phép tất cả user đã đăng nhập đi qua.
- * Gắn req.accessRole = role thực tế ("vip", "free", "celebrity")
- * Các tính năng VIP sẽ được kiểm tra riêng ở frontend hoặc từng endpoint.
+ * Middleware: cho phép tất cả user đã đăng nhập (trừ tài khoản bị khoá/disabled) đi qua.
+ * Tự động kiểm tra hạn VIP: nếu hết hạn → hạ xuống "free" tự động trong Firestore.
  */
 const requireVipAccess = async (req, res, next) => {
   try {
@@ -35,8 +29,14 @@ const requireVipAccess = async (req, res, next) => {
     const approvedDoc = snapshot.docs[0];
     const access = approvedDoc?.data() || null;
 
-    // Nếu user bị tắt (active = false) → chặn truy cập
-    if (access && !isApprovedDocEnabled(access)) {
+    if (!access) {
+      req.accessRole = "free";
+      return next();
+    }
+
+    const resolved = resolveEffectiveAccess(access);
+
+    if (!resolved.isEnabled) {
       return res.status(403).json({
         success: false,
         message: "Tài khoản của bạn đã bị vô hiệu hóa.",
@@ -44,16 +44,13 @@ const requireVipAccess = async (req, res, next) => {
       });
     }
 
-    // Nếu có doc và đang enabled → cho qua với role thực tế
-    if (access && isApprovedDocEnabled(access)) {
-      const role = String(access.role || "free").trim().toLowerCase();
-      req.accessRole = role;
-      return next();
+    if (resolved.needsPersist && approvedDoc?.ref) {
+      approvedDoc.ref.set(resolved.downgradePatch, { merge: true }).catch((err) => {
+        console.warn("⚠️ Không thể cập nhật trạng thái hết hạn VIP:", err.message);
+      });
     }
 
-    // Nếu không tìm thấy doc bằng uid → vẫn cho qua với role "free"
-    // (trường hợp user mới đăng nhập, chưa kịp sync uid vào approved_users)
-    req.accessRole = "free";
+    req.accessRole = resolved.effectiveRole;
     return next();
   } catch (error) {
     console.error("❌ Lỗi kiểm tra quyền:", error);

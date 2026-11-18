@@ -29,6 +29,7 @@ const {
   assertProductionReadiness,
 } = require("./src/services/System/productionReadiness.js");
 const { startWorker: startSlotMonitorWorker } = require("./src/services/SlotMonitor");
+const { startVipExpiryWorker } = require("./src/services/System/vipExpiryWorker");
 
 const app = express();
 app.set("trust proxy", 1);
@@ -199,6 +200,7 @@ if (require.main === module) {
     logInfo("SERVER", `Server backend is running at localhost:${PORT}`);
     logInfo("SOCKET", `Socket.IO is ready on port ${PORT}`);
     startSlotMonitorWorker();
+    startVipExpiryWorker();
   });
 }
 
