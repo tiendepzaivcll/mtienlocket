@@ -76,9 +76,13 @@ const GenerateAiButton = () => {
       setSizeMedia((generatedFile.size / (1024 * 1024)).toFixed(2));
       setSelectedAiFilter(null);
 
-      decrementAiCredit();
-      const remaining = Math.max(0, (aiCredits || 1) - 1);
-      SonnerSuccess("Tạo ảnh AI thành công!", `Còn lại ${remaining} lượt.`);
+      const serverRemaining =
+        typeof result?.remainingCredits === "number"
+          ? result.remainingCredits
+          : Math.max(0, (aiCredits || 1) - 1);
+
+      useAuthStore.getState().setAiCredits(serverRemaining);
+      SonnerSuccess("Tạo ảnh AI thành công!", `Còn lại ${serverRemaining} lượt.`);
     } catch (error) {
       if (error?.response?.data?.code === "AI_FILTER_OUT_OF_CREDITS") {
         setSelectedAiFilter(null);

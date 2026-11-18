@@ -99,7 +99,13 @@ export const useAuthStore = create((set) => ({
   aiFilterPlanDays: null,
   aiFilterExpireAt: null,
 
-  setAiCredits: (aiCredits) => set({ aiCredits }),
+  setAiCredits: (aiCredits) => {
+    const credits = Math.max(0, Number(aiCredits) || 0);
+    set({
+      aiCredits: credits,
+      aiFilterEnabled: credits > 0,
+    });
+  },
   decrementAiCredit: () =>
     set((state) => ({
       aiCredits: Math.max(0, (state.aiCredits || 0) - 1),
