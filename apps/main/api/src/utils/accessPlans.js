@@ -44,6 +44,17 @@ const VIP_PLANS = [
     category: "vip",
     badge: "Tiết kiệm",
   },
+  {
+    id: "vip_lifetime",
+    name: "VIP Vĩnh viễn",
+    description: "Đặc quyền VIP trọn đời không giới hạn thời gian (Admin cấp)",
+    price: 0,
+    days: null,
+    bonusAiCredits: 0,
+    category: "vip",
+    badge: "Vĩnh viễn",
+    adminOnly: true,
+  },
 ];
 
 const AI_FILTER_PLANS = [
@@ -134,6 +145,7 @@ const toTimestampMs = (value) => {
 
 const formatVipPlanName = ({ vipPlanId, vipPlanName, vipPlanDays, role } = {}) => {
   if (vipPlanName && typeof vipPlanName === "string") return vipPlanName;
+  if (vipPlanId === "vip_lifetime") return "VIP Vĩnh viễn";
   if (vipPlanId && PLANS_MAP.has(vipPlanId)) return PLANS_MAP.get(vipPlanId).name;
   const days = Number(vipPlanDays);
   if (days === 1) return "VIP Dùng thử (1 ngày)";
@@ -153,6 +165,16 @@ const formatAiFilterPlanName = ({ aiCredits } = {}) => {
 };
 
 const resolveAdminVipSelection = ({ vipPlanId, planDays } = {}, now = Date.now()) => {
+  if (vipPlanId === "vip_lifetime") {
+    return {
+      vipPlanId: "vip_lifetime",
+      vipPlanName: "VIP Vĩnh viễn",
+      vipPlanDays: null,
+      vipExpireAt: null,
+      bonusAiCredits: 0,
+    };
+  }
+
   if (vipPlanId && PLANS_MAP.has(vipPlanId)) {
     const plan = PLANS_MAP.get(vipPlanId);
     if (plan.category === "vip") {
@@ -160,7 +182,7 @@ const resolveAdminVipSelection = ({ vipPlanId, planDays } = {}, now = Date.now()
         vipPlanId: plan.id,
         vipPlanName: plan.name,
         vipPlanDays: plan.days,
-        vipExpireAt: now + plan.days * DAY_MS,
+        vipExpireAt: plan.days ? now + plan.days * DAY_MS : null,
         bonusAiCredits: plan.bonusAiCredits || 0,
       };
     }

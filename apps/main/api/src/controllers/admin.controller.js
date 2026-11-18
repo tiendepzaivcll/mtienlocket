@@ -188,15 +188,15 @@ class AdminController {
 
       await ref.set(record, { merge: true });
 
-      if (role === "vip" && vipFields.vipExpireAt) {
+      if (role === "vip") {
         await db.collection(SUBSCRIPTIONS_COLLECTION).doc(username).set(
           {
             username,
             category: "vip",
             planId: vipFields.vipPlanId,
             planName: vipFields.vipPlanName,
-            planDays: vipFields.vipPlanDays,
-            expireAt: vipFields.vipExpireAt,
+            planDays: vipFields.vipPlanDays || null,
+            expireAt: vipFields.vipExpireAt || null,
             updatedAt: nowIso,
             createdAt: nowIso,
           },
@@ -295,15 +295,15 @@ class AdminController {
         );
         Object.assign(data, vipSel);
 
-        if (vipSel.vipExpireAt) {
+        if (vipSel.vipPlanId) {
           await db.collection(SUBSCRIPTIONS_COLLECTION).doc(username).set(
             {
               username,
               category: "vip",
               planId: vipSel.vipPlanId,
               planName: vipSel.vipPlanName,
-              planDays: vipSel.vipPlanDays,
-              expireAt: vipSel.vipExpireAt,
+              planDays: vipSel.vipPlanDays || null,
+              expireAt: vipSel.vipExpireAt || null,
               updatedAt: nowIso,
             },
             { merge: true },

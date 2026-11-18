@@ -125,7 +125,7 @@ class PaymentController {
     return res.status(200).json({
       success: true,
       data: {
-        plans: VIP_PLANS,
+        plans: VIP_PLANS.filter((p) => !p.adminOnly),
         aiPlans: AI_FILTER_PLANS,
         features: VIP_FEATURES,
       },
@@ -197,7 +197,8 @@ class PaymentController {
         hasUsedTrial: true,
         trialClaimedAt: nowIso,
         updatedAt: nowIso,
-        ...(userDoc.exists ? {} : { createdAt: nowIso, note: "Gói dùng thử 1 ngày" }),
+        note: userData?.note ? `${userData.note} (Đã dùng thử 1N)` : "Tài khoản đã dùng thử (1 ngày)",
+        ...(userDoc.exists ? {} : { createdAt: nowIso }),
       };
 
       await userRef.set(updatePayload, { merge: true });
@@ -256,6 +257,13 @@ class PaymentController {
         return res.status(400).json({
           success: false,
           message: "Gói dịch vụ không hợp lệ",
+        });
+      }
+
+      if (plan.adminOnly) {
+        return res.status(400).json({
+          success: false,
+          message: "Gói này chỉ do Quản trị viên cấp trực tiếp.",
         });
       }
 

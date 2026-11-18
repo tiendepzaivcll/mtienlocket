@@ -23,8 +23,11 @@ import {
   Crown,
   Clock,
   Sparkles,
+  Gift,
+  Loader2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { instanceMain } from "@/libs/instanceMain";
 import { useAuthStore, useUploadQueueStore } from "@/stores";
 import { useApp } from "@/context/AppContext";
 import { useTheme } from "@/hooks/useTheme";
@@ -34,7 +37,17 @@ import ThemeSelector from "@/components/Theme/ThemeSelector";
 
 export default function UserSettingsModal({ isOpen, onClose }) {
   const navigate = useNavigate();
-  const { user, clearAndlogout, accessRole, vipPlanName, vipExpireAt, aiCredits } = useAuthStore();
+  const {
+    user,
+    clearAndlogout,
+    accessRole,
+    vipPlanId,
+    vipPlanName,
+    vipExpireAt,
+    aiCredits,
+    hasUsedTrial,
+    refreshAccessRole,
+  } = useAuthStore();
   const { camera, useloading } = useApp();
   const queueBusy = useUploadQueueStore((state) => state.isQueueRunning ||
     state.uploadItems.some((item) => item.status === "queued" || item.status === "uploading"));
@@ -43,6 +56,38 @@ export default function UserSettingsModal({ isOpen, onClose }) {
   const { theme } = useTheme();
   const [sessionAction, setSessionAction] = useState(null);
   const endingSessionRef = useRef(false);
+  const [claimingTrial, setClaimingTrial] = useState(false);
+
+  const handleClaimTrial = async () => {
+    const rawUsername = user?.username || "";
+    const trimmed = rawUsername.trim().replace(/^@+/, "");
+    if (!trimmed) {
+      SonnerError("Không tìm thấy username của bạn", "Vui lòng kiểm tra lại tài khoản.");
+      return;
+    }
+    setClaimingTrial(true);
+    try {
+      const res = await instanceMain.post("/api/payment/claim-trial", {
+        username: trimmed,
+      });
+      if (res.data?.success) {
+        SonnerSuccess(
+          "Kích hoạt dùng thử thành công!",
+          "Bạn có 24 giờ VIP trọn bộ + 1 lượt tạo ảnh AI miễn phí!"
+        );
+        await refreshAccessRole();
+      } else {
+        SonnerError("Không thể kích hoạt", res.data?.message || "Vui lòng thử lại sau.");
+      }
+    } catch (err) {
+      SonnerError(
+        "Lỗi kích hoạt dùng thử",
+        err.response?.data?.message || "Không thể kết nối đến máy chủ."
+      );
+    } finally {
+      setClaimingTrial(false);
+    }
+  };
 
   const [copiedUid, setCopiedUid] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
@@ -225,73 +270,216 @@ export default function UserSettingsModal({ isOpen, onClose }) {
               Gói dịch vụ
             </h3>
             {accessRole === "vip" ? (
+              vipPlanId === "vip_trial" || (vipPlanName && vipPlanName.includes("Dùng thử")) ? (
+                /* VIP Dùng Thử Card */
+                <div
+                  className="rounded-2xl border border-emerald-500/40 overflow-hidden shadow-lg"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(20,184,166,0.12) 50%, rgba(6,182,212,0.18) 100%)",
+                  }}
+                >
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400/30 to-teal-500/30 border border-emerald-400/40 flex items-center justify-center shrink-0">
+                        <Gift size={20} className="text-emerald-400" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-bold text-emerald-300">
+                            VIP Dùng Thử (1 Ngày)
+                          </p>
+                          <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
+                            Đang trải nghiệm
+                          </span>
+                        </div>
+                        <p className="text-xs text-emerald-200/70 mt-0.5">
+                          24h full VIP + tặng 1 ảnh AI miễn phí
+                        </p>
+                      </div>
+                    </div>
+
+                    {vipExpireAt && (
+                      <>
+                        <div className="h-px bg-emerald-500/15" />
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+                            <Clock size={16} className="text-emerald-400/80" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs text-gray-400">Thời gian còn lại</p>
+                            <p className="text-sm font-semibold text-emerald-300">
+                              {(() => {
+                                const diff = vipExpireAt - Date.now();
+                                if (diff <= 0) return "Đã hết hạn";
+                                const hours = Math.floor(diff / (1000 * 60 * 60));
+                                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                                if (hours > 0) return `Còn ${hours} giờ ${minutes} phút`;
+                                return `Còn ${minutes} phút`;
+                              })()}
+                            </p>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        navigate("/pricing");
+                      }}
+                      className="w-full py-2.5 rounded-xl text-xs font-bold text-white transition flex items-center justify-center gap-2 shadow-md"
+                      style={{
+                        background: "linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%)",
+                      }}
+                    >
+                      <Crown size={14} />
+                      Nâng cấp gói VIP chính thức
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* VIP Chính thức / Vĩnh viễn */
+                <div
+                  className="rounded-2xl border border-amber-500/30 overflow-hidden"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(217,119,6,0.08) 50%, rgba(180,83,9,0.12) 100%)",
+                  }}
+                >
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400/30 to-orange-500/30 border border-amber-400/40 flex items-center justify-center shrink-0">
+                        <Crown size={20} className="text-amber-400" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-bold text-amber-300">
+                            {vipPlanName || "VIP"}
+                          </p>
+                          <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                            {vipPlanId === "vip_lifetime" || !vipExpireAt ? "👑 Trọn đời" : "Đang hoạt động"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-amber-200/60 mt-0.5">
+                          {vipPlanId === "vip_lifetime" || !vipExpireAt
+                            ? "Đặc quyền VIP trọn đời không giới hạn"
+                            : "Thành viên cao cấp"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {vipExpireAt ? (
+                      <>
+                        <div className="h-px bg-amber-500/15" />
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                            <CalendarClock size={16} className="text-amber-400/70" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs text-gray-400">Thời hạn</p>
+                            <p className="text-sm text-amber-200/90 font-medium">
+                              {(() => {
+                                const expireDate = new Date(vipExpireAt);
+                                const planDaysMap = { "VIP 1 Năm": 365, "VIP 6 Tháng": 180, "VIP 3 Tháng": 90, "VIP 1 Tháng": 30 };
+                                const days = planDaysMap[vipPlanName] || 30;
+                                const startDate = new Date(vipExpireAt - days * 24 * 60 * 60 * 1000);
+                                return `${startDate.toLocaleDateString("vi-VN")} → ${expireDate.toLocaleDateString("vi-VN")}`;
+                              })()}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                            <Clock size={16} className="text-amber-400/70" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs text-gray-400">Còn lại</p>
+                            <p className="text-sm font-semibold text-amber-300">
+                              {(() => {
+                                const remaining = Math.ceil((vipExpireAt - Date.now()) / (24 * 60 * 60 * 1000));
+                                return remaining > 0 ? `${remaining} ngày` : "Đã hết hạn";
+                              })()}
+                            </p>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-2.5 text-xs text-amber-200 flex items-center gap-2">
+                        <Crown size={15} className="text-amber-400 shrink-0" />
+                        <span>Tài khoản VIP Vĩnh viễn không bao giờ hết hạn.</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            ) : !hasUsedTrial ? (
+              /* Gói Dùng Thử 1 Ngày 0đ (Hiển thị ngay cho user chưa dùng thử) */
               <div
-                className="rounded-2xl border border-amber-500/30 overflow-hidden"
+                className="rounded-2xl border border-emerald-500/40 overflow-hidden shadow-xl"
                 style={{
-                  background: "linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(217,119,6,0.08) 50%, rgba(180,83,9,0.12) 100%)",
+                  background:
+                    "linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(20,184,166,0.12) 50%, rgba(6,182,212,0.18) 100%)",
                 }}
               >
                 <div className="p-4 space-y-3">
-                  {/* VIP Badge & Plan Name */}
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400/30 to-orange-500/30 border border-amber-400/40 flex items-center justify-center shrink-0">
-                      <Crown size={20} className="text-amber-400" />
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400/30 to-teal-500/30 border border-emerald-400/40 flex items-center justify-center shrink-0">
+                      <Gift size={20} className="text-emerald-400" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-bold text-amber-300">
-                          {vipPlanName || "VIP"}
+                        <p className="text-sm font-bold text-emerald-300">
+                          Gói Dùng Thử 1 Ngày (0đ)
                         </p>
-                        <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                          Đang hoạt động
+                        <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
+                          Miễn phí 1 lần
                         </span>
                       </div>
-                      <p className="text-xs text-amber-200/60 mt-0.5">Thành viên cao cấp</p>
+                      <p className="text-xs text-emerald-200/70 mt-0.5">
+                        Mở full tính năng VIP 24h & tặng 1 ảnh AI
+                      </p>
                     </div>
                   </div>
 
-                  {/* Validity Period */}
-                  {vipExpireAt && (
-                    <>
-                      <div className="h-px bg-amber-500/15" />
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
-                          <CalendarClock size={16} className="text-amber-400/70" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs text-gray-400">Thời hạn</p>
-                          <p className="text-sm text-amber-200/90 font-medium">
-                            {(() => {
-                              const now = Date.now();
-                              const expireDate = new Date(vipExpireAt);
-                              const planDaysMap = { "VIP 1 Năm": 365, "VIP 6 Tháng": 180, "VIP 3 Tháng": 90, "VIP 1 Tháng": 30 };
-                              const days = planDaysMap[vipPlanName] || 30;
-                              const startDate = new Date(vipExpireAt - days * 24 * 60 * 60 * 1000);
-                              return `${startDate.toLocaleDateString("vi-VN")} → ${expireDate.toLocaleDateString("vi-VN")}`;
-                            })()}
-                          </p>
-                        </div>
-                      </div>
+                  <button
+                    type="button"
+                    onClick={handleClaimTrial}
+                    disabled={claimingTrial}
+                    className="w-full py-2.5 rounded-xl text-sm font-bold text-black transition flex items-center justify-center gap-2 shadow-lg disabled:opacity-50"
+                    style={{
+                      background: "linear-gradient(135deg, #10b981 0%, #14b8a6 50%, #06b6d4 100%)",
+                    }}
+                  >
+                    {claimingTrial ? (
+                      <>
+                        <Loader2 size={16} className="animate-spin" />
+                        Đang kích hoạt...
+                      </>
+                    ) : (
+                      <>
+                        <Gift size={16} />
+                        Kích hoạt Dùng Thử 0đ Ngay
+                      </>
+                    )}
+                  </button>
 
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
-                          <Clock size={16} className="text-amber-400/70" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs text-gray-400">Còn lại</p>
-                          <p className="text-sm font-semibold text-amber-300">
-                            {(() => {
-                              const remaining = Math.ceil((vipExpireAt - Date.now()) / (24 * 60 * 60 * 1000));
-                              return remaining > 0 ? `${remaining} ngày` : "Đã hết hạn";
-                            })()}
-                          </p>
-                        </div>
-                      </div>
-                    </>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      navigate("/pricing");
+                    }}
+                    className="w-full text-center text-xs text-gray-400 hover:text-white transition pt-1"
+                  >
+                    Hoặc xem các gói VIP chính thức →
+                  </button>
                 </div>
               </div>
             ) : (
+              /* Gói Free (Đã dùng thử) */
               <div className="rounded-2xl bg-white/[0.04] border border-white/5 overflow-hidden">
                 <div className="p-4 space-y-3">
                   <div className="flex items-center gap-3">
@@ -299,8 +487,15 @@ export default function UserSettingsModal({ isOpen, onClose }) {
                       <Sparkles size={20} className="text-gray-400" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-white">Gói Miễn Phí</p>
-                      <p className="text-xs text-gray-400">Nâng cấp để mở khóa tính năng cao cấp</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-white">Gói Miễn Phí</p>
+                        <span className="px-2 py-0.5 text-[9px] font-bold rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                          Đã dùng thử 1N
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        Nâng cấp VIP để mở khóa không giới hạn tính năng
+                      </p>
                     </div>
                   </div>
                   <button

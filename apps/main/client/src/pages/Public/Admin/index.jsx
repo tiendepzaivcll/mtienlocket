@@ -7,11 +7,12 @@ import {
   RefreshCw,
   ShieldCheck,
   Sparkles,
-  Star,
+  Search,
   Trash2,
   X,
   AlertTriangle,
   Gift,
+  ArrowUpDown,
 } from "lucide-react";
 import {
   addApprovedUser,
@@ -39,6 +40,7 @@ const normalizeUsername = (value = "") =>
 
 const VIP_PLAN_OPTIONS = [
   { value: "", label: "— Free —" },
+  { value: "vip_lifetime", label: "👑 VIP Vĩnh viễn" },
   { value: "vip_trial", label: "VIP Dùng thử (1 ngày)" },
   { value: "vip_1month", label: "VIP 1 Tháng (30 ngày)" },
   { value: "vip_6months", label: "VIP 6 Tháng (180 ngày)" },
@@ -69,17 +71,17 @@ const remainingDays = (expireAt) => {
 };
 
 const VipPlanBadge = ({ user }) => {
-  if (user.role === "celebrity") {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-info/15 text-info border border-info/30 px-2 py-0.5 text-xs font-semibold">
-        <Star size={12} /> Celebrity
-      </span>
-    );
-  }
   if (user.role !== "vip" || !user.vipPlanName) {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-gray-500/15 text-gray-400 border border-gray-500/30 px-2 py-0.5 text-xs font-semibold">
         Free
+      </span>
+    );
+  }
+  if (user.vipPlanId === "vip_lifetime" || !user.vipExpireAt) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2 py-0.5 text-xs font-bold">
+        <Crown size={12} /> VIP Vĩnh viễn
       </span>
     );
   }
@@ -119,16 +121,25 @@ export default function AdminPanel() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Tìm kiếm, phân chia gói & sắp xếp
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterTab, setFilterTab] = useState("all");
+  const [sortOrder, setSortOrder] = useState("abc"); // "abc" | "zyx" | "newest"
+
   const activeCount = useMemo(
     () => users.filter((user) => user.active !== false).length,
     [users],
   );
   const vipCount = useMemo(
-    () => users.filter((user) => user.active !== false && user.role === "vip" && !isExpired(user.vipExpireAt)).length,
+    () => users.filter((user) => user.active !== false && user.role === "vip" && (!user.vipExpireAt || !isExpired(user.vipExpireAt))).length,
     [users],
   );
-  const celebrityCount = useMemo(
-    () => users.filter((user) => user.active !== false && user.role === "celebrity").length,
+  const lifetimeCount = useMemo(
+    () => users.filter((user) => user.active !== false && user.role === "vip" && (user.vipPlanId === "vip_lifetime" || !user.vipExpireAt)).length,
+    [users],
+  );
+  const trialCount = useMemo(
+    () => users.filter((user) => user.hasUsedTrial || user.vipPlanId === "vip_trial" || user.vipPlanName?.includes("Dùng thử")).length,
     [users],
   );
   const aiUsersCount = useMemo(
@@ -136,9 +147,67 @@ export default function AdminPanel() {
     [users],
   );
   const expiredVipCount = useMemo(
-    () => users.filter((user) => user.lastExpiredVipPlan || (user.vipExpireAt && isExpired(user.vipExpireAt))).length,
+    () => users.filter((user) => user.active === false || user.lastExpiredVipPlan || (user.vipExpireAt && isExpired(user.vipExpireAt))).length,
     [users],
   );
+
+  const tabCounts = useMemo(() => ({
+    all: users.length,
+    vip_1month: users.filter((u) => u.role === "vip" && (u.vipPlanId === "vip_1month" || u.vipPlanDays === 30 || u.vipPlanName?.includes("1 Tháng"))).length,
+    vip_6months: users.filter((u) => u.role === "vip" && (u.vipPlanId === "vip_6months" || u.vipPlanDays === 180 || u.vipPlanName?.includes("6 Tháng"))).length,
+    vip_1year: users.filter((u) => u.role === "vip" && (u.vipPlanId === "vip_1year" || u.vipPlanDays === 365 || u.vipPlanName?.includes("1 Năm"))).length,
+    vip_lifetime: users.filter((u) => u.role === "vip" && (u.vipPlanId === "vip_lifetime" || (!u.vipExpireAt && !u.vipPlanDays))).length,
+    trial: users.filter((u) => u.hasUsedTrial || u.vipPlanId === "vip_trial" || u.vipPlanName?.includes("Dùng thử")).length,
+    ai: users.filter((u) => (u.aiCredits || 0) > 0 || u.aiFilterEnabled).length,
+    expired: users.filter((u) => u.active === false || (u.role === "vip" && u.vipExpireAt && isExpired(u.vipExpireAt)) || u.lastExpiredVipPlan).length,
+  }), [users]);
+
+  const filteredUsers = useMemo(() => {
+    let list = [...users];
+
+    // 1. Phân loại theo gói / tab
+    if (filterTab === "vip_1month") {
+      list = list.filter((u) => u.role === "vip" && (u.vipPlanId === "vip_1month" || u.vipPlanDays === 30 || u.vipPlanName?.includes("1 Tháng")));
+    } else if (filterTab === "vip_6months") {
+      list = list.filter((u) => u.role === "vip" && (u.vipPlanId === "vip_6months" || u.vipPlanDays === 180 || u.vipPlanName?.includes("6 Tháng")));
+    } else if (filterTab === "vip_1year") {
+      list = list.filter((u) => u.role === "vip" && (u.vipPlanId === "vip_1year" || u.vipPlanDays === 365 || u.vipPlanName?.includes("1 Năm")));
+    } else if (filterTab === "vip_lifetime") {
+      list = list.filter((u) => u.role === "vip" && (u.vipPlanId === "vip_lifetime" || (!u.vipExpireAt && !u.vipPlanDays)));
+    } else if (filterTab === "trial") {
+      list = list.filter((u) => u.hasUsedTrial || u.vipPlanId === "vip_trial" || u.vipPlanName?.includes("Dùng thử"));
+    } else if (filterTab === "ai") {
+      list = list.filter((u) => (u.aiCredits || 0) > 0 || u.aiFilterEnabled);
+    } else if (filterTab === "expired") {
+      list = list.filter((u) => u.active === false || (u.role === "vip" && u.vipExpireAt && isExpired(u.vipExpireAt)) || u.lastExpiredVipPlan);
+    }
+
+    // 2. Tìm kiếm theo username hoặc ghi chú
+    const q = searchQuery.trim().toLowerCase().replace(/^@+/, "");
+    if (q) {
+      list = list.filter((u) => {
+        const uname = String(u.username || "").toLowerCase();
+        const unote = String(u.note || "").toLowerCase();
+        return uname.includes(q) || unote.includes(q);
+      });
+    }
+
+    // 3. Sắp xếp theo bảng chữ cái A-Z (mặc định), Z-A, hoặc Mới nhất
+    list.sort((a, b) => {
+      if (sortOrder === "zyx") {
+        return (b.username || "").localeCompare(a.username || "", "vi", { sensitivity: "base" });
+      }
+      if (sortOrder === "newest") {
+        const timeA = new Date(a.createdAt || a.updatedAt || 0).getTime();
+        const timeB = new Date(b.createdAt || b.updatedAt || 0).getTime();
+        return timeB - timeA;
+      }
+      // Mặc định: bảng chữ cái ABC
+      return (a.username || "").localeCompare(b.username || "", "vi", { sensitivity: "base" });
+    });
+
+    return list;
+  }, [users, filterTab, searchQuery, sortOrder]);
 
   const fetchUsers = async () => {
     if (!getAdminToken()) return;
@@ -241,7 +310,7 @@ export default function AdminPanel() {
       ) {
         setAccessRole(nextRole);
       }
-      SonnerSuccess(`Đã đổi @${user.username} sang ${nextRole === "vip" ? "VIP" : nextRole === "celebrity" ? "Celebrity" : "Free"}.`);
+      SonnerSuccess(`Đã đổi @${user.username} sang ${nextRole === "vip" ? "VIP" : "Free"}.`);
     } catch {
       SonnerError("Không cập nhật được loại quyền.");
     }
@@ -357,15 +426,18 @@ export default function AdminPanel() {
               <span className="inline-flex items-center gap-1 rounded-md bg-warning/15 px-2 py-1 text-warning">
                 <Crown size={13} /> {vipCount} VIP
               </span>
-              <span className="inline-flex items-center gap-1 rounded-md bg-info/15 px-2 py-1 text-info">
-                <Star size={13} /> {celebrityCount} Celebrity
+              <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-1 text-amber-300">
+                👑 {lifetimeCount} Vĩnh viễn
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/15 px-2 py-1 text-emerald-400">
+                <Gift size={13} /> {trialCount} Đã dùng thử
               </span>
               <span className="inline-flex items-center gap-1 rounded-md bg-secondary/15 px-2 py-1 text-secondary">
                 <Sparkles size={13} /> {aiUsersCount} Có lượt AI
               </span>
               {expiredVipCount > 0 && (
                 <span className="inline-flex items-center gap-1 rounded-md bg-error/15 px-2 py-1 text-error">
-                  <AlertTriangle size={13} /> {expiredVipCount} Hết hạn
+                  <AlertTriangle size={13} /> {expiredVipCount} Hết hạn / Khóa
                 </span>
               )}
             </div>
@@ -407,7 +479,7 @@ export default function AdminPanel() {
                 className="input input-bordered mt-1 w-full"
                 value={username}
                 onChange={(event) => setUsername(event.target.value)}
-                placeholder="vd: t97"
+                placeholder="Nhập username"
               />
             </label>
             <label className="form-control">
@@ -423,15 +495,10 @@ export default function AdminPanel() {
               <span className="label-text">Gói VIP</span>
               <select
                 className="select select-bordered mt-1 w-full"
-                value={role === "celebrity" ? "" : vipPlanId}
+                value={vipPlanId}
                 onChange={(e) => {
-                  if (e.target.value) {
-                    setRole("vip");
-                    setVipPlanId(e.target.value);
-                  } else {
-                    setRole("vip");
-                    setVipPlanId("");
-                  }
+                  setRole("vip");
+                  setVipPlanId(e.target.value);
                 }}
               >
                 {VIP_PLAN_OPTIONS.map((opt) => (
@@ -454,7 +521,7 @@ export default function AdminPanel() {
           <div className="flex items-center gap-3">
             <fieldset>
               <legend className="label-text mb-1">Loại quyền</legend>
-              <div className="grid h-10 grid-cols-3 rounded-lg border border-base-300 bg-base-100 p-1 w-fit">
+              <div className="grid h-10 grid-cols-2 rounded-lg border border-base-300 bg-base-100 p-1 w-fit">
                 <button
                   type="button"
                   onClick={() => setRole("vip")}
@@ -463,15 +530,6 @@ export default function AdminPanel() {
                   }`}
                 >
                   <Crown size={13} /> VIP
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole("celebrity")}
-                  className={`flex items-center justify-center gap-1 rounded-md px-3 text-xs font-semibold ${
-                    role === "celebrity" ? "bg-info text-info-content" : "hover:bg-base-200"
-                  }`}
-                >
-                  <Star size={13} /> Celebrity
                 </button>
                 <button
                   type="button"
@@ -490,6 +548,84 @@ export default function AdminPanel() {
             </button>
           </div>
         </form>
+
+        {/* Search Bar, Filter Tabs & Sort Toolbar */}
+        <div className="space-y-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            {/* Search Input for Username / Note */}
+            <div className="relative flex-1 max-w-md">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50" />
+              <input
+                type="text"
+                className="input input-bordered input-sm w-full pl-9 pr-8 text-xs"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Tìm kiếm username hoặc ghi chú..."
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs opacity-60 hover:opacity-100"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Sort Order Selector */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs opacity-60 flex items-center gap-1 shrink-0">
+                <ArrowUpDown size={13} /> Sắp xếp:
+              </span>
+              <select
+                className="select select-bordered select-sm text-xs font-medium"
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+              >
+                <option value="abc">A → Z (Bảng chữ cái)</option>
+                <option value="zyx">Z → A</option>
+                <option value="newest">Mới nhất</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Filter Pills / Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+            {[
+              { id: "all", label: "Tất cả", count: tabCounts.all },
+              { id: "vip_1month", label: "1 Tháng", count: tabCounts.vip_1month },
+              { id: "vip_6months", label: "6 Tháng", count: tabCounts.vip_6months },
+              { id: "vip_1year", label: "1 Năm", count: tabCounts.vip_1year },
+              { id: "vip_lifetime", label: "👑 Vĩnh viễn", count: tabCounts.vip_lifetime },
+              { id: "trial", label: "🎁 Dùng thử", count: tabCounts.trial },
+              { id: "ai", label: "✨ Filter AI", count: tabCounts.ai },
+              { id: "expired", label: "⚠️ Hết hạn / Khóa", count: tabCounts.expired },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setFilterTab(tab.id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition shrink-0 ${
+                  filterTab === tab.id
+                    ? "bg-primary text-primary-content shadow-sm"
+                    : "bg-base-200/80 hover:bg-base-200 text-base-content/80 border border-base-300"
+                }`}
+              >
+                <span>{tab.label}</span>
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                  filterTab === tab.id ? "bg-black/20 text-white" : "bg-base-300 text-base-content/70"
+                }`}>
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <div className="text-[11px] opacity-60">
+            Đang hiển thị <strong>{filteredUsers.length}</strong> / <strong>{users.length}</strong> username
+          </div>
+        </div>
 
         {/* User Table */}
         <div className="overflow-x-auto rounded-lg border border-base-300">
@@ -516,12 +652,37 @@ export default function AdminPanel() {
                     Chưa có username nào được phê duyệt.
                   </td>
                 </tr>
+              ) : filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-8 opacity-70">
+                    Không tìm thấy username nào phù hợp với bộ lọc hoặc tìm kiếm.
+                  </td>
+                </tr>
               ) : (
-                users.map((user) => (
+                filteredUsers.map((user) => (
                   <tr key={user.id || user.username} className="hover:bg-base-200/30">
                     {/* Username */}
                     <td>
-                      <div className="font-semibold">@{user.username}</div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-semibold text-white">@{user.username}</span>
+                        {user.hasUsedTrial && (
+                          user.vipPlanId === "vip_trial" && !isExpired(user.vipExpireAt) ? (
+                            <span
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                              title="Tài khoản đang trong 24h dùng thử miễn phí"
+                            >
+                              <Gift size={10} /> Đang dùng thử (1N)
+                            </span>
+                          ) : (
+                            <span
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/15 text-purple-300 border border-purple-500/25"
+                              title="Tài khoản đã sử dụng gói dùng thử"
+                            >
+                              <Check size={10} /> Đã dùng thử
+                            </span>
+                          )
+                        )}
+                      </div>
                       {user.lastExpiredVipPlan && (
                         <div className="text-[10px] text-error/70 mt-0.5">
                           Gói cũ: {user.lastExpiredVipPlan}
@@ -541,13 +702,11 @@ export default function AdminPanel() {
                       <VipPlanBadge user={user} />
                       <div className="mt-1">
                         <select
-                          className="select select-bordered select-xs w-full max-w-[140px]"
-                          value={user.role === "celebrity" ? "__celebrity" : user.role === "free" ? "" : (user.vipPlanId || "vip_1month")}
+                          className="select select-bordered select-xs w-full max-w-[150px]"
+                          value={user.role === "free" ? "" : (user.vipPlanId || (user.vipExpireAt ? "vip_1month" : "vip_lifetime"))}
                           onChange={(e) => {
                             const val = e.target.value;
-                            if (val === "__celebrity") {
-                              handleRoleChange(user, "celebrity");
-                            } else if (val === "") {
+                            if (val === "") {
                               handleVipPlanChange(user, "");
                             } else {
                               handleVipPlanChange(user, val);
@@ -558,14 +717,17 @@ export default function AdminPanel() {
                           {VIP_PLAN_OPTIONS.filter((o) => o.value).map((opt) => (
                             <option key={opt.value} value={opt.value}>{opt.label}</option>
                           ))}
-                          <option value="__celebrity">Celebrity</option>
                         </select>
                       </div>
                     </td>
 
                     {/* VIP Hết hạn */}
                     <td className="hidden lg:table-cell">
-                      {user.vipExpireAt ? (
+                      {user.role === "vip" && (user.vipPlanId === "vip_lifetime" || !user.vipExpireAt) ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-md">
+                          <Crown size={12} /> Vĩnh viễn
+                        </span>
+                      ) : user.vipExpireAt ? (
                         <div className="text-xs">
                           <div className="opacity-70">{formatDate(user.vipExpireAt)}</div>
                           <div className={`font-semibold ${isExpired(user.vipExpireAt) ? "text-error" : "text-success"}`}>
