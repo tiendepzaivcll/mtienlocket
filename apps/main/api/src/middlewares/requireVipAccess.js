@@ -35,6 +35,15 @@ const requireVipAccess = async (req, res, next) => {
     const approvedDoc = snapshot.docs[0];
     const access = approvedDoc?.data() || null;
 
+    // Nếu user bị tắt (active = false) → chặn truy cập
+    if (access && !isApprovedDocEnabled(access)) {
+      return res.status(403).json({
+        success: false,
+        message: "Tài khoản của bạn đã bị vô hiệu hóa.",
+        disabled: true,
+      });
+    }
+
     // Nếu có doc và đang enabled → cho qua với role thực tế
     if (access && isApprovedDocEnabled(access)) {
       const role = String(access.role || "free").trim().toLowerCase();

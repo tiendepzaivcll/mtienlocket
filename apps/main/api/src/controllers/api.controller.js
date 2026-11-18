@@ -30,14 +30,20 @@ const normalizeAccessRole = (value = "vip") =>
     : "vip";
 
 const checkFirestoreApproval = async (username) => {
-  if (!db || !username) return null;
+  if (!db || !username) return { status: "not_found" };
 
   const doc = await db.collection(APPROVED_USER_COLLECTION).doc(username).get();
-  if (!doc.exists || !isApprovedDocEnabled(doc.data())) return null;
+  if (!doc.exists) return { status: "not_found" };
 
   const data = doc.data();
 
+  // User exists but is disabled (active = false)
+  if (!isApprovedDocEnabled(data)) {
+    return { status: "disabled", ref: doc.ref };
+  }
+
   return {
+    status: "approved",
     role: normalizeAccessRole(data.role),
     aiFilterEnabled: data.aiFilterEnabled === true,
     ref: doc.ref,
@@ -325,7 +331,16 @@ class ApiController {
 
       const approval = await checkFirestoreApproval(username);
 
-      if (!approval) {
+      // User bị tắt (disabled) → chặn truy cập
+      if (approval.status === "disabled") {
+        return res.status(403).json({
+          success: false,
+          message: "Tài khoản của bạn đã bị vô hiệu hóa. Liên hệ admin để được hỗ trợ.",
+          disabled: true,
+        });
+      }
+
+      if (approval.status === "not_found") {
         // Không có trong approved_users → vẫn cho đăng nhập, role = "free"
         // Lưu uid vào approved_users để theo dõi (nếu có username)
         if (db && username && localId) {
