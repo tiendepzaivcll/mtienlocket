@@ -1,18 +1,10 @@
 const { db } = require("../config/firebase-admin-config");
 const {
   isApprovedDocEnabled,
-  toTimestampMs,
   resolveEffectiveAccess,
 } = require("../utils/accessPlans");
 
 const APPROVED_USER_COLLECTION = "approved_users";
-
-const hasAiFilterAccess = (data = {}, now = Date.now()) => {
-  if (!isApprovedDocEnabled(data) || data.aiFilterEnabled !== true) return false;
-  const expireAt = toTimestampMs(data.aiFilterExpireAt);
-  if (expireAt !== null && now > expireAt) return false;
-  return true;
-};
 
 const requireAiFilterAccess = async (req, res, next) => {
   try {
@@ -36,28 +28,54 @@ const requireAiFilterAccess = async (req, res, next) => {
     const approvedDoc = snapshot.docs[0];
     const access = approvedDoc?.data() || null;
 
-    if (access) {
-      const resolved = resolveEffectiveAccess(access);
-      if (resolved.needsPersist && approvedDoc?.ref) {
-        approvedDoc.ref.set(resolved.downgradePatch, { merge: true }).catch((err) => {
-          console.warn("⚠️ Không thể lưu trạng thái hết hạn AI Filter:", err.message);
-        });
-      }
-    }
-
-    if (!access || !hasAiFilterAccess(access)) {
+    if (!access) {
       return res.status(403).json({
         success: false,
-        code: "AI_FILTER_PAYMENT_REQUIRED",
-        message: "AI Filter là gói bán riêng",
+        code: "AI_FILTER_VIP_REQUIRED",
+        message: "Tính năng AI Filter chỉ dành cho thành viên VIP. Vui lòng nâng cấp VIP trước!",
         data: {
-          title: "AI Filter (Bán riêng)",
-          description: "Mua gói AI Filter tại trang Nâng cấp để sử dụng",
+          title: "Cần nâng cấp VIP",
+          description: "Nâng cấp VIP để mở khóa quyền mua và sử dụng AI Filter",
+        },
+      });
+    }
+
+    const resolved = resolveEffectiveAccess(access);
+    if (resolved.needsPersist && approvedDoc?.ref) {
+      approvedDoc.ref.set(resolved.downgradePatch, { merge: true }).catch((err) => {
+        console.warn("⚠️ Không thể lưu trạng thái hết hạn:", err.message);
+      });
+    }
+
+    // 1. Phải là thành viên VIP còn hạn
+    if (!resolved.isVipActive) {
+      return res.status(403).json({
+        success: false,
+        code: "AI_FILTER_VIP_REQUIRED",
+        message: "Tính năng AI Filter chỉ dành cho thành viên VIP. Vui lòng nâng cấp VIP trước!",
+        data: {
+          title: "Cần nâng cấp VIP",
+          description: "Gói VIP của bạn đã hết hạn hoặc chưa kích hoạt. Nâng cấp VIP để sử dụng AI Filter.",
+        },
+      });
+    }
+
+    // 2. Phải còn số lượt tạo ảnh (aiCredits > 0)
+    if (resolved.aiCredits <= 0) {
+      return res.status(403).json({
+        success: false,
+        code: "AI_FILTER_OUT_OF_CREDITS",
+        message: "Bạn đã hết lượt tạo ảnh AI. Vui lòng nạp thêm gói để tiếp tục!",
+        data: {
+          title: "Hết lượt tạo ảnh AI",
+          description: "Mua thêm gói lượt tạo ảnh AI tại trang Nâng cấp.",
         },
       });
     }
 
     req.aiFilterAccess = true;
+    req.approvedDocRef = approvedDoc.ref;
+    req.aiCredits = resolved.aiCredits;
     return next();
   } catch (error) {
     console.error("❌ Lỗi kiểm tra quyền AI Filter:", error);
@@ -70,5 +88,4 @@ const requireAiFilterAccess = async (req, res, next) => {
 
 module.exports = {
   requireAiFilterAccess,
-  _private: { isApprovedDocEnabled, hasAiFilterAccess },
 };

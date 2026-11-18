@@ -31,10 +31,8 @@ const formatAdminUserDoc = (id, data = {}, resolved = resolveEffectiveAccess(dat
   role: resolved.effectiveRole,
   active: data.active !== false,
   aiFilterEnabled: resolved.effectiveAiEnabled,
-  aiFilterPlanId: resolved.aiFilterPlanId,
-  aiFilterPlanName: resolved.aiFilterPlanName,
-  aiFilterPlanDays: resolved.aiFilterPlanDays,
-  aiFilterExpireAt: resolved.aiFilterExpireAt,
+  aiCredits: resolved.aiCredits,
+  hasUsedTrial: resolved.hasUsedTrial,
   note: data.note || "",
   vipPlanId: resolved.vipPlanId,
   vipPlanName: resolved.vipPlanName,
@@ -350,6 +348,15 @@ class AdminController {
           now,
         );
         Object.assign(data, aiSel);
+      }
+
+      if (req.body?.aiCredits !== undefined) {
+        data.aiCredits = Math.max(0, Number(req.body.aiCredits) || 0);
+        data.aiFilterEnabled = data.aiCredits > 0;
+      }
+
+      if (typeof req.body?.hasUsedTrial === "boolean") {
+        data.hasUsedTrial = req.body.hasUsedTrial;
       }
 
       await ref.set(data, { merge: true });

@@ -34,7 +34,7 @@ import ThemeSelector from "@/components/Theme/ThemeSelector";
 
 export default function UserSettingsModal({ isOpen, onClose }) {
   const navigate = useNavigate();
-  const { user, clearAndlogout, accessRole, vipPlanName, vipExpireAt, aiFilterPlanName, aiFilterExpireAt } = useAuthStore();
+  const { user, clearAndlogout, accessRole, vipPlanName, vipExpireAt, aiCredits } = useAuthStore();
   const { camera, useloading } = useApp();
   const queueBusy = useUploadQueueStore((state) => state.isQueueRunning ||
     state.uploadItems.some((item) => item.status === "queued" || item.status === "uploading"));
@@ -323,107 +323,51 @@ export default function UserSettingsModal({ isOpen, onClose }) {
               </div>
             )}
 
-            {/* AI Filter Plan Info */}
-            {aiFilterExpireAt && (() => {
-              const now = Date.now();
-              const expireTs = typeof aiFilterExpireAt === 'number' ? aiFilterExpireAt : new Date(aiFilterExpireAt).getTime();
-              const isActive = expireTs > now;
-              const remaining = Math.ceil((expireTs - now) / (24 * 60 * 60 * 1000));
-              const planDaysMap = { "AI Filter 1 Năm": 365, "AI Filter 6 Tháng": 180, "AI Filter 1 Tháng": 30 };
-              const days = planDaysMap[aiFilterPlanName] || 30;
-              const startDate = new Date(expireTs - days * 24 * 60 * 60 * 1000);
-              const expireDate = new Date(expireTs);
+            {/* AI Filter Credits Info */}
+            <div
+              className="mt-3 rounded-2xl border border-violet-500/30 overflow-hidden"
+              style={{
+                background: "linear-gradient(135deg, rgba(139,92,246,0.12) 0%, rgba(109,40,217,0.08) 50%, rgba(91,33,182,0.12) 100%)",
+              }}
+            >
+              <div className="p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400/30 to-purple-500/30 border border-violet-400/40 flex items-center justify-center shrink-0">
+                    <Sparkles size={20} className="text-violet-400" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-bold text-violet-300">AI Filter</p>
+                      <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-full border ${
+                        (aiCredits || 0) > 0
+                          ? "bg-violet-400/20 text-violet-300 border-violet-400/30"
+                          : "bg-red-400/20 text-red-300 border-red-400/30"
+                      }`}>
+                        {(aiCredits || 0) > 0 ? "Khả dụng" : "Hết lượt"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-violet-200/60 mt-0.5">
+                      Số dư: <strong className="text-white text-sm">{(aiCredits || 0)}</strong> lượt tạo ảnh
+                    </p>
+                  </div>
+                </div>
 
-              return (
-                <div
-                  className="mt-3 rounded-2xl border border-violet-500/30 overflow-hidden"
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    navigate("/pricing?tab=ai");
+                  }}
+                  className="w-full py-2 rounded-xl text-xs font-semibold text-white transition flex items-center justify-center gap-1.5"
                   style={{
-                    background: "linear-gradient(135deg, rgba(139,92,246,0.12) 0%, rgba(109,40,217,0.08) 50%, rgba(91,33,182,0.12) 100%)",
+                    background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%)",
                   }}
                 >
-                  <div className="p-4 space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400/30 to-purple-500/30 border border-violet-400/40 flex items-center justify-center shrink-0">
-                        <Sparkles size={20} className="text-violet-400" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-bold text-violet-300">
-                            {aiFilterPlanName || "AI Filter"}
-                          </p>
-                          <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-full border ${
-                            isActive
-                              ? "bg-violet-400/20 text-violet-300 border-violet-400/30"
-                              : "bg-red-400/20 text-red-300 border-red-400/30"
-                          }`}>
-                            {isActive ? "Đang hoạt động" : "Hết hạn"}
-                          </span>
-                        </div>
-                        <p className="text-xs text-violet-200/60 mt-0.5">Gói bán riêng</p>
-                      </div>
-                    </div>
-
-                    <div className="h-px bg-violet-500/15" />
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center shrink-0">
-                        <CalendarClock size={16} className="text-violet-400/70" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs text-gray-400">Thời hạn</p>
-                        <p className="text-sm text-violet-200/90 font-medium">
-                          {startDate.toLocaleDateString("vi-VN")} → {expireDate.toLocaleDateString("vi-VN")}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center shrink-0">
-                        <Clock size={16} className="text-violet-400/70" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs text-gray-400">Còn lại</p>
-                        <p className={`text-sm font-semibold ${isActive ? "text-violet-300" : "text-red-400"}`}>
-                          {isActive ? `${remaining} ngày` : "Đã hết hạn"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Buy AI Filter button for users without it */}
-            {!aiFilterExpireAt && (
-              <div className="mt-3 rounded-2xl bg-white/[0.04] border border-white/5 overflow-hidden">
-                <div className="p-4 space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center shrink-0">
-                      <Sparkles size={20} className="text-violet-400" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-white">AI Filter</p>
-                      <p className="text-xs text-gray-400">Gói bán riêng — mở khóa bộ lọc ảnh AI</p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onClose();
-                      navigate("/pricing?tab=ai");
-                    }}
-                    className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition"
-                    style={{
-                      background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%)",
-                    }}
-                  >
-                    <span className="flex items-center justify-center gap-2">
-                      <Sparkles size={16} />
-                      Mua AI Filter
-                    </span>
-                  </button>
-                </div>
+                  <Sparkles size={14} />
+                  Nạp thêm lượt AI Filter
+                </button>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Section 2: Chung */}

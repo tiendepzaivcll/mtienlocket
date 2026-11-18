@@ -89,12 +89,21 @@ export const useAuthStore = create((set) => ({
   accessDenied: null,
   accessRole: null,
   aiFilterEnabled: false,
+  aiCredits: 0,
+  hasUsedTrial: false,
   vipPlanName: null,
   vipPlanDays: null,
   vipExpireAt: null,
   aiFilterPlanName: null,
   aiFilterPlanDays: null,
   aiFilterExpireAt: null,
+
+  setAiCredits: (aiCredits) => set({ aiCredits }),
+  decrementAiCredit: () =>
+    set((state) => ({
+      aiCredits: Math.max(0, (state.aiCredits || 0) - 1),
+      aiFilterEnabled: Math.max(0, (state.aiCredits || 0) - 1) > 0,
+    })),
 
   setAccessRole: (role) => {
     const accessRole = saveAccessRole(role);
@@ -120,6 +129,8 @@ export const useAuthStore = create((set) => ({
       set({
         accessRole,
         aiFilterEnabled,
+        aiCredits: access?.aiCredits ?? 0,
+        hasUsedTrial: access?.hasUsedTrial ?? false,
         vipPlanName: access?.vipPlanName || null,
         vipPlanDays: access?.vipPlanDays || null,
         vipExpireAt: access?.vipExpireAt || null,
@@ -225,6 +236,8 @@ export const useAuthStore = create((set) => ({
       set({
         accessRole,
         aiFilterEnabled,
+        aiCredits: access?.aiCredits ?? 0,
+        hasUsedTrial: access?.hasUsedTrial ?? false,
         vipPlanName: access?.vipPlanName || null,
         vipPlanDays: access?.vipPlanDays || null,
         vipExpireAt: access?.vipExpireAt || null,

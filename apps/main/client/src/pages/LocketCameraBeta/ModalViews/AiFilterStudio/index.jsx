@@ -32,7 +32,11 @@ function OpenFilterStudio() {
   const { showPhotobooth, selectedFrameId, mediaIsLocked, chooseCaptureMode } = useCameraCaptureMode();
   const cameraFrame = useUIStore((state) => state.cameraFrame);
   const setCameraFrame = useUIStore((state) => state.setCameraFrame);
+  const accessRole = useAuthStore((state) => state.accessRole);
+  const aiCredits = useAuthStore((state) => state.aiCredits);
   const aiFilterEnabled = useAuthStore((state) => state.aiFilterEnabled);
+  const isVip = accessRole === "vip" || accessRole === "celebrity";
+  const canUseAi = isVip && (aiCredits || 0) > 0;
   const refreshAccessRole = useAuthStore((state) => state.refreshAccessRole);
   const scrollRef = useRef(null);
   const aiSectionRef = useRef(null);
@@ -225,14 +229,31 @@ function OpenFilterStudio() {
           </section>
 
           <section ref={aiSectionRef} className="filter-studio-category filter-studio-ai" aria-labelledby="ai-filters-title">
-            <div className="filter-studio-category-heading"><h3 id="ai-filters-title">AI Filter</h3><span className="filter-studio-premium"><Sparkles size={12} />Premium</span></div>
+            <div className="filter-studio-category-heading">
+              <h3 id="ai-filters-title">AI Filter</h3>
+              <span className="filter-studio-premium">
+                <Sparkles size={12} />
+                {canUseAi ? `Còn ${aiCredits} lượt` : "Khóa"}
+              </span>
+            </div>
             <p>Chọn phong cách để tạo ảnh AI.</p>
-            {!aiSectionVisible ? <div className="filter-studio-status">Cuộn để xem AI Filter.</div> : !aiFilterEnabled ? (
+            {!aiSectionVisible ? (
+              <div className="filter-studio-status">Cuộn để xem AI Filter.</div>
+            ) : !isVip ? (
               <div className="filter-studio-status">
-                {checkingAccess || !accessChecked ? <><LoaderCircle className="animate-spin" size={19} /><span>Đang kiểm tra quyền AI Filter…</span></> : <>
-                  <LockKeyhole size={20} /><span>Mua gói AI Filter để sử dụng tính năng này.</span>
-                  <a href="/pricing?tab=ai" onClick={(e) => { e.preventDefault(); window.location.href = "/pricing?tab=ai"; }}>Mua AI Filter</a>
-                </>}
+                <LockKeyhole size={20} />
+                <span>Tính năng AI Filter chỉ dành cho thành viên VIP.</span>
+                <a href="/pricing" onClick={(e) => { e.preventDefault(); window.location.href = "/pricing"; }}>
+                  Nâng cấp VIP
+                </a>
+              </div>
+            ) : (aiCredits || 0) <= 0 ? (
+              <div className="filter-studio-status">
+                <LockKeyhole size={20} />
+                <span>Bạn đã hết lượt tạo ảnh AI.</span>
+                <a href="/pricing?tab=ai" onClick={(e) => { e.preventDefault(); window.location.href = "/pricing?tab=ai"; }}>
+                  Nạp thêm lượt AI
+                </a>
               </div>
             ) : <>
               {loadingCatalog && <div className="filter-studio-status" role="status"><LoaderCircle className="animate-spin" size={19} /><span>Đang tải filter…</span></div>}

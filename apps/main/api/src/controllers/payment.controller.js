@@ -133,6 +133,97 @@ class PaymentController {
   };
 
   /**
+   * POST /api/payment/claim-trial
+   * PUBLIC — Kích hoạt gói dùng thử 1 ngày (0đ) + 1 ảnh AI (mỗi username chỉ dùng 1 lần)
+   * Body: { username }
+   */
+  claimTrial = async (req, res) => {
+    try {
+      const { username } = req.body;
+      if (!username || !String(username).trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "Vui lòng nhập username Locket",
+        });
+      }
+
+      const normalizedUsername = String(username)
+        .trim()
+        .replace(/^@+/, "")
+        .toLowerCase();
+
+      if (!normalizedUsername) {
+        return res.status(400).json({
+          success: false,
+          message: "Tên người dùng không hợp lệ",
+        });
+      }
+
+      if (!db) {
+        return res.status(503).json({
+          success: false,
+          message: "Database chưa sẵn sàng",
+        });
+      }
+
+      const userRef = db.collection(APPROVED_USERS_COLLECTION).doc(normalizedUsername);
+      const userDoc = await userRef.get();
+      const userData = userDoc.exists ? userDoc.data() : null;
+
+      if (userData?.hasUsedTrial === true) {
+        return res.status(400).json({
+          success: false,
+          code: "TRIAL_ALREADY_USED",
+          message: "Tài khoản của bạn đã sử dụng gói dùng thử 1 ngày trước đó. Vui lòng chọn gói VIP để tiếp tục!",
+        });
+      }
+
+      const now = Date.now();
+      const nowIso = new Date(now).toISOString();
+      const expireAt = now + 1 * DAY_MS; // 24 giờ
+      const currentCredits = Number(userData?.aiCredits || 0);
+
+      const updatePayload = {
+        username: normalizedUsername,
+        role: "vip",
+        active: true,
+        approved: true,
+        enabled: true,
+        vipPlanId: "vip_trial",
+        vipPlanName: "VIP Dùng thử (1 ngày)",
+        vipPlanDays: 1,
+        vipExpireAt: expireAt,
+        aiCredits: currentCredits + 1, // Tặng 1 ảnh AI
+        hasUsedTrial: true,
+        trialClaimedAt: nowIso,
+        updatedAt: nowIso,
+        ...(userDoc.exists ? {} : { createdAt: nowIso, note: "Gói dùng thử 1 ngày" }),
+      };
+
+      await userRef.set(updatePayload, { merge: true });
+
+      return res.status(200).json({
+        success: true,
+        message: "Kích hoạt gói dùng thử 1 ngày thành công! Bạn nhận được 24h VIP + 1 ảnh AI.",
+        data: {
+          username: normalizedUsername,
+          role: "vip",
+          vipPlanName: "VIP Dùng thử (1 ngày)",
+          vipExpireAt: expireAt,
+          aiCredits: currentCredits + 1,
+          hasUsedTrial: true,
+        },
+      });
+    } catch (error) {
+      console.error("❌ claimTrial error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Lỗi kích hoạt gói dùng thử",
+      });
+    }
+  };
+
+  /**
    * POST /api/payment/create-order
    * PUBLIC — không cần đăng nhập
    * Body: { planId, username }
@@ -168,6 +259,26 @@ class PaymentController {
         });
       }
 
+      // Kiểm tra điều kiện mua AI Filter: bắt buộc tài khoản phải có VIP còn hạn
+      if (plan.category === "ai_filter" && db) {
+        const userDoc = await db.collection(APPROVED_USERS_COLLECTION).doc(normalizedUsername).get();
+        if (!userDoc.exists) {
+          return res.status(400).json({
+            success: false,
+            code: "VIP_REQUIRED_FOR_AI",
+            message: "Bạn cần có gói VIP trước khi mua lượt AI Filter.",
+          });
+        }
+        const access = resolveEffectiveAccess(userDoc.data(), Date.now());
+        if (!access.isVipActive) {
+          return res.status(400).json({
+            success: false,
+            code: "VIP_REQUIRED_FOR_AI",
+            message: "Gói AI Filter chỉ dành cho thành viên VIP. Vui lòng nâng cấp VIP trước!",
+          });
+        }
+      }
+
       const clientId = PAYOS_CLIENT_ID();
       const apiKey = PAYOS_API_KEY();
       const checksumKey = PAYOS_CHECKSUM_KEY();
@@ -197,8 +308,10 @@ class PaymentController {
       const cancelUrl =
         process.env.PAYOS_CANCEL_URL || `${baseUrl}/pricing`;
 
-      const shortPrefix = plan.category === "ai_filter" ? "AI" : "VIP";
-      const description = `${shortPrefix} ${plan.days}N @${normalizedUsername}`.slice(0, 25);
+      const description =
+        plan.category === "ai_filter"
+          ? `AI ${plan.credits}A @${normalizedUsername}`.slice(0, 25)
+          : `VIP ${plan.days}N @${normalizedUsername}`.slice(0, 25);
 
       const signData = {
         amount: plan.price,
@@ -523,13 +636,10 @@ class PaymentController {
       : null;
 
     if (category === "ai_filter") {
-      // ─── KÍCH HOẠT GÓI AI FILTER BÁN RIÊNG (KHÔNG ĐỔI QUYỀN VIP/FREE) ───
-      const currentAiExpiry = toTimestampMs(existingData?.aiFilterExpireAt) || 0;
-      const baseTime =
-        existingData?.aiFilterEnabled === true && currentAiExpiry > now
-          ? currentAiExpiry
-          : now;
-      const newAiExpireAt = baseTime + planDays * DAY_MS;
+      // ─── KÍCH HOẠT NẠP LƯỢT AI FILTER (CỘNG DỒN CREDITS) ───
+      const creditsToAdd = Number(planFromCatalog?.credits || 0);
+      const currentCredits = Number(existingData?.aiCredits || 0);
+      const newCredits = currentCredits + creditsToAdd;
 
       if (approvedDoc.exists) {
         const updatePayload = {
@@ -539,10 +649,7 @@ class PaymentController {
           approved: true,
           enabled: true,
           aiFilterEnabled: true,
-          aiFilterPlanId: planId,
-          aiFilterPlanName: planName,
-          aiFilterPlanDays: planDays,
-          aiFilterExpireAt: newAiExpireAt,
+          aiCredits: newCredits,
           lastPayment,
           updatedAt: nowIso,
         };
@@ -550,48 +657,30 @@ class PaymentController {
       } else {
         await approvedRef.set({
           username,
-          role: "free", // Mua AI Filter riêng KHÔNG tự lên VIP
+          role: "free",
           active: true,
           approved: true,
           enabled: true,
           aiFilterEnabled: true,
-          aiFilterPlanId: planId,
-          aiFilterPlanName: planName,
-          aiFilterPlanDays: planDays,
-          aiFilterExpireAt: newAiExpireAt,
-          note: `Tự đăng ký ${planName}`,
+          aiCredits: newCredits,
+          note: `Nạp ${planName}`,
           lastPayment,
           createdAt: nowIso,
           updatedAt: nowIso,
         });
       }
 
-      const aiSubRef = db
-        .collection(SUBSCRIPTIONS_COLLECTION)
-        .doc(`${username}__ai_filter`);
-      const aiSubDoc = await aiSubRef.get();
-      await aiSubRef.set(
-        {
-          username,
-          category: "ai_filter",
-          planId,
-          planName,
-          planDays,
-          expireAt: newAiExpireAt,
-          lastPayment,
-          updatedAt: nowIso,
-          ...(aiSubDoc.exists ? {} : { createdAt: nowIso }),
-        },
-        { merge: true },
-      );
-
       console.log(
-        `✨ AI Filter activated: @${username} → ${planName}, expires ${new Date(newAiExpireAt).toISOString()}`,
+        `✨ AI Filter credits added: @${username} +${creditsToAdd} credits (Total: ${newCredits})`,
       );
       return;
     }
 
-    // ─── KÍCH HOẠT GÓI VIP (KHÔNG TỰ BẬT AI FILTER) ─────────────────────
+    // ─── KÍCH HOẠT GÓI VIP (TẶNG KÈM AI CREDITS) ─────────────────────
+    const bonusCredits = Number(planFromCatalog?.bonusAiCredits || 0);
+    const currentCredits = Number(existingData?.aiCredits || 0);
+    const newCredits = currentCredits + bonusCredits;
+
     const currentVipExpiry = toTimestampMs(existingData?.vipExpireAt) || 0;
     const baseTime =
       existingData &&
@@ -613,6 +702,7 @@ class PaymentController {
         vipPlanName: planName,
         vipPlanDays: planDays,
         vipExpireAt: newVipExpireAt,
+        aiCredits: newCredits,
         lastPayment,
         updatedAt: nowIso,
       };
@@ -627,7 +717,8 @@ class PaymentController {
         active: true,
         approved: true,
         enabled: true,
-        aiFilterEnabled: false, // AI Filter bán riêng, KHÔNG kèm theo gói VIP
+        aiFilterEnabled: false,
+        aiCredits: newCredits,
         note: `Tự đăng ký VIP - ${planName}`,
         vipPlanId: planId,
         vipPlanName: planName,

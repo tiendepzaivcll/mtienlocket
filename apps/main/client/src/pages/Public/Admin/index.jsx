@@ -10,9 +10,8 @@ import {
   Star,
   Trash2,
   X,
-  Clock,
-  CalendarClock,
   AlertTriangle,
+  Gift,
 } from "lucide-react";
 import {
   addApprovedUser,
@@ -39,17 +38,11 @@ const normalizeUsername = (value = "") =>
   value.trim().replace(/^@+/, "").toLowerCase();
 
 const VIP_PLAN_OPTIONS = [
-  { value: "", label: "— Không —" },
+  { value: "", label: "— Free —" },
+  { value: "vip_trial", label: "VIP Dùng thử (1 ngày)" },
   { value: "vip_1month", label: "VIP 1 Tháng (30 ngày)" },
   { value: "vip_6months", label: "VIP 6 Tháng (180 ngày)" },
   { value: "vip_1year", label: "VIP 1 Năm (365 ngày)" },
-];
-
-const AI_PLAN_OPTIONS = [
-  { value: "", label: "— Tắt —" },
-  { value: "ai_1month", label: "AI Filter 1 Tháng (30 ngày)" },
-  { value: "ai_6months", label: "AI Filter 6 Tháng (180 ngày)" },
-  { value: "ai_1year", label: "AI Filter 1 Năm (365 ngày)" },
 ];
 
 const formatDate = (val) => {
@@ -60,19 +53,6 @@ const formatDate = (val) => {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-  });
-};
-
-const formatDateFull = (val) => {
-  if (!val) return "—";
-  const d = typeof val === "number" ? new Date(val) : new Date(val);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
   });
 };
 
@@ -111,6 +91,13 @@ const VipPlanBadge = ({ user }) => {
       </span>
     );
   }
+  if (user.vipPlanId === "vip_trial") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 text-xs font-semibold">
+        <Gift size={12} /> Dùng thử 1N
+      </span>
+    );
+  }
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 text-warning border border-warning/30 px-2 py-0.5 text-xs font-semibold">
       <Crown size={12} /> {user.vipPlanName}
@@ -118,51 +105,9 @@ const VipPlanBadge = ({ user }) => {
   );
 };
 
-const AiFilterBadge = ({ user }) => {
-  if (!user.aiFilterEnabled) {
-    return <span className="text-xs text-gray-500">Tắt</span>;
-  }
-  if (!user.aiFilterExpireAt) {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-secondary/15 text-secondary border border-secondary/30 px-2 py-0.5 text-xs font-semibold">
-        <Sparkles size={12} /> Bật (Vĩnh viễn)
-      </span>
-    );
-  }
-  const expired = isExpired(user.aiFilterExpireAt);
-  if (expired) {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-error/15 text-error border border-error/30 px-2 py-0.5 text-xs font-semibold">
-        <AlertTriangle size={12} /> AI Hết hạn
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/15 text-violet-400 border border-violet-500/30 px-2 py-0.5 text-xs font-semibold">
-      <Sparkles size={12} /> {user.aiFilterPlanName || "AI Filter"}
-    </span>
-  );
-};
-
-const ExpireInfo = ({ expireAt, label, colorClass = "text-gray-400" }) => {
-  if (!expireAt) return null;
-  const days = remainingDays(expireAt);
-  const expired = days === 0 && isExpired(expireAt);
-  return (
-    <div className="text-[11px] leading-tight mt-0.5">
-      <span className="opacity-60">{label}:</span>{" "}
-      <span className={expired ? "text-error font-semibold" : colorClass}>
-        {expired ? "Hết hạn" : `${days} ngày`}
-      </span>
-      <span className="opacity-50 ml-1">({formatDate(expireAt)})</span>
-    </div>
-  );
-};
-
 export default function AdminPanel() {
   const currentUser = useAuthStore((state) => state.user);
   const setAccessRole = useAuthStore((state) => state.setAccessRole);
-  const setAiFilterEnabled = useAuthStore((state) => state.setAiFilterEnabled);
   const [isAuthed, setIsAuthed] = useState(() => Boolean(getAdminToken()));
   const [password, setPassword] = useState("");
   const [users, setUsers] = useState([]);
@@ -170,7 +115,7 @@ export default function AdminPanel() {
   const [note, setNote] = useState("");
   const [role, setRole] = useState("vip");
   const [vipPlanId, setVipPlanId] = useState("vip_1month");
-  const [aiFilterPlanId, setAiFilterPlanId] = useState("");
+  const [aiCredits, setAiCredits] = useState(0);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -186,8 +131,8 @@ export default function AdminPanel() {
     () => users.filter((user) => user.active !== false && user.role === "celebrity").length,
     [users],
   );
-  const aiFilterCount = useMemo(
-    () => users.filter((user) => user.active !== false && user.aiFilterEnabled === true && !isExpired(user.aiFilterExpireAt)).length,
+  const aiUsersCount = useMemo(
+    () => users.filter((user) => (user.aiCredits || 0) > 0).length,
     [users],
   );
   const expiredVipCount = useMemo(
@@ -263,9 +208,8 @@ export default function AdminPanel() {
         role,
         vipPlanId: role === "vip" ? vipPlanId : undefined,
         planDays: undefined,
-        aiFilterEnabled: Boolean(aiFilterPlanId),
-        aiFilterPlanId: aiFilterPlanId || undefined,
-        aiFilterPlanDays: undefined,
+        aiFilterEnabled: Number(aiCredits) > 0,
+        aiCredits: Number(aiCredits) || 0,
       });
       setUsers((current) => [
         ...current.filter((item) => item.username !== cleanUsername),
@@ -275,7 +219,7 @@ export default function AdminPanel() {
       setNote("");
       setRole("vip");
       setVipPlanId("vip_1month");
-      setAiFilterPlanId("");
+      setAiCredits(0);
       SonnerSuccess(`Đã phê duyệt @${cleanUsername}.`);
     } catch (error) {
       SonnerError(error.response?.data?.message || "Không thêm được username.");
@@ -306,7 +250,6 @@ export default function AdminPanel() {
   const handleVipPlanChange = async (user, planId) => {
     try {
       if (!planId) {
-        // Downgrade to free
         await updateApprovedUser(user.username, { role: "free" });
         setUsers((current) =>
           current.map((item) =>
@@ -318,7 +261,6 @@ export default function AdminPanel() {
         SonnerSuccess(`Đã hạ @${user.username} về Free.`);
       } else {
         await updateApprovedUser(user.username, { vipPlanId: planId });
-        // Refresh the user list to get updated data
         fetchUsers();
         SonnerSuccess(`Đã cập nhật gói VIP cho @${user.username}.`);
       }
@@ -327,31 +269,21 @@ export default function AdminPanel() {
     }
   };
 
-  const handleAiPlanChange = async (user, planId) => {
+  const handleAddCredits = async (user, delta) => {
     try {
-      if (!planId) {
-        await updateApprovedUser(user.username, { aiFilterEnabled: false });
-        setUsers((current) =>
-          current.map((item) =>
-            item.username === user.username
-              ? { ...item, aiFilterEnabled: false, aiFilterPlanId: null, aiFilterPlanName: null, aiFilterPlanDays: null, aiFilterExpireAt: null }
-              : item,
-          ),
-        );
-        if (normalizeUsername(currentUser?.username) === normalizeUsername(user.username)) {
-          setAiFilterEnabled(false);
-        }
-        SonnerSuccess(`Đã tắt AI Filter cho @${user.username}.`);
-      } else {
-        await updateApprovedUser(user.username, { aiFilterEnabled: true, aiFilterPlanId: planId });
-        fetchUsers();
-        if (normalizeUsername(currentUser?.username) === normalizeUsername(user.username)) {
-          setAiFilterEnabled(true);
-        }
-        SonnerSuccess(`Đã cập nhật gói AI Filter cho @${user.username}.`);
-      }
+      const current = Number(user.aiCredits || 0);
+      const nextCredits = Math.max(0, current + delta);
+      await updateApprovedUser(user.username, { aiCredits: nextCredits });
+      setUsers((currentList) =>
+        currentList.map((item) =>
+          item.username === user.username
+            ? { ...item, aiCredits: nextCredits, aiFilterEnabled: nextCredits > 0 }
+            : item,
+        ),
+      );
+      SonnerSuccess(`Đã chỉnh số lượt AI của @${user.username} thành ${nextCredits}`);
     } catch {
-      SonnerError("Không cập nhật được AI Filter.");
+      SonnerError("Không cập nhật được số lượt AI.");
     }
   };
 
@@ -429,7 +361,7 @@ export default function AdminPanel() {
                 <Star size={13} /> {celebrityCount} Celebrity
               </span>
               <span className="inline-flex items-center gap-1 rounded-md bg-secondary/15 px-2 py-1 text-secondary">
-                <Sparkles size={13} /> {aiFilterCount} AI Filter
+                <Sparkles size={13} /> {aiUsersCount} Có lượt AI
               </span>
               {expiredVipCount > 0 && (
                 <span className="inline-flex items-center gap-1 rounded-md bg-error/15 px-2 py-1 text-error">
@@ -508,16 +440,15 @@ export default function AdminPanel() {
               </select>
             </label>
             <label className="form-control">
-              <span className="label-text">AI Filter (Riêng)</span>
-              <select
-                className="select select-bordered mt-1 w-full"
-                value={aiFilterPlanId}
-                onChange={(e) => setAiFilterPlanId(e.target.value)}
-              >
-                {AI_PLAN_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
+              <span className="label-text">Lượt AI Filter</span>
+              <input
+                type="number"
+                min="0"
+                className="input input-bordered mt-1 w-full"
+                value={aiCredits}
+                onChange={(e) => setAiCredits(Math.max(0, parseInt(e.target.value) || 0))}
+                placeholder="Số lượt ảnh (vd: 10, 25)"
+              />
             </label>
           </div>
           <div className="flex items-center gap-3">
@@ -569,8 +500,7 @@ export default function AdminPanel() {
                 <th className="text-xs hidden md:table-cell">Ghi chú</th>
                 <th className="text-xs">Gói VIP</th>
                 <th className="text-xs hidden lg:table-cell">VIP Hết hạn</th>
-                <th className="text-xs">AI Filter</th>
-                <th className="text-xs hidden lg:table-cell">AI Hết hạn</th>
+                <th className="text-xs">Số lượt AI</th>
                 <th className="text-xs">Trạng thái</th>
                 <th className="text-xs text-right">Thao tác</th>
               </tr>
@@ -578,11 +508,11 @@ export default function AdminPanel() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-8 opacity-70">Đang tải...</td>
+                  <td colSpan={7} className="text-center py-8 opacity-70">Đang tải...</td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-8 opacity-70">
+                  <td colSpan={7} className="text-center py-8 opacity-70">
                     Chưa có username nào được phê duyệt.
                   </td>
                 </tr>
@@ -592,11 +522,6 @@ export default function AdminPanel() {
                     {/* Username */}
                     <td>
                       <div className="font-semibold">@{user.username}</div>
-                      {/* Mobile-only: show plan info inline */}
-                      <div className="lg:hidden mt-1 space-y-0.5">
-                        <ExpireInfo expireAt={user.vipExpireAt} label="VIP" colorClass="text-warning" />
-                        <ExpireInfo expireAt={user.aiFilterExpireAt} label="AI" colorClass="text-violet-400" />
-                      </div>
                       {user.lastExpiredVipPlan && (
                         <div className="text-[10px] text-error/70 mt-0.5">
                           Gói cũ: {user.lastExpiredVipPlan}
@@ -652,34 +577,40 @@ export default function AdminPanel() {
                       )}
                     </td>
 
-                    {/* AI Filter */}
+                    {/* Số lượt AI */}
                     <td>
-                      <AiFilterBadge user={user} />
-                      <div className="mt-1">
-                        <select
-                          className="select select-bordered select-xs w-full max-w-[140px]"
-                          value={user.aiFilterEnabled ? (user.aiFilterPlanId || "ai_1month") : ""}
-                          onChange={(e) => handleAiPlanChange(user, e.target.value)}
-                        >
-                          {AI_PLAN_OPTIONS.map((opt) => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                          ))}
-                        </select>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-violet-400 text-sm">
+                          {user.aiCredits || 0}
+                        </span>
+                        <span className="text-[11px] opacity-60">lượt</span>
                       </div>
-                    </td>
-
-                    {/* AI Hết hạn */}
-                    <td className="hidden lg:table-cell">
-                      {user.aiFilterExpireAt ? (
-                        <div className="text-xs">
-                          <div className="opacity-70">{formatDate(user.aiFilterExpireAt)}</div>
-                          <div className={`font-semibold ${isExpired(user.aiFilterExpireAt) ? "text-error" : "text-success"}`}>
-                            {isExpired(user.aiFilterExpireAt) ? "Hết hạn" : `Còn ${remainingDays(user.aiFilterExpireAt)} ngày`}
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-xs opacity-40">—</span>
-                      )}
+                      <div className="mt-1 flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleAddCredits(user, 10)}
+                          className="btn btn-ghost btn-xs px-1.5 text-[10px] text-cyan-400 border border-cyan-400/30"
+                          title="Cộng 10 lượt"
+                        >
+                          +10
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleAddCredits(user, 25)}
+                          className="btn btn-ghost btn-xs px-1.5 text-[10px] text-violet-400 border border-violet-400/30"
+                          title="Cộng 25 lượt"
+                        >
+                          +25
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleAddCredits(user, 65)}
+                          className="btn btn-ghost btn-xs px-1.5 text-[10px] text-amber-400 border border-amber-400/30"
+                          title="Cộng 65 lượt"
+                        >
+                          +65
+                        </button>
+                      </div>
                     </td>
 
                     {/* Trạng thái */}

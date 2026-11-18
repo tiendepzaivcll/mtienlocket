@@ -20,7 +20,12 @@ const errorMessage = (error) =>
 
 const GenerateAiButton = () => {
   const { post, useloading } = useApp();
-  const aiFilterEnabled = useAuthStore((state) => state.aiFilterEnabled);
+  const accessRole = useAuthStore((state) => state.accessRole);
+  const aiCredits = useAuthStore((state) => state.aiCredits);
+  const decrementAiCredit = useAuthStore((state) => state.decrementAiCredit);
+
+  const isVip = accessRole === "vip" || accessRole === "celebrity";
+
   const {
     selectedFile,
     selectedAiFilter,
@@ -37,9 +42,14 @@ const GenerateAiButton = () => {
   } = useloading;
 
   const generate = async () => {
-    if (!aiFilterEnabled) {
+    if (!isVip) {
       setSelectedAiFilter(null);
-      SonnerWarning("AI Filter (Bán riêng)", "Mua gói AI Filter tại trang Nâng cấp");
+      SonnerWarning("Cần nâng cấp VIP", "Tính năng AI Filter chỉ dành cho thành viên VIP.");
+      return;
+    }
+    if ((aiCredits || 0) <= 0) {
+      setSelectedAiFilter(null);
+      SonnerWarning("Hết lượt tạo ảnh AI", "Vui lòng nạp thêm gói tại trang Nâng cấp để tiếp tục!");
       return;
     }
     if (!selectedFile?.type?.startsWith("image/")) {
@@ -65,11 +75,19 @@ const GenerateAiButton = () => {
       setPreview({ type: "image", data: previewUrl });
       setSizeMedia((generatedFile.size / (1024 * 1024)).toFixed(2));
       setSelectedAiFilter(null);
-      SonnerSuccess("Tạo ảnh AI thành công!");
+
+      decrementAiCredit();
+      const remaining = Math.max(0, (aiCredits || 1) - 1);
+      SonnerSuccess("Tạo ảnh AI thành công!", `Còn lại ${remaining} lượt.`);
     } catch (error) {
-      if (error?.response?.data?.code === "AI_FILTER_PAYMENT_REQUIRED") {
+      if (error?.response?.data?.code === "AI_FILTER_OUT_OF_CREDITS") {
         setSelectedAiFilter(null);
-        SonnerWarning("AI Filter (Bán riêng)", "Mua gói AI Filter tại trang Nâng cấp");
+        SonnerWarning("Hết lượt tạo ảnh AI", "Vui lòng nạp thêm gói tại trang Nâng cấp!");
+        return;
+      }
+      if (error?.response?.data?.code === "AI_FILTER_VIP_REQUIRED") {
+        setSelectedAiFilter(null);
+        SonnerWarning("Cần nâng cấp VIP", "Tính năng AI Filter chỉ dành cho thành viên VIP.");
         return;
       }
       SonnerError("Tạo ảnh AI thất bại", errorMessage(error));
@@ -88,9 +106,14 @@ const GenerateAiButton = () => {
       className="group relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-base-300/50 text-base-content backdrop-blur-4xl outline-base-300 transition-all duration-300 ease-out hover:scale-105 hover:border-white/40 hover:bg-base-300/70 active:scale-95 disabled:cursor-wait disabled:text-amber-500 disabled:opacity-80"
     >
       {isAiGenerating ? (
-        <LoaderCircle className="h-12 w-12 animate-spin" strokeWidth={1.5} />
+        <LoaderCircle
+          size={36}
+          strokeWidth={2}
+          className="animate-spin text-amber-400"
+          aria-hidden="true"
+        />
       ) : (
-        <AiSparkleIcon className="h-12 w-12" />
+        <AiSparkleIcon />
       )}
     </button>
   );
