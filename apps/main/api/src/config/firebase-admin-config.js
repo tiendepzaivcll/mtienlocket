@@ -27,9 +27,11 @@ try {
     });
 
     db = admin.firestore();
+    db.settings({ ignoreUndefinedProperties: true });
     console.log("✅ Firebase Admin initialized successfully");
   } else {
     db = admin.firestore();
+    db.settings({ ignoreUndefinedProperties: true });
   }
 } catch (error) {
   console.error("❌ Firebase initialization error:", error.message);

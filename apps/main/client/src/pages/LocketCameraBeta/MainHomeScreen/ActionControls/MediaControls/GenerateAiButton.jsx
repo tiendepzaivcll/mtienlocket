@@ -42,9 +42,9 @@ const GenerateAiButton = () => {
   } = useloading;
 
   const generate = async () => {
-    if (!isVip) {
+    if (!isVip && (aiCredits || 0) <= 0) {
       setSelectedAiFilter(null);
-      SonnerWarning("Cần nâng cấp VIP", "Tính năng AI Filter chỉ dành cho thành viên VIP.");
+      SonnerWarning("Cần nâng cấp", "Tính năng AI Filter chỉ dành cho thành viên VIP hoặc người có lượt chụp AI.");
       return;
     }
     if ((aiCredits || 0) <= 0) {

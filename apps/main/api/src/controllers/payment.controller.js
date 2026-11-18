@@ -267,26 +267,7 @@ class PaymentController {
         });
       }
 
-      // Kiểm tra điều kiện mua AI Filter: bắt buộc tài khoản phải có VIP còn hạn
-      if (plan.category === "ai_filter" && db) {
-        const userDoc = await db.collection(APPROVED_USERS_COLLECTION).doc(normalizedUsername).get();
-        if (!userDoc.exists) {
-          return res.status(400).json({
-            success: false,
-            code: "VIP_REQUIRED_FOR_AI",
-            message: "Bạn cần có gói VIP trước khi mua lượt AI Filter.",
-          });
-        }
-        const access = resolveEffectiveAccess(userDoc.data(), Date.now());
-        if (!access.isVipActive) {
-          return res.status(400).json({
-            success: false,
-            code: "VIP_REQUIRED_FOR_AI",
-            message: "Gói AI Filter chỉ dành cho thành viên VIP. Vui lòng nâng cấp VIP trước!",
-          });
-        }
-      }
-
+      // Cho phép mua AI Filter thoải mái (kể cả Free user lẫn VIP user đều mua được)
       const clientId = PAYOS_CLIENT_ID();
       const apiKey = PAYOS_API_KEY();
       const checksumKey = PAYOS_CHECKSUM_KEY();
@@ -316,10 +297,13 @@ class PaymentController {
       const cancelUrl =
         process.env.PAYOS_CANCEL_URL || `${baseUrl}/pricing`;
 
-      const description =
+      // PayOS description: tối đa 25 ký tự, KHÔNG chứa ký tự đặc biệt như @ để tránh lỗi PayOS từ chối
+      const cleanName = normalizedUsername.replace(/[^a-zA-Z0-9]/g, "");
+      const description = (
         plan.category === "ai_filter"
-          ? `AI ${plan.credits}A @${normalizedUsername}`.slice(0, 25)
-          : `VIP ${plan.days}N @${normalizedUsername}`.slice(0, 25);
+          ? `AI ${plan.credits || 0}A ${cleanName}`
+          : `VIP ${plan.days || 0}N ${cleanName}`
+      ).slice(0, 25);
 
       const signData = {
         amount: plan.price,
@@ -374,7 +358,8 @@ class PaymentController {
         orderCode,
         planId: plan.id,
         planName: plan.name,
-        planDays: plan.days,
+        planDays: Number.isFinite(plan.days) ? plan.days : null,
+        credits: Number.isFinite(plan.credits) ? plan.credits : null,
         planCategory: plan.category || "vip",
         price: plan.price,
         username: normalizedUsername,
@@ -403,7 +388,8 @@ class PaymentController {
           price: plan.price,
           planId: plan.id,
           planName: plan.name,
-          planDays: plan.days,
+          planDays: Number.isFinite(plan.days) ? plan.days : null,
+          credits: Number.isFinite(plan.credits) ? plan.credits : null,
           planCategory: plan.category || "vip",
           username: normalizedUsername,
         },
@@ -645,8 +631,11 @@ class PaymentController {
 
     if (category === "ai_filter") {
       // ─── KÍCH HOẠT NẠP LƯỢT AI FILTER (CỘNG DỒN CREDITS) ───
-      const creditsToAdd = Number(planFromCatalog?.credits || 0);
-      const currentCredits = Number(existingData?.aiCredits || 0);
+      const creditsToAdd = Number(planFromCatalog?.credits || order?.credits || 0);
+      const currentCredits = Math.max(
+        0,
+        Number(existingData?.aiCredits ?? (existingData?.aiFilterEnabled ? 20 : 0))
+      );
       const newCredits = currentCredits + creditsToAdd;
 
       if (approvedDoc.exists) {
