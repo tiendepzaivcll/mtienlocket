@@ -95,7 +95,13 @@ function createAiFilterSettingsStore({ getDocument, now = Date.now }) {
           loadError = true;
           return current;
         }
-        const data = document.exists ? document.data() || {} : {};
+        const doc = await ref.get();
+        if (!doc || !doc.exists) {
+          current = null;
+          loadError = false;
+          return current;
+        }
+        const data = doc.data() || {};
         const option = findModelOption(data.modelId);
         current = {
           modelId: option ? option.id : null,

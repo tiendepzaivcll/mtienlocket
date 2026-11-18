@@ -26,7 +26,7 @@ exports.save = async (req, res) => {
     return res.status(409).json({
       success: false,
       code: "AI_FILTER_MODEL_NOT_IMAGE",
-      message: "Model này chỉ hỗ trợ chat và đọc ảnh, không tạo được ảnh. Hãy chọn một mô hình tạo ảnh cho AI Filter.",
+      message: "Model này chỉ hỗ trợ chat và đọc ảnh, không tạo ảnh được. Hãy chọn một mô hình tạo ảnh cho AI Filter.",
     });
   }
 
