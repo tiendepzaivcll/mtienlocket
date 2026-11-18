@@ -341,27 +341,8 @@ class ApiController {
       }
 
       if (approval.status === "not_found") {
-        // Không có trong approved_users → vẫn cho đăng nhập, role = "free"
-        // Lưu uid vào approved_users để theo dõi (nếu có username)
-        if (db && username && localId) {
-          try {
-            await db.collection(APPROVED_USER_COLLECTION).doc(username).set(
-              {
-                uid: localId,
-                role: "free",
-                active: true,
-                approved: true,
-                enabled: true,
-                lastAccessAt: new Date().toISOString(),
-                createdAt: new Date().toISOString(),
-              },
-              { merge: true },
-            );
-          } catch (e) {
-            console.warn("⚠️ Không thể tạo approved_users doc:", e.message);
-          }
-        }
-
+        // Không có trong approved_users → cho đăng nhập với role "free"
+        // KHÔNG tự tạo doc (tránh user bị xoá tự xuất hiện lại)
         return res.status(200).json({
           success: true,
           data: {
