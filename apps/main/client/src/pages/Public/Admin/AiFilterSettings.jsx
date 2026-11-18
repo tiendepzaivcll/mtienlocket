@@ -13,8 +13,10 @@ import {
 export default function AiFilterSettings() {
   const [status, setStatus] = useState(null);
   const [modelId, setModelId] = useState("");
+  const [inputKiraKey, setInputKiraKey] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingKey, setSavingKey] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -49,10 +51,10 @@ export default function AiFilterSettings() {
       SonnerWarning("Model này chỉ chat và đọc ảnh, không tạo ảnh.");
       return;
     }
-    if (!selected.configured) {
+    if (!selected.configured && !inputKiraKey) {
       SonnerWarning(
         selected.provider === "kira"
-          ? "Server chưa có KIRA_API_KEY."
+          ? "Server chưa có KIRA_API_KEY. Vui lòng nhập key bên dưới."
           : "Server chưa cấu hình Cloudflare Workers AI.",
       );
       return;
@@ -60,16 +62,44 @@ export default function AiFilterSettings() {
 
     try {
       setSaving(true);
-      const result = await saveAiFilterSettings(modelId);
+      const result = await saveAiFilterSettings({
+        modelId,
+        kiraApiKey: inputKiraKey.trim() || undefined,
+      });
       setStatus(result.data);
       setModelId(result.data.activeModelId);
-      SonnerSuccess("Đã đổi mô hình AI.");
+      if (inputKiraKey.trim()) setInputKiraKey("");
+      SonnerSuccess("Đã cập nhật mô hình AI.");
     } catch (error) {
       SonnerError(
         error.response?.data?.message || "Không đổi được mô hình AI.",
       );
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleUpdateKiraKey = async (e) => {
+    e.preventDefault();
+    if (!inputKiraKey.trim()) {
+      SonnerWarning("Vui lòng nhập Kira API Key mới.");
+      return;
+    }
+    try {
+      setSavingKey(true);
+      const result = await saveAiFilterSettings({
+        modelId: modelId || status?.activeModelId,
+        kiraApiKey: inputKiraKey.trim(),
+      });
+      setStatus(result.data);
+      setInputKiraKey("");
+      SonnerSuccess("Đã cập nhật Kira API Key mới thành công!");
+    } catch (error) {
+      SonnerError(
+        error.response?.data?.message || "Không thể cập nhật API Key.",
+      );
+    } finally {
+      setSavingKey(false);
     }
   };
 
@@ -90,6 +120,50 @@ export default function AiFilterSettings() {
       </div>
 
       {status?.supportsImageGeneration === false && <p role="alert" className="rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm">Model hiện tại là HY4 Flash Free, chỉ hỗ trợ chat và đọc ảnh. Hãy chọn mô hình tạo ảnh để dùng AI Filter.</p>}
+
+      {/* Cập nhật nhanh Kira API Key */}
+      <div className="rounded-xl border border-violet-500/30 bg-violet-500/10 p-3.5 space-y-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="text-xs font-bold text-violet-300 flex items-center gap-1.5">
+            <Sparkles size={14} />
+            <span>Kira AI API Key</span>
+          </div>
+          <div className="text-[11px] opacity-75">
+            Key hiện tại:{" "}
+            <code className="bg-black/30 px-1.5 py-0.5 rounded text-white font-mono">
+              {status?.kiraApiKeyMasked || (status?.hasKiraApiKey ? "Đang dùng ENV" : "Chưa có")}
+            </code>
+          </div>
+        </div>
+        <form onSubmit={handleUpdateKiraKey} className="flex gap-2">
+          <input
+            type="password"
+            className="input input-bordered input-sm flex-1 text-xs"
+            value={inputKiraKey}
+            onChange={(e) => setInputKiraKey(e.target.value)}
+            placeholder="Nhập hoặc dán Kira API Key mới tại đây..."
+          />
+          <button
+            type="submit"
+            className="btn btn-primary btn-sm text-xs"
+            disabled={savingKey || !inputKiraKey.trim()}
+          >
+            {savingKey ? "Đang lưu..." : "Cập nhật Key"}
+          </button>
+        </form>
+        <p className="text-[11px] opacity-60">
+          💡 Khi Kira báo <em>"Invalid API key"</em> hoặc tài khoản hết tiền/đổi key mới trên{" "}
+          <a
+            href="https://kiraai.vn"
+            target="_blank"
+            rel="noreferrer"
+            className="text-violet-400 underline font-medium hover:text-violet-300"
+          >
+            kiraai.vn
+          </a>
+          , dán key mới vào đây và bấm <strong>Cập nhật Key</strong> là áp dụng ngay lập tức mà không cần deploy lại.
+        </p>
+      </div>
 
       {loading ? (
         <div className="py-5 text-center text-sm opacity-60">Đang tải cấu hình...</div>

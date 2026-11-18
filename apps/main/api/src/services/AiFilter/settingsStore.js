@@ -43,15 +43,32 @@ const findModelOption = (value) => {
   ) || null;
 };
 
-const envModelOption = () =>
-  findModelOption(process.env.AI_FILTER_ACTIVE_MODEL) ||
-  findModelOption(process.env.CLOUDFLARE_AI_MODEL) ||
-  findModelOption(process.env.KIRA_IMAGE_MODEL) ||
-  findModelOption(DEFAULT_MODEL_ID);
+const envModelOption = (customKiraKey) => {
+  const explicit =
+    findModelOption(process.env.AI_FILTER_ACTIVE_MODEL) ||
+    findModelOption(process.env.CLOUDFLARE_AI_MODEL) ||
+    findModelOption(process.env.KIRA_IMAGE_MODEL);
 
-const isProviderConfigured = (provider) => {
+  if (explicit && isProviderConfigured(explicit.provider, customKiraKey)) {
+    return explicit;
+  }
+
+  const kiraConfigured = isProviderConfigured("kira", customKiraKey);
+  const cloudflareConfigured = isProviderConfigured("cloudflare");
+
+  if (kiraConfigured && !cloudflareConfigured) {
+    return findModelOption("kira-nano-banana") || findModelOption("kira-2.0-image");
+  }
+  if (cloudflareConfigured && !kiraConfigured) {
+    return findModelOption("cloudflare-flux-2-klein-9b");
+  }
+
+  return explicit || findModelOption(DEFAULT_MODEL_ID) || findModelOption("kira-nano-banana");
+};
+
+const isProviderConfigured = (provider, customKiraKey) => {
   if (provider === "kira") {
-    return Boolean(String(process.env.KIRA_API_KEY || "").trim());
+    return Boolean(String(customKiraKey || settingsStore?.peek?.()?.kiraApiKey || process.env.KIRA_API_KEY || "").trim());
   }
   if (provider === "cloudflare") {
     const accountId = String(process.env.CLOUDFLARE_ACCOUNT_ID || "").trim();
@@ -78,16 +95,13 @@ function createAiFilterSettingsStore({ getDocument, now = Date.now }) {
           loadError = true;
           return current;
         }
-        const document = await ref.get();
-        const option = document.exists
-          ? findModelOption(document.data()?.modelId)
-          : null;
-        current = option
-          ? {
-              modelId: option.id,
-              updatedAt: document.data()?.updatedAt || null,
-            }
-          : null;
+        const data = document.exists ? document.data() || {} : {};
+        const option = findModelOption(data.modelId);
+        current = {
+          modelId: option ? option.id : null,
+          kiraApiKey: typeof data.kiraApiKey === "string" ? data.kiraApiKey.trim() : null,
+          updatedAt: data.updatedAt || null,
+        };
         loadError = false;
       } catch {
         // A temporary Firestore issue must not stop image generation. Keep the
@@ -104,9 +118,12 @@ function createAiFilterSettingsStore({ getDocument, now = Date.now }) {
     return pending;
   }
 
-  async function save(modelId) {
-    const option = findModelOption(modelId);
-    if (!option) {
+  async function save(payload) {
+    const modelId = typeof payload === "string" ? payload : payload?.modelId;
+    const kiraApiKey = typeof payload === "object" ? payload?.kiraApiKey : undefined;
+
+    const option = modelId ? findModelOption(modelId) : null;
+    if (modelId && !option) {
       const error = new Error("Mô hình AI không được hỗ trợ.");
       error.status = 400;
       error.code = "AI_FILTER_MODEL_INVALID";
@@ -115,15 +132,22 @@ function createAiFilterSettingsStore({ getDocument, now = Date.now }) {
 
     const ref = getDocument();
     if (!ref) {
-      const error = new Error("Firestore chưa sẵn sàng để lưu mô hình AI.");
+      const error = new Error("Firestore chưa sẵn sàng để lưu cấu hình AI.");
       error.status = 503;
       error.code = "AI_FILTER_SETTINGS_UNAVAILABLE";
       throw error;
     }
 
     const updatedAt = new Date(now()).toISOString();
-    await ref.set({ modelId: option.id, updatedAt });
-    current = { modelId: option.id, updatedAt };
+    const updateData = { updatedAt };
+    if (option) updateData.modelId = option.id;
+    if (typeof kiraApiKey === "string") updateData.kiraApiKey = kiraApiKey.trim();
+
+    await ref.set(updateData, { merge: true });
+    current = {
+      ...(current || {}),
+      ...updateData,
+    };
     checkedAt = now();
     loadError = false;
     return current;
@@ -147,24 +171,41 @@ const settingsStore = createAiFilterSettingsStore({
 
 const getActiveModel = async ({ force = false } = {}) => {
   const saved = await settingsStore.load({ force });
-  return findModelOption(saved?.modelId) || envModelOption();
+  const savedModel = findModelOption(saved?.modelId);
+  const customKey = saved?.kiraApiKey || null;
+  const selected = (savedModel && isProviderConfigured(savedModel.provider, customKey) && savedModel.supportsImageGeneration !== false)
+    ? savedModel
+    : envModelOption(customKey);
+  return {
+    ...selected,
+    kiraApiKey: customKey,
+  };
 };
 
 const getSettingsStatus = async ({ force = false } = {}) => {
   const active = await getActiveModel({ force });
   const saved = settingsStore.peek();
+  const customKey = saved?.kiraApiKey || "";
+  const effectiveKiraKey = customKey || String(process.env.KIRA_API_KEY || "").trim();
+  const maskedKey = effectiveKiraKey
+    ? (effectiveKiraKey.length > 8 ? `${effectiveKiraKey.slice(0, 4)}••••${effectiveKiraKey.slice(-4)}` : "••••••••")
+    : null;
+
   return {
     activeModelId: active.id,
     supportsImageGeneration: active.supportsImageGeneration !== false,
-    source: saved ? "admin" : "env",
+    source: saved?.modelId ? "admin" : "env",
     updatedAt: saved?.updatedAt || null,
     storageAvailable: !settingsStore.loadFailed(),
+    hasKiraApiKey: Boolean(effectiveKiraKey),
+    kiraApiKeyMasked: maskedKey,
+    hasCustomKiraKey: Boolean(customKey),
     models: MODEL_OPTIONS.map((option) => ({
       id: option.id,
       label: option.label,
       provider: option.provider,
       supportsImageGeneration: option.supportsImageGeneration !== false,
-      configured: isProviderConfigured(option.provider),
+      configured: isProviderConfigured(option.provider, customKey),
     })),
   };
 };

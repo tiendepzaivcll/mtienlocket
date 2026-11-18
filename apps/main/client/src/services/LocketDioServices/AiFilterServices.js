@@ -1,9 +1,13 @@
 import api from "@/libs/axios";
 import { uploadFileAndGetInfoR2 } from "./StorageServices";
 import { getToken } from "@/utils";
+import { useAuthStore } from "@/stores";
 
 export const fetchAiFilters = async () => {
-  const response = await api.get("/api/ai-filters");
+  const username = useAuthStore.getState().user?.username;
+  const response = await api.get("/api/ai-filters", {
+    headers: username ? { "x-username": username } : {},
+  });
   return response.data?.data?.groups || [];
 };
 
@@ -19,10 +23,19 @@ export const generateAiFilteredImage = async (file, filterId) => {
     throw new Error("R2 không trả về publicUrl cho ảnh đầu vào.");
   }
 
-  const response = await api.post("/api/ai-filters/generate", {
-    imageUrl,
-    filterId,
-  });
+  const username = useAuthStore.getState().user?.username;
+
+  const response = await api.post(
+    "/api/ai-filters/generate",
+    {
+      imageUrl,
+      filterId,
+      username,
+    },
+    {
+      headers: username ? { "x-username": username } : {},
+    }
+  );
   return {
     ...response.data?.data,
     input: uploaded,

@@ -11,44 +11,40 @@ exports.get = async (_req, res) => {
 };
 
 exports.save = async (req, res) => {
-  const option = findModelOption(req.body?.modelId);
-  if (!option) {
+  const modelId = req.body?.modelId;
+  const kiraApiKey = req.body?.kiraApiKey;
+
+  const option = modelId ? findModelOption(modelId) : null;
+  if (!option && !kiraApiKey) {
     return res.status(400).json({
       success: false,
-      message: "Mô hình AI không được hỗ trợ.",
+      message: "Vui lòng chọn mô hình AI hoặc nhập Kira API Key.",
     });
   }
 
-  if (option.supportsImageGeneration === false) {
+  if (option && option.supportsImageGeneration === false) {
     return res.status(409).json({
       success: false,
       code: "AI_FILTER_MODEL_NOT_IMAGE",
-      message: "HY4 Flash Free chỉ hỗ trợ chat và đọc ảnh, không tạo ảnh. Hãy chọn một mô hình tạo ảnh cho AI Filter.",
-    });
-  }
-
-  if (!isProviderConfigured(option.provider)) {
-    return res.status(409).json({
-      success: false,
-      message:
-        option.provider === "kira"
-          ? "Server chưa có KIRA_API_KEY."
-          : "Server chưa có Cloudflare Account ID hoặc Workers AI API token.",
+      message: "Model này chỉ hỗ trợ chat và đọc ảnh, không tạo được ảnh. Hãy chọn một mô hình tạo ảnh cho AI Filter.",
     });
   }
 
   try {
-    await settingsStore.save(option.id);
-    const data = await getSettingsStatus();
+    await settingsStore.save({
+      modelId: option ? option.id : undefined,
+      kiraApiKey: typeof kiraApiKey === "string" ? kiraApiKey.trim() : undefined,
+    });
+    const data = await getSettingsStatus({ force: true });
     return res.json({
       success: true,
       data,
-      message: "Đã đổi mô hình AI và áp dụng ngay.",
+      message: "Đã cập nhật cấu hình AI Filter thành công.",
     });
   } catch (error) {
     return res.status(error.status || 503).json({
       success: false,
-      message: error.message || "Không lưu được mô hình AI.",
+      message: error.message || "Không lưu được cấu hình AI Filter.",
     });
   }
 };

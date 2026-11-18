@@ -462,9 +462,11 @@ const generateWithCloudflare = async ({ inputImage, filter, selection }) => {
 };
 
 const generateWithKira = async ({ inputImage, filter, selection }) => {
-  const apiKey = String(process.env.KIRA_API_KEY || "").trim();
+  let apiKey = String(selection?.kiraApiKey || process.env.KIRA_API_KEY || "").trim();
+  apiKey = apiKey.replace(/^KIRA_API_KEY\s*=\s*/i, "").replace(/^["'`]|["'`]$/g, "").trim();
+
   if (!apiKey) {
-    const error = new Error("Backend chưa cấu hình KIRA_API_KEY.");
+    const error = new Error("Backend chưa có KIRA_API_KEY. Vui lòng cập nhật API Key trên trang Admin hoặc Railway.");
     error.status = 503;
     error.code = "KIRA_NOT_CONFIGURED";
     throw error;

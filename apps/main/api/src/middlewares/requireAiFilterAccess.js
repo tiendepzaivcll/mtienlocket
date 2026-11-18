@@ -1,4 +1,5 @@
 const { db } = require("../config/firebase-admin-config");
+const { authServices } = require("../services");
 const {
   isApprovedDocEnabled,
   resolveEffectiveAccess,
@@ -20,13 +21,46 @@ const requireAiFilterAccess = async (req, res, next) => {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
+    let approvedDoc = null;
+    let access = null;
+
+    // 1. Tìm theo UID trước
     const snapshot = await db
       .collection(APPROVED_USER_COLLECTION)
       .where("uid", "==", uid)
       .limit(1)
       .get();
-    const approvedDoc = snapshot.docs[0];
-    const access = approvedDoc?.data() || null;
+
+    if (!snapshot.empty) {
+      approvedDoc = snapshot.docs[0];
+      access = approvedDoc.data() || null;
+    }
+
+    // 2. Nếu chưa có UID trong doc (do admin mới tạo hoặc chưa sync), tìm theo username
+    if (!access) {
+      let username = req.headers["x-username"] || req.body?.username;
+
+      if (!username && req.user?.idToken) {
+        try {
+          const userInfo = await authServices.getUserInfoV2(req.user.idToken, uid);
+          username = userInfo?.username;
+        } catch (uErr) {
+          console.warn("⚠️ [requireAiFilterAccess] Không lấy được userInfo từ Locket:", uErr.message);
+        }
+      }
+
+      if (username) {
+        const cleanUsername = String(username).trim().toLowerCase().replace(/^@+/, "");
+        const docRef = db.collection(APPROVED_USER_COLLECTION).doc(cleanUsername);
+        const docSnap = await docRef.get();
+        if (docSnap.exists) {
+          approvedDoc = docSnap;
+          access = docSnap.data() || null;
+          // Tự động liên kết UID để lần sau tìm nhanh hơn
+          docRef.set({ uid, lastAccessAt: new Date().toISOString() }, { merge: true }).catch(() => {});
+        }
+      }
+    }
 
     if (!access) {
       return res.status(403).json({

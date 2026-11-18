@@ -21,9 +21,10 @@ export const getAppCheckSettings = async () => (await adminApi.get("/app-check")
 export const saveAppCheckSettings = async (data) => (await adminApi.put("/app-check", data)).data.data;
 export const checkAppCheckSettings = async () => (await adminApi.post("/app-check/check")).data;
 export const getAiFilterSettings = async () => (await adminApi.get("/ai-filter")).data.data;
-export const saveAiFilterSettings = async (modelId) => (
-  await adminApi.put("/ai-filter", { modelId })
-).data;
+export const saveAiFilterSettings = async (payload) => {
+  const body = typeof payload === "string" ? { modelId: payload } : payload;
+  return (await adminApi.put("/ai-filter", body)).data;
+};
 export const listCaptionPresets = async () => (await adminApi.get("/caption-presets")).data.data || [];
 export const saveCaptionPreset = async (data) => (await adminApi.put("/caption-presets", data)).data.data;
 export const deleteCaptionPreset = async (sectionId, presetId) => (
