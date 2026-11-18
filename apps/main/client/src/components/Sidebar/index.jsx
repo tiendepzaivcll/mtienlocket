@@ -109,7 +109,7 @@ const Sidebar = () => {
           text: "Locket Camera",
           badge: "Beta",
         },
-        { to: "/tools", icon: Wrench, text: "Công cụ Locket" },
+        { to: "/tools", icon: Wrench, text: "Công cụ Locket", badge: "VIP" },
         {
           to: "/diary",
           icon: CalendarClock,

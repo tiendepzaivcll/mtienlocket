@@ -18,6 +18,7 @@ import {
   ArrowLeft,
   User,
   AtSign,
+  Wrench,
 } from "lucide-react";
 import { instanceMain } from "@/libs/instanceMain";
 import {
@@ -28,12 +29,18 @@ import { useAuthStore } from "@/stores/AuthStore";
 
 // ─── Feature comparison data ────────────────────────────────────────
 const FEATURE_ROWS = [
-  { icon: Video, label: "Thời lượng video", free: "5 giây", vip: "30 giây" },
+  { icon: Video, label: "Thời lượng video", free: "10 giây", vip: "30 giây" },
   {
-    icon: Flame,
-    label: "Khôi phục streak",
-    free: "0 lần/tháng",
-    vip: "Không giới hạn",
+    icon: Upload,
+    label: "Chất lượng upload",
+    free: "HD",
+    vip: "HD cao nhất",
+  },
+  {
+    icon: MessageSquare,
+    label: "Caption",
+    free: "General & Holiday",
+    vip: "Đầy đủ + tuỳ chỉnh",
   },
   {
     icon: Camera,
@@ -52,14 +59,23 @@ const FEATURE_ROWS = [
   {
     icon: Wand2,
     label: "Bộ lọc AI",
-    free: "Không có",
-    vip: "Đầy đủ bộ lọc AI",
+    free: false,
+    vip: true,
+    isBoolean: true,
   },
   {
-    icon: Upload,
-    label: "Chất lượng upload",
-    free: "Tiêu chuẩn",
-    vip: "HD cao nhất",
+    icon: Flame,
+    label: "Khôi phục streak",
+    free: false,
+    vip: true,
+    isBoolean: true,
+  },
+  {
+    icon: Wrench,
+    label: "Công cụ Locket",
+    free: false,
+    vip: true,
+    isBoolean: true,
   },
   {
     icon: Eye,
@@ -67,12 +83,6 @@ const FEATURE_ROWS = [
     free: false,
     vip: true,
     isBoolean: true,
-  },
-  {
-    icon: MessageSquare,
-    label: "Caption tuỳ chỉnh",
-    free: "Cơ bản",
-    vip: "Đầy đủ + tuỳ chỉnh",
   },
 ];
 

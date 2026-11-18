@@ -41,6 +41,7 @@ const toolsList = [
 
 export default function ToolsLocket() {
   const { user, accessRole } = useAuthStore();
+  const isVip = accessRole === "vip";
   const isCelebrityOnly = accessRole === "celebrity";
   const [activeTab, setActiveTab] = useState(
     window.location.hash.replace("#", "") ||
@@ -49,7 +50,7 @@ export default function ToolsLocket() {
 
   const visibleTools = toolsList.map((tool) => ({
     ...tool,
-    locked: isCelebrityOnly && tool.vipOnly,
+    locked: !isVip || (isCelebrityOnly && tool.vipOnly),
   }));
   const activeTool = visibleTools.find((tool) => tool.key === activeTab);
 
