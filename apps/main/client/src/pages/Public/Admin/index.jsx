@@ -356,6 +356,23 @@ export default function AdminPanel() {
     }
   };
 
+  const handleSetExactCredits = async (user, exactCredits) => {
+    try {
+      const nextCredits = Math.max(0, parseInt(exactCredits) || 0);
+      await updateApprovedUser(user.username, { aiCredits: nextCredits });
+      setUsers((currentList) =>
+        currentList.map((item) =>
+          item.username === user.username
+            ? { ...item, aiCredits: nextCredits, aiFilterEnabled: nextCredits > 0 }
+            : item,
+        ),
+      );
+      SonnerSuccess(`Đã lưu số lượt AI của @${user.username} thành ${nextCredits}`);
+    } catch {
+      SonnerError("Không cập nhật được số lượt AI.");
+    }
+  };
+
   const handleToggle = async (user) => {
     try {
       const active = user.active === false;
@@ -742,9 +759,25 @@ export default function AdminPanel() {
                     {/* Số lượt AI */}
                     <td>
                       <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-violet-400 text-sm">
-                          {user.aiCredits || 0}
-                        </span>
+                        <input
+                          type="number"
+                          min="0"
+                          defaultValue={user.aiCredits || 0}
+                          key={`${user.username}_${user.aiCredits}`}
+                          onBlur={(e) => {
+                            const val = parseInt(e.target.value);
+                            if (!isNaN(val) && val !== (user.aiCredits || 0)) {
+                              handleSetExactCredits(user, val);
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.target.blur();
+                            }
+                          }}
+                          className="input input-bordered input-xs w-16 text-center font-bold text-violet-400 bg-base-100 focus:w-20 transition-all"
+                          title="Nhập số lượt AI cụ thể rồi nhấn Enter hoặc click ra ngoài để lưu"
+                        />
                         <span className="text-[11px] opacity-60">lượt</span>
                       </div>
                       <div className="mt-1 flex items-center gap-1">

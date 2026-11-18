@@ -8,6 +8,7 @@ router.get("/check-user/:username", paymentController.checkUserVip);
 router.post("/claim-trial", paymentController.claimTrial);
 router.post("/create-order", paymentController.createOrder);
 router.get("/order/:orderCode", paymentController.getOrder);
+router.post("/cancel-order/:orderCode", paymentController.cancelOrder);
 router.post("/check-order/:orderCode", paymentController.recheckOrder);
 
 // 🔔 PayOS Webhook

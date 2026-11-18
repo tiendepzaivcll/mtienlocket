@@ -30,7 +30,55 @@ export default function PayPage() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [rechecking, setRechecking] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(300);
   const syncedPaidRef = useRef(false);
+
+  // Đếm ngược 5 phút thanh toán tự động huỷ
+  useEffect(() => {
+    if (!order || order.status !== "PENDING") return;
+    const expireMs = order.expiresAt
+      ? new Date(order.expiresAt).getTime()
+      : new Date(order.createdAt).getTime() + 5 * 60 * 1000;
+
+    const updateTimer = () => {
+      const diff = Math.max(0, Math.floor((expireMs - Date.now()) / 1000));
+      setTimeLeft(diff);
+      if (diff <= 0) {
+        setOrder((prev) =>
+          prev
+            ? {
+                ...prev,
+                status: "CANCELLED",
+                cancelReason: "Hết hạn thanh toán (5 phút)",
+              }
+            : null,
+        );
+        SonnerWarning("Đơn hàng đã hết hạn thanh toán (5 phút) và tự động huỷ.");
+      }
+    };
+
+    updateTimer();
+    const timer = setInterval(updateTimer, 1000);
+    return () => clearInterval(timer);
+  }, [order?.status, order?.expiresAt, order?.createdAt]);
+
+  const handleCancelOrder = async () => {
+    if (!orderCode) return;
+    if (!window.confirm("Bạn có chắc chắn muốn huỷ đơn thanh toán này không?")) return;
+    setCancelling(true);
+    try {
+      const res = await instanceMain.post(`/api/payment/cancel-order/${orderCode}`);
+      if (res.data?.success) {
+        setOrder(res.data.data);
+        SonnerInfo("Đã huỷ đơn hàng.");
+      }
+    } catch {
+      SonnerWarning("Không thể huỷ đơn hàng.");
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   const isAiPlan =
     order?.planCategory === "ai_filter" ||
@@ -207,11 +255,14 @@ export default function PayPage() {
             <XCircle className="w-8 h-8 text-red-400" />
           </div>
           <h2 className="text-xl font-bold">Đơn hàng đã huỷ</h2>
+          <p className="text-xs text-gray-300">
+            {order.cancelReason || "Đơn hàng chưa thanh toán hoặc đã quá hạn 5 phút."}
+          </p>
           <button
             onClick={() => navigate("/pricing")}
             className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 font-bold text-sm transition"
           >
-            Mua gói mới
+            Quay lại chọn gói mới
           </button>
         </div>
       </div>
@@ -219,6 +270,8 @@ export default function PayPage() {
   }
 
   const qrPayload = order.qrCode || order.checkoutUrl;
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = String(timeLeft % 60).padStart(2, "0");
 
   // ─── PENDING ───────────────────────────────────────────────
   return (
@@ -232,9 +285,16 @@ export default function PayPage() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <h1 className="text-lg font-bold flex-1">Thanh toán</h1>
-        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-400 text-xs font-bold">
-          <Clock className="w-3 h-3" />
-          Chờ thanh toán
+        <div
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+            timeLeft < 60
+              ? "bg-red-500/20 text-red-400 animate-pulse border border-red-500/30"
+              : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
+          }`}
+          title="Đơn hàng sẽ tự động huỷ sau 5 phút nếu chưa thanh toán"
+        >
+          <Clock className="w-3.5 h-3.5" />
+          <span>Còn {minutes}:{seconds}</span>
         </div>
       </div>
 
@@ -305,7 +365,7 @@ export default function PayPage() {
         {/* Recheck button */}
         <button
           onClick={recheckOrder}
-          disabled={rechecking}
+          disabled={rechecking || cancelling}
           className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 font-bold text-sm transition disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {rechecking ? (
@@ -315,6 +375,26 @@ export default function PayPage() {
             </>
           ) : (
             "Đã thanh toán? Kiểm tra ngay"
+          )}
+        </button>
+
+        {/* Cancel button */}
+        <button
+          type="button"
+          onClick={handleCancelOrder}
+          disabled={cancelling || rechecking}
+          className="w-full py-2.5 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30 text-xs font-bold transition flex items-center justify-center gap-1.5 disabled:opacity-50"
+        >
+          {cancelling ? (
+            <>
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              Đang huỷ đơn...
+            </>
+          ) : (
+            <>
+              <XCircle className="w-3.5 h-3.5" />
+              Huỷ thanh toán đơn hàng này
+            </>
           )}
         </button>
 

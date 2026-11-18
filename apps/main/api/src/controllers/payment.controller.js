@@ -411,7 +411,7 @@ class PaymentController {
               price: plan.price,
             },
           ],
-          expiredAt: Math.floor(Date.now() / 1000) + 30 * 60,
+          expiredAt: Math.floor(Date.now() / 1000) + 5 * 60,
         },
         {
           headers: {
@@ -446,6 +446,7 @@ class PaymentController {
         checkoutUrl: payosData.checkoutUrl,
         qrCode: payosData.qrCode,
         paymentLinkId: payosData.paymentLinkId,
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -510,6 +511,29 @@ class PaymentController {
       const order = doc.data();
 
       if (order.status === "PENDING") {
+        // Tự động huỷ đơn hàng nếu quá 5 phút
+        const now = Date.now();
+        const orderExpireMs = order.expiresAt
+          ? new Date(order.expiresAt).getTime()
+          : new Date(order.createdAt).getTime() + 5 * 60 * 1000;
+
+        if (now > orderExpireMs) {
+          const nowIso = new Date().toISOString();
+          await orderRef.update({
+            status: "CANCELLED",
+            cancelReason: "Hết hạn thanh toán (5 phút)",
+            updatedAt: nowIso,
+          });
+          return res.status(200).json({
+            success: true,
+            data: {
+              ...order,
+              status: "CANCELLED",
+              cancelReason: "Hết hạn thanh toán (5 phút)",
+            },
+          });
+        }
+
         try {
           const payosInfo = await fetchPayosOrderStatus(orderCode);
           if (payosInfo?.status === "PAID") {
@@ -829,6 +853,65 @@ class PaymentController {
   }
 
   /**
+   * POST /api/payment/cancel-order/:orderCode
+   * PUBLIC: Khách hàng chủ động bấm huỷ đơn thanh toán
+   */
+  cancelOrder = async (req, res) => {
+    try {
+      const { orderCode } = req.params;
+      if (!db || !orderCode) {
+        return res.status(400).json({ success: false, message: "Thiếu mã đơn hàng" });
+      }
+
+      const orderRef = db.collection(ORDERS_COLLECTION).doc(String(orderCode));
+      const doc = await orderRef.get();
+      if (!doc.exists) {
+        return res.status(404).json({ success: false, message: "Không tìm thấy đơn hàng" });
+      }
+
+      const order = doc.data();
+      if (order.status === "PAID") {
+        return res.status(400).json({ success: false, message: "Đơn hàng đã thanh toán thành công, không thể huỷ" });
+      }
+
+      const nowIso = new Date().toISOString();
+      await orderRef.update({
+        status: "CANCELLED",
+        cancelReason: "Khách hàng huỷ thanh toán",
+        updatedAt: nowIso,
+      });
+
+      try {
+        const clientId = PAYOS_CLIENT_ID();
+        const apiKey = PAYOS_API_KEY();
+        if (clientId && apiKey) {
+          await axios.post(
+            `${PAYOS_API_URL}/v2/payment-requests/${orderCode}/cancel`,
+            { cancellationReason: "Khách hàng huỷ thanh toán" },
+            {
+              headers: {
+                "x-client-id": clientId,
+                "x-api-key": apiKey,
+              },
+              timeout: 5000,
+            },
+          );
+        }
+      } catch {
+        // Bỏ qua lỗi huỷ PayOS
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "Đơn hàng đã được huỷ thành công",
+        data: { ...order, status: "CANCELLED", cancelReason: "Khách hàng huỷ thanh toán" },
+      });
+    } catch (error) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  };
+
+  /**
    * POST /api/payment/check-order/:orderCode
    * PUBLIC: kiểm tra lại trạng thái đơn hàng từ PayOS
    */
@@ -859,6 +942,29 @@ class PaymentController {
         return res.status(200).json({
           success: true,
           data: { ...order, status: "PAID" },
+        });
+      }
+
+      // Tự động huỷ đơn hàng nếu quá 5 phút
+      const now = Date.now();
+      const orderExpireMs = order.expiresAt
+        ? new Date(order.expiresAt).getTime()
+        : new Date(order.createdAt).getTime() + 5 * 60 * 1000;
+
+      if (now > orderExpireMs) {
+        const nowIso = new Date().toISOString();
+        await orderRef.update({
+          status: "CANCELLED",
+          cancelReason: "Hết hạn thanh toán (5 phút)",
+          updatedAt: nowIso,
+        });
+        return res.status(200).json({
+          success: true,
+          data: {
+            ...order,
+            status: "CANCELLED",
+            cancelReason: "Hết hạn thanh toán (5 phút)",
+          },
         });
       }
 

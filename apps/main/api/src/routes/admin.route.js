@@ -51,6 +51,21 @@ router.get(
   adminController.verifyAdmin.bind(adminController),
   adminController.listPaymentOrders.bind(adminController),
 );
+router.delete(
+  "/payment-orders/:id",
+  adminController.verifyAdmin.bind(adminController),
+  adminController.deletePaymentOrder.bind(adminController),
+);
+router.post(
+  "/payment-orders/cleanup",
+  adminController.verifyAdmin.bind(adminController),
+  adminController.cleanupPaymentOrders.bind(adminController),
+);
+router.post(
+  "/revenue/reset",
+  adminController.verifyAdmin.bind(adminController),
+  adminController.resetRevenue.bind(adminController),
+);
 router.get(
   "/subscriptions",
   adminController.verifyAdmin.bind(adminController),

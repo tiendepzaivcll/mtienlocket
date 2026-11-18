@@ -454,7 +454,97 @@ class AdminController {
         ...doc.data(),
       }));
 
-      res.status(200).json({ success: true, data: orders });
+      // Lấy cấu hình reset doanh thu nếu có
+      let revenueSettings = null;
+      try {
+        const revDoc = await db.collection("server_settings").doc("revenue_settings").get();
+        if (revDoc.exists) revenueSettings = revDoc.data();
+      } catch {
+        // ignore
+      }
+
+      res.status(200).json({ success: true, data: orders, revenueSettings });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  // === XOÁ 1 ĐƠN HÀNG THANH TOÁN (ADMIN) ===
+  async deletePaymentOrder(req, res) {
+    try {
+      if (!db) {
+        return res.status(500).json({ success: false, message: "Firestore chưa sẵn sàng" });
+      }
+      const { id } = req.params;
+      if (!id) {
+        return res.status(400).json({ success: false, message: "Thiếu id đơn hàng" });
+      }
+      await db.collection("payment_orders").doc(String(id)).delete();
+      res.status(200).json({ success: true, message: "Đã xoá đơn hàng thành công" });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  // === DỌN DẸP TOÀN BỘ ĐƠN HÀNG ĐÃ HUỶ / HẾT HẠN (ADMIN) ===
+  async cleanupPaymentOrders(req, res) {
+    try {
+      if (!db) {
+        return res.status(500).json({ success: false, message: "Firestore chưa sẵn sàng" });
+      }
+      const snapshot = await db.collection("payment_orders").get();
+      const now = Date.now();
+      let deletedCount = 0;
+      const batch = db.batch();
+
+      snapshot.docs.forEach((doc) => {
+        const data = doc.data() || {};
+        const isCancelled = data.status === "CANCELLED";
+        const isExpiredPending =
+          data.status === "PENDING" &&
+          ((data.expiresAt && new Date(data.expiresAt).getTime() < now) ||
+            (data.createdAt && new Date(data.createdAt).getTime() < now - 10 * 60 * 1000));
+
+        if (isCancelled || isExpiredPending) {
+          batch.delete(doc.ref);
+          deletedCount++;
+        }
+      });
+
+      if (deletedCount > 0) {
+        await batch.commit();
+      }
+
+      res.status(200).json({
+        success: true,
+        message: `Đã dọn dẹp ${deletedCount} đơn hàng đã huỷ / hết hạn`,
+        deletedCount,
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  // === RESET DOANH THU (LƯU MỐC ĐÃ CHỐT VÀO LỊCH SỬ) ===
+  async resetRevenue(req, res) {
+    try {
+      if (!db) {
+        return res.status(500).json({ success: false, message: "Firestore chưa sẵn sàng" });
+      }
+      const nowIso = new Date().toISOString();
+      const settingsRef = db.collection("server_settings").doc("revenue_settings");
+      await settingsRef.set(
+        {
+          lastResetAt: nowIso,
+          updatedAt: nowIso,
+        },
+        { merge: true },
+      );
+      res.status(200).json({
+        success: true,
+        message: "Đã reset doanh thu thành công. Doanh thu trước mốc này đã được lưu vào lịch sử.",
+        lastResetAt: nowIso,
+      });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
     }

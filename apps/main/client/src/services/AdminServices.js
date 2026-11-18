@@ -119,7 +119,25 @@ export const deleteAdminNotification = async (id) => {
 // === Payment Management ===
 export const listPaymentOrders = async () => {
   const res = await adminApi.get("/payment-orders");
-  return res.data?.data || [];
+  return {
+    orders: res.data?.data || [],
+    revenueSettings: res.data?.revenueSettings || null,
+  };
+};
+
+export const deletePaymentOrder = async (orderId) => {
+  const res = await adminApi.delete(`/payment-orders/${encodeURIComponent(orderId)}`);
+  return res.data;
+};
+
+export const cleanupCancelledPaymentOrders = async () => {
+  const res = await adminApi.post("/payment-orders/cleanup");
+  return res.data;
+};
+
+export const resetRevenue = async () => {
+  const res = await adminApi.post("/revenue/reset");
+  return res.data;
 };
 
 export const listAdminSubscriptions = async () => {
