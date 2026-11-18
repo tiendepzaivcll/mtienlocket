@@ -59,7 +59,16 @@ const FEATURE_ROWS = [
 export default function PricingPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, accessRole, hasUsedTrial, refreshAccessRole } = useAuthStore();
+  const {
+    user,
+    accessRole,
+    hasUsedTrial,
+    vipPlanId: storeVipPlanId,
+    vipPlanName: storeVipPlanName,
+    vipPlanDays: storeVipPlanDays,
+    vipExpireAt: storeVipExpireAt,
+    refreshAccessRole,
+  } = useAuthStore();
   const aiSectionRef = useRef(null);
 
   const [plans, setPlans] = useState([]);
@@ -68,12 +77,68 @@ export default function PricingPage() {
   const [creating, setCreating] = useState(null);
   const [claimingTrial, setClaimingTrial] = useState(false);
   const [username, setUsername] = useState("");
+  const [remoteVipInfo, setRemoteVipInfo] = useState(null);
+  const [pendingUpgradeModal, setPendingUpgradeModal] = useState(null);
   const [activeTab, setActiveTab] = useState(() => {
     const params = new URLSearchParams(location.search);
     return params.get("tab") === "ai" ? "ai" : "vip";
   });
 
-  const isVip = accessRole === "vip" || accessRole === "celebrity";
+  // Đồng bộ thông tin VIP của username (ưu tiên thông tin từ AuthStore nếu là chính user đó)
+  useEffect(() => {
+    const trimmed = username.trim().replace(/^@+/, "");
+    if (!trimmed) {
+      setRemoteVipInfo(null);
+      return;
+    }
+
+    if (user?.username && trimmed.toLowerCase() === user.username.replace(/^@+/, "").toLowerCase()) {
+      const isStoreVip = accessRole === "vip" || accessRole === "celebrity";
+      setRemoteVipInfo({
+        isVip: isStoreVip,
+        vipPlanId: storeVipPlanId,
+        vipPlanName: storeVipPlanName,
+        vipPlanDays: storeVipPlanDays,
+        vipExpireAt: storeVipExpireAt,
+      });
+      return;
+    }
+
+    let active = true;
+    const timer = setTimeout(async () => {
+      try {
+        const res = await instanceMain.get(`/api/payment/check-user/${trimmed}`);
+        if (active && res.data?.success && res.data?.data) {
+          setRemoteVipInfo(res.data.data);
+        }
+      } catch {
+        if (active) setRemoteVipInfo(null);
+      }
+    }, 400);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [username, user?.username, accessRole, storeVipPlanId, storeVipPlanName, storeVipPlanDays, storeVipExpireAt]);
+
+  const currentVip = remoteVipInfo?.isVip
+    ? remoteVipInfo
+    : (accessRole === "vip" || accessRole === "celebrity")
+      ? {
+          isVip: true,
+          vipPlanId: storeVipPlanId,
+          vipPlanName: storeVipPlanName,
+          vipPlanDays: storeVipPlanDays,
+          vipExpireAt: storeVipExpireAt,
+        }
+      : null;
+
+  const isVip = Boolean(currentVip?.isVip);
+  const isLifetimeVip = isVip && (currentVip.vipPlanId === "vip_lifetime" || !currentVip.vipExpireAt);
+  const remainingDays = isVip && currentVip.vipExpireAt
+    ? Math.max(0, Math.ceil((currentVip.vipExpireAt - Date.now()) / (24 * 60 * 60 * 1000)))
+    : null;
 
   useEffect(() => {
     if (user?.username) {
@@ -160,8 +225,73 @@ export default function PricingPage() {
     }
   };
 
+  const onVipPlanClick = (plan) => {
+    const trimmed = username.trim().replace(/^@+/, "");
+    if (!trimmed) {
+      SonnerWarning("Vui lòng nhập tên người dùng Locket của bạn");
+      return;
+    }
+
+    if (isVip) {
+      // Khách hàng ĐÃ CÓ VIP -> Hiển thị popup hỏi xác nhận nâng cấp hoặc chuyển gói!
+      const currentName = currentVip?.vipPlanName || "VIP";
+      const isSamePlan =
+        plan.id === currentVip?.vipPlanId ||
+        (plan.days === 30 && (currentVip?.vipPlanId === "vip_1month" || currentName.includes("1 Tháng"))) ||
+        (plan.days === 180 && (currentVip?.vipPlanId === "vip_6months" || currentName.includes("6 Tháng"))) ||
+        (plan.days === 365 && (currentVip?.vipPlanId === "vip_1year" || currentName.includes("1 Năm")));
+
+      setPendingUpgradeModal({
+        currentPlan: {
+          name: currentName,
+          daysLeft: isLifetimeVip ? "Vô thời hạn" : `${remainingDays || 0} ngày`,
+          isLifetime: isLifetimeVip,
+        },
+        targetPlan: plan,
+        isSamePlan,
+      });
+      return;
+    }
+
+    // Chưa có VIP -> Tạo đơn thanh toán trực tiếp
+    handlePurchase(plan.id);
+  };
+
   const renderVipPlans = () => (
     <div className="space-y-4">
+      {/* Banner thông báo nếu khách ĐÃ CÓ VIP */}
+      {isVip && (
+        <div className="rounded-2xl bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-amber-500/20 border border-purple-500/40 p-4 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-amber-400/20 text-amber-300">
+                <Crown size={16} />
+              </span>
+              <div>
+                <span className="text-xs text-purple-200/80">Gói hiện tại của bạn:</span>
+                <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
+                  {currentVip?.vipPlanName || "VIP"}
+                  {isLifetimeVip && (
+                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-amber-400 text-black font-extrabold">
+                      Vĩnh viễn
+                    </span>
+                  )}
+                </h4>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-[11px] text-gray-400 block">Thời hạn còn</span>
+              <span className="text-xs font-bold text-amber-300">
+                {isLifetimeVip ? "Vô thời hạn" : `${remainingDays || 0} ngày`}
+              </span>
+            </div>
+          </div>
+          <p className="text-[11px] text-gray-300">
+            💡 Bạn có thể gia hạn thêm hoặc chuyển lên gói dài hạn hơn bất cứ lúc nào — thời gian VIP sẽ được <strong>cộng dồn tiếp tục</strong>!
+          </p>
+        </div>
+      )}
+
       {/* Gói dùng thử 1 ngày (0đ) */}
       <div className="relative rounded-2xl p-[2px] bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 transition-all">
         <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
@@ -212,16 +342,33 @@ export default function PricingPage() {
         const isBest = plan.badge === "Tiết kiệm";
         const isHighlighted = isPopular || isBest;
 
+        const currentName = currentVip?.vipPlanName || "";
+        const isCurrentPlan = isVip && (
+          plan.id === currentVip?.vipPlanId ||
+          (plan.days === 30 && (currentVip?.vipPlanId === "vip_1month" || currentName.includes("1 Tháng"))) ||
+          (plan.days === 180 && (currentVip?.vipPlanId === "vip_6months" || currentName.includes("6 Tháng"))) ||
+          (plan.days === 365 && (currentVip?.vipPlanId === "vip_1year" || currentName.includes("1 Năm")))
+        );
+
         return (
           <div
             key={plan.id}
             className={`relative rounded-2xl p-[2px] transition-all ${
-              isHighlighted
-                ? "bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500"
-                : "bg-white/10"
+              isCurrentPlan
+                ? "bg-gradient-to-r from-emerald-400 via-teal-500 to-cyan-500 ring-2 ring-emerald-400/50"
+                : isHighlighted
+                  ? "bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500"
+                  : "bg-white/10"
             }`}
           >
-            {plan.badge && (
+            {isCurrentPlan ? (
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                <span className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500 text-black shadow-md">
+                  <Check className="w-3 h-3" />
+                  Gói đang dùng
+                </span>
+              </div>
+            ) : plan.badge ? (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
                 <span
                   className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
@@ -234,9 +381,9 @@ export default function PricingPage() {
                   {plan.badge}
                 </span>
               </div>
-            )}
+            ) : null}
 
-            <div className={`rounded-2xl p-5 ${isHighlighted ? "bg-gray-900" : "bg-white/5"}`}>
+            <div className={`rounded-2xl p-5 ${isHighlighted || isCurrentPlan ? "bg-gray-900" : "bg-white/5"}`}>
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <h3 className="text-lg font-bold flex items-center gap-1.5">
@@ -259,16 +406,24 @@ export default function PricingPage() {
                 </div>
 
                 <button
-                  onClick={() => handlePurchase(plan.id)}
+                  onClick={() => onVipPlanClick(plan)}
                   disabled={creating !== null}
                   className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all shrink-0 ${
-                    isHighlighted
-                      ? "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg shadow-purple-500/25"
-                      : "bg-white/10 hover:bg-white/20 text-white"
+                    isCurrentPlan
+                      ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-black shadow-lg shadow-emerald-500/20"
+                      : isVip
+                        ? "bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-black shadow-lg shadow-amber-500/20"
+                        : isHighlighted
+                          ? "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg shadow-purple-500/25"
+                          : "bg-white/10 hover:bg-white/20 text-white"
                   } disabled:opacity-50`}
                 >
                   {creating === plan.id ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : isCurrentPlan ? (
+                    "Gia hạn thêm"
+                  ) : isVip ? (
+                    "Chuyển gói"
                   ) : (
                     "Mua ngay"
                   )}
@@ -540,6 +695,106 @@ export default function PricingPage() {
           ✨ Các tính năng VIP mới sẽ được admin cập nhật thêm trong tương lai
         </p>
       </div>
+
+      {/* Modal xác nhận nâng cấp / chuyển gói VIP khi đã có VIP */}
+      {pendingUpgradeModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setPendingUpgradeModal(null);
+          }}
+        >
+          <div className="bg-gradient-to-b from-gray-900 via-gray-900 to-purple-950/95 border border-purple-500/40 rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4 text-white">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-amber-400 font-bold text-base">
+                <Crown className="w-5 h-5 text-amber-400 animate-bounce" />
+                {pendingUpgradeModal.isSamePlan ? "Gia hạn gói VIP" : "Nâng cấp / Chuyển gói VIP"}
+              </div>
+              <button
+                type="button"
+                onClick={() => setPendingUpgradeModal(null)}
+                className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-gray-400 hover:text-white transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Thông tin gói hiện tại */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 space-y-2 text-xs">
+              <div className="flex items-center justify-between text-gray-300">
+                <span>Tài khoản:</span>
+                <span className="font-bold text-white">@{username.trim().replace(/^@+/, "")}</span>
+              </div>
+              <div className="flex items-center justify-between text-gray-300">
+                <span>Gói hiện tại:</span>
+                <span className="font-bold text-amber-300">{pendingUpgradeModal.currentPlan.name}</span>
+              </div>
+              <div className="flex items-center justify-between text-gray-300">
+                <span>Thời hạn còn lại:</span>
+                <span className="font-bold text-emerald-400">{pendingUpgradeModal.currentPlan.daysLeft}</span>
+              </div>
+            </div>
+
+            {/* Thông báo gói muốn chuyển lên */}
+            <div className="rounded-2xl bg-purple-500/15 border border-purple-500/30 p-4 space-y-2.5">
+              <p className="text-xs text-purple-200">
+                {pendingUpgradeModal.isSamePlan
+                  ? `Bạn đang muốn gia hạn thêm gói hiện tại:`
+                  : `Bạn đã có gói ${pendingUpgradeModal.currentPlan.name}. Bạn có muốn chuyển lên gói mới này không?`}
+              </p>
+              <div className="flex items-center justify-between">
+                <span className="text-base font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-400">
+                  {pendingUpgradeModal.targetPlan.name}
+                </span>
+                <span className="text-sm font-bold text-white">
+                  {pendingUpgradeModal.targetPlan.price.toLocaleString("vi-VN")}đ
+                </span>
+              </div>
+              <div className="text-[11px] text-gray-300 space-y-1.5 pt-2 border-t border-purple-500/20">
+                <p className="flex items-center gap-1.5 text-emerald-300 font-medium">
+                  <Check className="w-3.5 h-3.5 shrink-0" />
+                  Cộng nối tiếp <strong>+{pendingUpgradeModal.targetPlan.days} ngày</strong> vào hạn dùng
+                </p>
+                {pendingUpgradeModal.targetPlan.bonusAiCredits > 0 && (
+                  <p className="flex items-center gap-1.5 text-yellow-300 font-medium">
+                    <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                    Tặng thêm <strong>+{pendingUpgradeModal.targetPlan.bonusAiCredits} lượt ảnh AI Filter</strong>
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Nút hành động */}
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  const planId = pendingUpgradeModal.targetPlan.id;
+                  setPendingUpgradeModal(null);
+                  handlePurchase(planId);
+                }}
+                disabled={creating !== null}
+                className="w-full py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg shadow-purple-500/25 transition active:scale-95 flex items-center justify-center gap-2"
+              >
+                {creating === pendingUpgradeModal.targetPlan.id ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : pendingUpgradeModal.isSamePlan ? (
+                  `Xác nhận gia hạn (+${pendingUpgradeModal.targetPlan.days} ngày)`
+                ) : (
+                  `Xác nhận chuyển lên ${pendingUpgradeModal.targetPlan.name}`
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPendingUpgradeModal(null)}
+                className="w-full py-2.5 rounded-xl font-medium text-xs bg-white/10 hover:bg-white/20 text-gray-300 transition"
+              >
+                Chọn gói khác / Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

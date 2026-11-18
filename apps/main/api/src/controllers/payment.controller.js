@@ -133,6 +133,54 @@ class PaymentController {
   };
 
   /**
+   * GET /api/payment/check-user/:username
+   * PUBLIC — kiểm tra thông tin gói hiện tại của user để hiển thị gợi ý nâng cấp / chuyển gói
+   */
+  checkUserVip = async (req, res) => {
+    try {
+      const username = String(req.params.username || "")
+        .trim()
+        .toLowerCase()
+        .replace(/^@+/, "");
+      if (!username || !db) {
+        return res.status(200).json({ success: true, data: { isVip: false } });
+      }
+
+      let doc = await db.collection(APPROVED_USERS_COLLECTION).doc(username).get();
+      if (!doc.exists) {
+        const querySnap = await db
+          .collection(APPROVED_USERS_COLLECTION)
+          .where("username", "in", [username, `@${username}`])
+          .limit(1)
+          .get();
+        if (!querySnap.empty) {
+          doc = querySnap.docs[0];
+        }
+      }
+
+      if (!doc || !doc.exists) {
+        return res.status(200).json({ success: true, data: { isVip: false } });
+      }
+
+      const access = resolveEffectiveAccess(doc.data(), Date.now());
+      return res.status(200).json({
+        success: true,
+        data: {
+          isVip: access.isVipActive,
+          vipPlanId: access.vipPlanId,
+          vipPlanName: access.vipPlanName,
+          vipPlanDays: access.vipPlanDays,
+          vipExpireAt: access.vipExpireAt,
+          aiCredits: access.aiCredits,
+          hasUsedTrial: access.hasUsedTrial,
+        },
+      });
+    } catch {
+      return res.status(200).json({ success: true, data: { isVip: false } });
+    }
+  };
+
+  /**
    * POST /api/payment/claim-trial
    * PUBLIC — Kích hoạt gói dùng thử 1 ngày (0đ) + 1 ảnh AI (mỗi username chỉ dùng 1 lần)
    * Body: { username }
