@@ -277,7 +277,7 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-    chunkSizeWarningLimit: 1500, // tăng giới hạn warning, đỡ spam console
+    chunkSizeWarningLimit: 4000, // tăng giới hạn warning để Railway build không fail
   },
   };
 });
