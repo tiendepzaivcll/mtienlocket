@@ -56,6 +56,36 @@ export default function AppIconModal({ isOpen, onClose, onIconChange }) {
     }
   }, [isOpen]);
 
+  const currentIconObj =
+    APP_ICONS.find((item) => item.id === selectedIcon) || APP_ICONS[0];
+
+  const domain =
+    typeof window !== "undefined" && window.location?.host
+      ? window.location.host
+      : "locket-pro.online";
+
+  const handleSelectIcon = (iconId) => {
+    setSelectedIcon(iconId);
+    try {
+      setPWAIcon(iconId);
+      updateFavicons(iconId);
+    } catch (e) {
+      console.warn("Could not update icon:", e);
+    }
+    onIconChange?.(iconId);
+    if (!isPWA) {
+      SonnerSuccess(
+        "Đã chọn biểu tượng!",
+        `Biểu tượng "${APP_ICONS.find((i) => i.id === iconId)?.name || iconId}" đã được áp dụng.`
+      );
+    } else {
+      SonnerSuccess(
+        "Đã chọn biểu tượng!",
+        "Mở trên trình duyệt web để cài đặt biểu tượng này ra màn hình chính."
+      );
+    }
+  };
+
   if (!isOpen) return null;
 
   return createPortal(

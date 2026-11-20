@@ -3,7 +3,7 @@ import * as utils from "@/utils";
 import LoadingRing from "@/components/ui/Loading/ring";
 import StatusServer from "@/components/ui/StatusServer";
 import { useApp } from "@/context/AppContext";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { SonnerError, SonnerSuccess } from "@/components/ui/SonnerToast";
 import { CONFIG } from "@/config";
 import MomentStory from "../Home/MomentStory";
@@ -17,6 +17,9 @@ import { loginWithEmail } from "@/services";
 import { saveCurrentAccountToPool } from "@/utils/auth/accountManager";
 
 const Login = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isAddAccount = location.search.includes("mode=add_account");
   const initAuth = useAuthStore((s) => s.initAuth);
   const hydrateAuth = useAuthStore((s) => s.hydrateAuth);
   const [captchaToken, setCaptchaToken] = useState(null);
@@ -86,9 +89,13 @@ const Login = () => {
       }
 
       SonnerSuccess(
-        "Đăng nhập thành công!",
+        isAddAccount ? "Đã thêm tài khoản thành công!" : "Đăng nhập thành công!",
         `Xin chào ${authUser?.displayName || authUser?.username || "người dùng"}! LOCKET-PRO · Admin MTIEN.`
       );
+
+      navigate(accessRole === "celebrity" ? "/tools#celebrity" : "/locket-beta", {
+        replace: true,
+      });
     } catch (error) {
       if (error?.status) {
         switch (error.status) {
@@ -142,8 +149,23 @@ const Login = () => {
         </section>
         <section className="mtien-login-form-section" aria-labelledby="mtien-login-title">
           <div className="mtien-login-welcome"><img src="/locket-pro-icon-192x192.png" width="42" height="42" alt="" /><div className="locket-pro-login-brand"><strong>LOCKET-PRO</strong><span>Quản trị bởi <b>MTIEN</b></span></div></div>
-          <h1 id="mtien-login-title">Chào bạn trở lại.</h1>
-          <p className="mtien-login-subtitle">Dùng email tài khoản Locket của bạn để tiếp tục.</p>
+          <h1 id="mtien-login-title">
+            {isAddAccount ? "Thêm tài khoản mới." : "Chào bạn trở lại."}
+          </h1>
+          <p className="mtien-login-subtitle">
+            {isAddAccount
+              ? "Nhập email & mật khẩu tài khoản khác. Tài khoản hiện tại vẫn được lưu trên máy."
+              : "Dùng email tài khoản Locket của bạn để tiếp tục."}
+          </p>
+          {isAddAccount && (
+            <button
+              type="button"
+              onClick={() => navigate("/locket-beta")}
+              className="mb-3 inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 hover:text-amber-300 transition"
+            >
+              ← Quay lại camera Locket
+            </button>
+          )}
           <form onSubmit={handleLogin} className="mtien-login-form">
             <div className="mtien-field">
               <label htmlFor="mtien-identifier">Email Locket</label>

@@ -349,10 +349,24 @@ const MediaPreview = () => {
       }
 
       requestId = ++cameraRequestId.current;
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: videoConstraints,
-        audio: false,
-      });
+      let stream;
+      try {
+        // Yêu cầu đồng thời cả quyền Camera VÀ Microphone chỉ trong 1 lần hỏi duy nhất
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: videoConstraints,
+          audio: true,
+        });
+        setIsMicEnabled(true);
+        localStorage.setItem("setting_camera_mic_enabled", "true");
+        // Dừng track audio của stream preview để không hao pin hay giữ chấm cam mic trên iOS khi chưa quay
+        stream.getAudioTracks().forEach((track) => track.stop());
+      } catch {
+        // Nếu thiết bị không có micro hoặc người dùng từ chối audio, fallback sang camera
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: videoConstraints,
+          audio: false,
+        });
+      }
 
       // A route change can finish before the native camera request resolves.
       if (requestId !== cameraRequestId.current) {
@@ -513,27 +527,46 @@ const MediaPreview = () => {
 
         {!preview && !selectedFile && (
           <>
-            {/* Top Bar: Mic góc trên bên trái, Zoom góc trên bên phải */}
-            <div className="absolute inset-x-0 top-6 px-6 z-30 pointer-events-none flex justify-between items-center text-base-content text-xs font-semibold">
-              {/* Nút Mic góc trên bên trái */}
-              <button
-                type="button"
-                onClick={toggleMic}
-                className={`pointer-events-auto h-8 w-8 rounded-full backdrop-blur-md flex items-center justify-center transition active:scale-95 shadow-sm ${
-                  isMicEnabled
-                    ? "bg-emerald-500/90 text-white shadow-emerald-500/30"
-                    : "bg-black/60 text-red-400 border border-white/20 hover:bg-black/80"
-                }`}
-                title={isMicEnabled ? "Mic: Đang BẬT (Video có tiếng)" : "Mic: Đang TẮT (Video không tiếng)"}
-                aria-label="Bật/Tắt Mic"
-              >
-                {isMicEnabled ? <Mic size={16} /> : <MicOff size={16} />}
-              </button>
+            {/* Top Bar bên trong Camera */}
+            <div className="absolute inset-x-0 top-5 px-5 z-30 pointer-events-none flex justify-between items-center text-xs font-semibold">
+              {/* Nút góc trên bên trái: Trong PWA là Flash (chuẩn Locket real), trên Web là Mic */}
+              {isPWA ? (
+                <button
+                  type="button"
+                  onClick={toggleFlash}
+                  className={`pointer-events-auto h-8 w-8 rounded-full backdrop-blur-md flex items-center justify-center transition active:scale-90 shadow-md ${
+                    isFlashOn
+                      ? "bg-amber-400 text-black shadow-amber-400/50 ring-2 ring-amber-300 scale-105"
+                      : "bg-black/50 text-white/90 border border-white/15 hover:bg-black/70"
+                  }`}
+                  title={isFlashOn ? "Đèn Flash: Đang BẬT" : "Đèn Flash: Đang TẮT"}
+                  aria-label="Bật/Tắt Flash"
+                >
+                  <Zap
+                    size={16}
+                    className={isFlashOn ? "fill-black text-black" : "text-white"}
+                  />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={toggleMic}
+                  className={`pointer-events-auto h-8 w-8 rounded-full backdrop-blur-md flex items-center justify-center transition active:scale-95 shadow-sm ${
+                    isMicEnabled
+                      ? "bg-emerald-500/90 text-white shadow-emerald-500/30"
+                      : "bg-black/60 text-red-400 border border-white/20 hover:bg-black/80"
+                  }`}
+                  title={isMicEnabled ? "Mic: Đang BẬT (Video có tiếng)" : "Mic: Đang TẮT (Video không tiếng)"}
+                  aria-label="Bật/Tắt Mic"
+                >
+                  {isMicEnabled ? <Mic size={16} /> : <MicOff size={16} />}
+                </button>
+              )}
 
               {/* Nút Zoom góc trên bên phải */}
               <button
                 onClick={handleZoomButtonClick}
-                className="pointer-events-auto min-w-[34px] h-8 px-2.5 text-primary-content font-semibold text-xs rounded-full bg-white/30 backdrop-blur-md flex items-center justify-center hover:bg-white/40 active:scale-95 transition shadow-sm"
+                className="pointer-events-auto min-w-[34px] h-8 px-2.5 text-white font-bold text-xs rounded-full bg-black/50 border border-white/15 backdrop-blur-md flex items-center justify-center hover:bg-black/70 active:scale-95 transition shadow-sm"
                 title={Math.abs(zoomScale - 1) > 0.05 ? "Nhấn để trở về 1x" : `Chế độ Zoom: ${zoomLevel}`}
               >
                 {Math.abs(zoomScale - 1) > 0.05
@@ -542,30 +575,30 @@ const MediaPreview = () => {
               </button>
             </div>
 
-            {/* Bottom Controls: Flash góc dưới bên trái, AI Filter góc dưới bên phải */}
-            <div className="pointer-events-none absolute inset-x-0 bottom-6 z-[70] flex items-center justify-between px-6">
-              {/* Nút Flash góc dưới bên trái - Bật/Tắt đèn Flash vật lý & màn hình */}
-              <button
-                type="button"
-                onClick={toggleFlash}
-                className={`pointer-events-auto h-9 w-9 rounded-full backdrop-blur-md flex items-center justify-center transition active:scale-90 shadow-md ${
-                  isFlashOn
-                    ? "bg-amber-400 text-black shadow-amber-400/50 ring-2 ring-amber-300 scale-105"
-                    : "bg-black/60 text-white/80 border border-white/20 hover:bg-black/80"
-                }`}
-                title={isFlashOn ? "Đèn Flash: Đang BẬT" : "Đèn Flash: Đang TẮT"}
-                aria-label="Bật/Tắt Flash"
-              >
-                <Zap
-                  size={17}
-                  className={isFlashOn ? "fill-black text-black" : "text-white/80"}
-                />
-              </button>
+            {/* Bottom Controls: Chỉ hiển thị Flash ở dưới khi đang ở chế độ Web */}
+            {!isPWA && (
+              <div className="pointer-events-none absolute inset-x-0 bottom-6 z-[70] flex items-center justify-between px-6">
+                {/* Nút Flash góc dưới bên trái (Chế độ Web) */}
+                <button
+                  type="button"
+                  onClick={toggleFlash}
+                  className={`pointer-events-auto h-9 w-9 rounded-full backdrop-blur-md flex items-center justify-center transition active:scale-90 shadow-md ${
+                    isFlashOn
+                      ? "bg-amber-400 text-black shadow-amber-400/50 ring-2 ring-amber-300 scale-105"
+                      : "bg-black/60 text-white/80 border border-white/20 hover:bg-black/80"
+                  }`}
+                  title={isFlashOn ? "Đèn Flash: Đang BẬT" : "Đèn Flash: Đang TẮT"}
+                  aria-label="Bật/Tắt Flash"
+                >
+                  <Zap
+                    size={17}
+                    className={isFlashOn ? "fill-black text-black" : "text-white/80"}
+                  />
+                </button>
 
-              {/* Nhóm góc dưới bên phải: AI Filter */}
-              <div className="flex items-center gap-2.5 pointer-events-auto">
-                {selectedAiFilter ? (
-                  <>
+                {/* Nhóm góc dưới bên phải: AI Filter */}
+                <div className="flex items-center gap-2.5 pointer-events-auto">
+                  {selectedAiFilter && (
                     <button
                       type="button"
                       onClick={openAiFilterStudio}
@@ -575,45 +608,25 @@ const MediaPreview = () => {
                     >
                       <AiSparkleIcon />
                     </button>
-
-                    <button
-                      type="button"
-                      onClick={openAiFilterStudio}
-                      disabled={isAiGenerating}
-                      className="h-11 w-11 overflow-hidden rounded-full bg-white/20 shadow-md transition active:scale-95 border border-white/40"
-                      aria-label={`Đổi filter ${selectedAiFilter.filter_label}`}
-                    >
-                      <img
-                        src={selectedAiFilter.icon_url}
-                        alt={selectedAiFilter.filter_label}
-                        className="h-full w-full object-cover"
-                      />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setSelectedAiFilter(null)}
-                      disabled={isAiGenerating}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/30 bg-black/60 text-white shadow-md backdrop-blur-md transition active:scale-90"
-                      aria-label="Hủy AI Filter"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={openAiFilterStudio}
-                    disabled={isAiGenerating}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/30 text-white shadow-md backdrop-blur-md transition active:scale-90 hover:bg-white/40"
-                    aria-label="Mở Filter"
-                    title="Bộ lọc AI"
-                  >
-                    <AiSparkleIcon />
-                  </button>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Khi ở PWA, nếu có AI filter đang chọn thì hiển thị icon nhỏ góc dưới */}
+            {isPWA && selectedAiFilter && (
+              <div className="pointer-events-none absolute inset-x-0 bottom-5 z-[70] flex items-center justify-end px-5">
+                <button
+                  type="button"
+                  onClick={openAiFilterStudio}
+                  disabled={isAiGenerating}
+                  className="pointer-events-auto inline-flex h-8 w-8 items-center justify-center rounded-full bg-amber-400 text-black shadow-lg shadow-amber-400/40 transition active:scale-90"
+                  aria-label="Đổi AI Filter"
+                >
+                  <AiSparkleIcon />
+                </button>
+              </div>
+            )}
           </>
         )}
 

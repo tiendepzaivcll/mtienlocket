@@ -12,7 +12,7 @@ import { capturePhotoboothFrame, composePhotoboothGrid } from "@/utils/photoboot
 import { defaultPostOverlay } from "@/stores/usePost.js";
 
 const CameraButton = () => {
-  const { camera, post, useloading } = useApp();
+  const { camera, post, useloading, navigation } = useApp();
   const { showPhotobooth, selectedFrameId, chooseCaptureMode } = useCameraCaptureMode();
   const photoboothPhotos = usePhotoboothStore((state) => state.photos);
   const isComposing = usePhotoboothStore((state) => state.isComposing);
@@ -685,12 +685,16 @@ const CameraButton = () => {
         }}
       >
         <div
-          className={`absolute w-20 h-20 border-camera-custome text-primary/80 rounded-full z-10 ${
+          className={`absolute w-20 h-20 rounded-full z-10 ${
+            navigation?.isPWA
+              ? "border-[4px] border-[#ff5b5b]"
+              : "border-camera-custome text-primary/80"
+          } ${
             isHolding ? "animate-borderExpand" : ""
           }`}
         ></div>
         <div
-          className={`absolute rounded-full btn w-19 h-19 camera-inner-circle z-0 transition-all duration-500 ${
+          className={`absolute rounded-full w-16 h-16 bg-white z-0 transition-all duration-500 shadow-md ${
             isHolding ? "scale-77 opacity-90" : "scale-100 opacity-100"
           }`}
         ></div>

@@ -4,6 +4,13 @@ import { useTheme } from "@/hooks/useTheme";
 import { Check } from "lucide-react";
 
 export const LOCKET_THEMES_INFO = {
+  black: {
+    name: "Đen AMOLED",
+    desc: "Đen sâu tuyệt đối",
+    primary: "#eab308",
+    bg: "#000000",
+    textColor: "#ffffff",
+  },
   bumblebee: {
     name: "Locket Vàng",
     desc: "Vàng Locket chuẩn",
@@ -17,34 +24,6 @@ export const LOCKET_THEMES_INFO = {
     primary: "#f59e0b",
     bg: "#1d232a",
     textColor: "#ffffff",
-  },
-  black: {
-    name: "Đen AMOLED",
-    desc: "Đen sâu tuyệt đối",
-    primary: "#eab308",
-    bg: "#000000",
-    textColor: "#ffffff",
-  },
-  light: {
-    name: "Locket Sáng",
-    desc: "Trắng sáng thanh lịch",
-    primary: "#f59e0b",
-    bg: "#ffffff",
-    textColor: "#18181b",
-  },
-  valentine: {
-    name: "Hồng Valentine",
-    desc: "Hồng pastel ngọt ngào",
-    primary: "#e11d48",
-    bg: "#fce7f3",
-    textColor: "#831843",
-  },
-  winter: {
-    name: "Xanh Biển",
-    desc: "Xanh đại dương tươi mát",
-    primary: "#0284c7",
-    bg: "#f0f9ff",
-    textColor: "#0369a1",
   },
   emerald: {
     name: "Xanh Ngọc",

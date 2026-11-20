@@ -100,18 +100,21 @@ function AppContent() {
   }, [accessRole, fetchCaptionOverlays]);
 
   useEffect(() => {
+    const isAddAccount =
+      location.pathname === "/login" && location.search.includes("mode=add_account");
+
     const shouldOpenCelebrityTool =
       accessRole === "celebrity" &&
       (location.pathname === "/login" || location.pathname === "/locket-beta");
 
-    if (!loading && isAuth && shouldOpenCelebrityTool) {
+    if (!loading && isAuth && shouldOpenCelebrityTool && !isAddAccount) {
       navigate("/tools#celebrity", { replace: true });
-    } else if (!loading && isAuth && location.pathname === "/login") {
+    } else if (!loading && isAuth && location.pathname === "/login" && !isAddAccount) {
       navigate(accessRole === "celebrity" ? "/tools#celebrity" : "/locket-beta", {
         replace: true,
       });
     }
-  }, [accessRole, isAuth, loading, location.pathname, navigate]);
+  }, [accessRole, isAuth, loading, location.pathname, location.search, navigate]);
 
   useEffect(() => {
     const handleRoleChange = (event) => {
@@ -227,7 +230,8 @@ function AppContent() {
                 ...privateRoutes,
                 ...publicRoutes.filter(
                   (route) =>
-                    sharedPublicPaths.includes(route.path) &&
+                    (sharedPublicPaths.includes(route.path) ||
+                      (route.path === "/login" && location.search.includes("mode=add_account"))) &&
                     !privateRoutes.some((pr) => pr.path === route.path),
                 ),
               ]
@@ -276,7 +280,11 @@ function AppContent() {
           {!loading &&
             isAuth &&
             publicRoutes
-              .filter(({ path }) => !sharedPublicPaths.includes(path))
+              .filter(
+                ({ path }) =>
+                  !sharedPublicPaths.includes(path) &&
+                  !(path === "/login" && location.search.includes("mode=add_account")),
+              )
               .map(({ path }) => (
                 <Route
                   key={path}

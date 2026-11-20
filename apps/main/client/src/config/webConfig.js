@@ -170,14 +170,11 @@ export const CONFIG = {
     },
   },
   ui: {
-    theme: "bumblebee", // Locket Gold
+    theme: "black", // Đen AMOLED mặc định chuẩn Locket
     themes: [
+      "black",
       "bumblebee",
       "dark",
-      "black",
-      "light",
-      "valentine",
-      "winter",
       "emerald",
       "dracula",
       "autumn",

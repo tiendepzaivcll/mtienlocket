@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   X,
   Palette,
@@ -111,12 +112,22 @@ export default function UserSettingsModal({ isOpen, onClose }) {
   );
   const currentIconObj = APP_ICONS.find((i) => i.id === currentAppIcon) || APP_ICONS[0];
 
+  const handleAppIconClick = () => {
+    setShowAppIconModal(true);
+  };
+
   useEffect(() => {
     if (isOpen) {
       setCurrentAppIcon(localStorage.getItem("pwa_icon") || "3D-heart-gold");
       setSavedAccounts(getSavedAccounts());
+      navigation?.setSettingTabOpen?.(true);
+      document.body.style.overflow = "hidden";
+      return () => {
+        navigation?.setSettingTabOpen?.(false);
+        document.body.style.overflow = "";
+      };
     }
-  }, [isOpen]);
+  }, [isOpen, navigation]);
   const [customName, setCustomName] = useState(
     user?.displayName || `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || ""
   );
@@ -212,7 +223,7 @@ export default function UserSettingsModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
       {/* Backdrop */}
       <div
@@ -305,7 +316,8 @@ export default function UserSettingsModal({ isOpen, onClose }) {
                 type="button"
                 onClick={() => {
                   onClose();
-                  navigate("/login");
+                  navigation?.setSettingTabOpen?.(false);
+                  navigate("/login?mode=add_account");
                 }}
                 className="text-xs text-amber-400 font-semibold flex items-center gap-1 hover:underline cursor-pointer"
               >
@@ -431,7 +443,8 @@ export default function UserSettingsModal({ isOpen, onClose }) {
                     type="button"
                     onClick={() => {
                       onClose();
-                      navigate("/login");
+                      navigation?.setSettingTabOpen?.(false);
+                      navigate("/login?mode=add_account");
                     }}
                     className="mt-2 text-xs text-amber-400 font-bold hover:underline"
                   >
@@ -476,8 +489,8 @@ export default function UserSettingsModal({ isOpen, onClose }) {
               {/* Đổi biểu tượng ứng dụng */}
               <button
                 type="button"
-                onClick={() => setShowAppIconModal(true)}
-                className="w-full flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition text-left"
+                onClick={handleAppIconClick}
+                className="w-full flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition text-left cursor-pointer"
               >
                 <div className="flex items-center gap-3.5 min-w-0">
                   <div className="w-9 h-9 rounded-xl overflow-hidden shadow-md ring-1 ring-white/10 shrink-0">
@@ -490,7 +503,7 @@ export default function UserSettingsModal({ isOpen, onClose }) {
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-white">Đổi biểu tượng ứng dụng</p>
                     <p className="text-xs text-gray-400 truncate">
-                      {currentIconObj.name} • {isPWA ? "Nhấn để đổi icon" : "Cài đặt WebApp"}
+                      {currentIconObj.name} • Cài đặt WebApp
                     </p>
                   </div>
                 </div>
@@ -1064,6 +1077,7 @@ export default function UserSettingsModal({ isOpen, onClose }) {
         onClose={() => setShowAppIconModal(false)}
         onIconChange={(iconId) => setCurrentAppIcon(iconId)}
       />
-    </div>
+    </div>,
+    document.body
   );
 }
