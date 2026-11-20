@@ -20,6 +20,14 @@ export const loginWithEmail = async ({ email, password, captchaToken }) => {
 
     return res.data; // Trả về dữ liệu từ server
   } catch (error) {
+    if (
+      error?.name === "AbortError" ||
+      error?.code === "ERR_CANCELED" ||
+      error?.code === "ECONNABORTED" ||
+      error?.message === "canceled"
+    ) {
+      throw error;
+    }
     if (error.response) {
       const err = new Error(
         error.response.data?.message ||
@@ -55,6 +63,14 @@ export const loginWithPhone = async ({ phone, password, captchaToken }) => {
 
     return res.data; // Trả về dữ liệu từ server
   } catch (error) {
+    if (
+      error?.name === "AbortError" ||
+      error?.code === "ERR_CANCELED" ||
+      error?.code === "ECONNABORTED" ||
+      error?.message === "canceled"
+    ) {
+      throw error;
+    }
     if (error.response) {
       const err = new Error(
         error.response.data?.message ||

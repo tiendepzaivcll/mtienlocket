@@ -54,3 +54,5 @@ export const SonnerSuccess = (msg, body = "", opt) => showToast("success", msg, 
 export const SonnerError   = (msg, body = "", opt) => showToast("error", msg, body, opt);
 export const SonnerWarning = (msg, body = "", opt) => showToast("warning", msg, body, opt);
 export const SonnerInfo    = (msg, body = "", opt) => showToast("info", msg, body, opt);
+export const SonnerDismiss = (id) => (id !== undefined ? toast.dismiss(id) : toast.dismiss());
+export { toast };

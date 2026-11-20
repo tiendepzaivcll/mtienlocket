@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import * as utils from "@/utils";
 import LoadingRing from "@/components/ui/Loading/ring";
 import StatusServer from "@/components/ui/StatusServer";
 import { useApp } from "@/context/AppContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { SonnerError, SonnerSuccess } from "@/components/ui/SonnerToast";
+import { SonnerError, SonnerSuccess, SonnerDismiss, toast } from "@/components/ui/SonnerToast";
 import { CONFIG } from "@/config";
 import MomentStory from "../Home/MomentStory";
 import "../Home/mtien-home.css";
@@ -22,6 +22,7 @@ const Login = () => {
   const isAddAccount = location.search.includes("mode=add_account");
   const initAuth = useAuthStore((s) => s.initAuth);
   const hydrateAuth = useAuthStore((s) => s.hydrateAuth);
+  const accessRole = useAuthStore((s) => s.accessRole);
   const [captchaToken, setCaptchaToken] = useState(null);
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -30,6 +31,9 @@ const Login = () => {
     const stored = localStorage.getItem("rememberMe");
     return stored === null ? true : stored === "true";
   });
+
+  const isSubmittingRef = useRef(false);
+  const hasSucceededRef = useRef(false);
 
   const { useloading } = useApp();
   const { isStatusServer, isLoginLoading, setIsLoginLoading } = useloading;
@@ -43,10 +47,17 @@ const Login = () => {
   }, [rememberMe]);
 
   const handleLogin = async (e) => {
-    e.preventDefault();
+    e?.preventDefault?.();
+
+    // 1. Chống bấm đúp / gửi 2 request cùng lúc (Prevent Double Submit)
+    if (isLoginLoading || isSubmittingRef.current || hasSucceededRef.current) {
+      return;
+    }
+    isSubmittingRef.current = true;
 
     if (CONFIG.keys.turnstileKey && !captchaToken) {
       SonnerError("Vui lòng xác minh bạn không phải robot");
+      isSubmittingRef.current = false;
       return;
     }
 
@@ -54,6 +65,7 @@ const Login = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(identifier.trim())) {
       SonnerError("Email không hợp lệ!");
+      isSubmittingRef.current = false;
       return;
     }
 
@@ -79,6 +91,7 @@ const Login = () => {
       hydrateAuth();
 
       if (!authUser) {
+        isSubmittingRef.current = false;
         return;
       }
 
@@ -88,15 +101,44 @@ const Login = () => {
         console.warn("Could not save to accounts pool", poolErr);
       }
 
+      // Đánh dấu đã thành công để chặn mọi lỗi phát sinh sau đó
+      hasSucceededRef.current = true;
+
+      // 2. Dọn sạch mọi toast lỗi cũ trước khi hiện toast thành công
+      try {
+        SonnerDismiss();
+        toast?.dismiss?.();
+      } catch (dismissErr) {
+        console.warn("Could not dismiss toasts:", dismissErr);
+      }
+
       SonnerSuccess(
         isAddAccount ? "Đã thêm tài khoản thành công!" : "Đăng nhập thành công!",
         `Xin chào ${authUser?.displayName || authUser?.username || "người dùng"}! LOCKET-PRO · Admin MTIEN.`
       );
 
-      navigate(accessRole === "celebrity" ? "/tools#celebrity" : "/locket-beta", {
+      const currentAccessRole = useAuthStore.getState().accessRole || accessRole;
+      navigate(currentAccessRole === "celebrity" ? "/tools#celebrity" : "/locket-beta", {
         replace: true,
       });
     } catch (error) {
+      // Nếu request đã thành công trước đó thì tuyệt đối không hiển thị thông báo lỗi
+      if (hasSucceededRef.current) {
+        return;
+      }
+
+      // Bỏ qua lỗi AbortError / Canceled
+      const isAbortError =
+        error?.name === "AbortError" ||
+        error?.code === "ERR_CANCELED" ||
+        error?.code === "ECONNABORTED" ||
+        error?.message === "canceled" ||
+        error?.message?.toLowerCase?.()?.includes("abort");
+
+      if (isAbortError) {
+        return;
+      }
+
       if (error?.status) {
         switch (error.status) {
           case 400:
@@ -121,11 +163,9 @@ const Login = () => {
       } else {
         SonnerError("Lỗi kết nối! Vui lòng kiểm tra mạng.");
       }
-
-      // setIdentifier("");
-      // setPassword("");
     } finally {
       setIsLoginLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 
@@ -207,7 +247,7 @@ const Login = () => {
               style={{
                 background: "var(--shutter-gradient, linear-gradient(135deg, #FFB800, #FF7A00))",
               }}
-              disabled={isActiveLogin}
+              disabled={isActiveLogin || isLoginLoading || isSubmittingRef.current}
             >
               {isLoginLoading ? (
                 <>
