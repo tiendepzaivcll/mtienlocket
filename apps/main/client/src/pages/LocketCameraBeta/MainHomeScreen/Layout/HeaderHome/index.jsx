@@ -95,7 +95,11 @@ const HeaderHome = ({
           {/* Nút Rollcall góc trên bên trái */}
           <button
             onClick={handleOpenRollcall}
-            className="flex items-center justify-center w-10 h-10 bg-base-300/80 text-base-content border-base-content/15 backdrop-blur-md hover:opacity-90 rounded-full active:scale-95 transition shadow-sm border"
+            className={`flex items-center justify-center ${
+              navigation?.isPWA
+                ? "w-11 h-11 bg-[#242426]/90 text-white border-0 shadow-sm"
+                : "w-10 h-10 bg-base-300/80 text-base-content border border-base-content/15 shadow-sm"
+            } backdrop-blur-xl hover:opacity-90 rounded-full active:scale-95 transition`}
             aria-label="Mở Rollcall"
             title="Rollcall"
           >
@@ -107,9 +111,9 @@ const HeaderHome = ({
             className={`absolute flex z-90 transition-all justify-center items-center flex-row gap-1.5 left-1/2 
           transform -translate-x-1/2 ${
             navigation?.isPWA
-              ? "text-sm font-bold px-4 py-1.5 rounded-full"
-              : "text-lg font-semibold px-3 py-2 rounded-3xl"
-          } bg-base-300/80 text-base-content border-base-content/15 backdrop-blur-md hover:opacity-90 active:scale-105 select-none shadow-sm border`}
+              ? "h-10 px-5 rounded-full bg-[#242426]/90 text-white font-bold text-sm border-0 shadow-sm"
+              : "text-lg font-semibold px-3 py-2 rounded-3xl bg-base-300/80 text-base-content border border-base-content/15 shadow-sm"
+          } backdrop-blur-xl hover:opacity-90 active:scale-105 select-none`}
             onClick={toggleDropdown}
           >
             {isBottomOpen ? (
@@ -168,7 +172,9 @@ const HeaderHome = ({
                 alt="avatar"
                 onLoad={() => setIsImageLoaded(true)}
                 onError={handleAvatarError}
-                className={`rounded-full h-9.5 w-9.5 relative backdrop-blur-3xl transition-opacity duration-300 ${
+                className={`rounded-full ${
+                  navigation?.isPWA ? "h-10.5 w-10.5" : "h-9.5 w-9.5"
+                } relative object-cover backdrop-blur-3xl transition-opacity duration-300 ${
                   isImageLoaded ? "opacity-100" : "opacity-0 bg-base-300"
                 }`}
               />

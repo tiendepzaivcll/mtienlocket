@@ -21,14 +21,14 @@ const HistoryArrow = ({ setIsBottomOpen }) => {
         aria-label="Xem lịch sử khoảnh khắc"
       >
         {isPWA ? (
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full hover:bg-base-content/10 transition">
-            <span className="min-w-5 h-5 px-1 rounded-md bg-primary text-primary-content text-[11px] font-extrabold flex items-center justify-center shadow-sm">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full hover:bg-white/10 transition">
+            <span className="w-5.5 h-5.5 rounded-lg bg-primary text-black text-xs font-black flex items-center justify-center shadow-sm">
               {count}
             </span>
-            <span className="text-sm font-bold tracking-wide text-base-content">
+            <span className="text-sm font-bold tracking-wide text-white">
               Lịch sử
             </span>
-            <ChevronDown size={16} strokeWidth={2.5} className="text-base-content/80" />
+            <ChevronDown size={16} strokeWidth={2.5} className="text-white/80" />
           </div>
         ) : (
           <div className="flex flex-col items-center text-base-content">

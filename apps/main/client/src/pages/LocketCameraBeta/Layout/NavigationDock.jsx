@@ -133,11 +133,19 @@ export default function NavigationDock({ hidden = false }) {
       style={{ bottom: "max(1rem, env(safe-area-inset-bottom))" }}
     >
       <div
-        className="pointer-events-auto relative flex w-fit items-center gap-1 rounded-full shadow-xl backdrop-blur-xl bg-base-300/85 text-base-content p-1 border border-base-content/15"
+        className={`pointer-events-auto relative flex w-fit items-center gap-1 rounded-full shadow-2xl backdrop-blur-2xl ${
+          navigation?.isPWA
+            ? "bg-[#1c1c1e]/90 border border-white/5 p-1 text-white"
+            : "bg-base-300/85 text-base-content p-1 border border-base-content/15"
+        }`}
       >
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-1/2 z-0 rounded-full shadow-sm px-8.5 py-6 transition-[transform,opacity] duration-300 bg-base-100 border border-base-content/10"
+          className={`pointer-events-none absolute left-1/2 top-1/2 z-0 rounded-full shadow-sm px-8.5 py-6 transition-[transform,opacity] duration-300 ${
+            navigation?.isPWA
+              ? "bg-[#3a3a3c] border border-white/10"
+              : "bg-base-100 border border-base-content/10"
+          }`}
           style={{
             opacity: isViewingMoment ? 0 : 1,
             transform: `translate(${activeOffset[activeId]}, -50%) scale(${isViewingMoment ? 0.7 : 1})`,

@@ -8,7 +8,7 @@ import { SonnerInfo, SonnerSuccess, SonnerWarning } from "@/components/ui/Sonner
 import { useUIStore, usePhotoboothStore } from "@/stores";
 import { useCameraCaptureMode } from "@/hooks/useCameraCaptureMode";
 import { PHOTOBOOTH_FRAMES } from "@/data/photoboothFrames";
-import { Mic, MicOff, Volume2, VolumeX, X, Zap } from "lucide-react";
+import { Mic, MicOff, Sparkles, Volume2, VolumeX, X, Zap } from "lucide-react";
 import AiSparkleIcon from "../../ActionControls/MediaControls/AiSparkleIcon.jsx";
 import AiGenerationEffect from "./AiGenerationEffect.jsx";
 
@@ -517,27 +517,27 @@ const MediaPreview = () => {
 
         {!preview && !selectedFile && (
           <>
-            {/* Top Bar bên trong Camera */}
-            <div className="absolute inset-x-0 top-5 px-5 z-30 pointer-events-none flex justify-between items-center text-xs font-semibold">
-              {/* Nút Mic góc trên bên trái (chuẩn Locket Real - luôn mặc định tắt khi vào) */}
+            {/* Top Bar bên trong Camera (Mic góc trái, Zoom góc phải chuẩn Locket Real) */}
+            <div className="absolute inset-x-0 top-4 px-4 z-30 pointer-events-none flex justify-between items-center text-xs font-semibold">
+              {/* Nút Mic góc trên bên trái */}
               <button
                 type="button"
                 onClick={toggleMic}
-                className={`pointer-events-auto h-8 w-8 rounded-full backdrop-blur-md flex items-center justify-center transition active:scale-95 shadow-md ${
+                className={`pointer-events-auto h-9 w-9 rounded-full backdrop-blur-md flex items-center justify-center transition active:scale-90 shadow-md ${
                   isMicEnabled
                     ? "bg-emerald-500 text-white shadow-emerald-500/40 ring-1 ring-emerald-400"
-                    : "bg-black/50 text-white/80 border border-white/15 hover:bg-black/70"
+                    : "bg-black/45 text-white/90 hover:bg-black/60"
                 }`}
                 title={isMicEnabled ? "Mic: Đang BẬT (Video có tiếng)" : "Mic: Đang TẮT (Video không tiếng)"}
                 aria-label="Bật/Tắt Mic"
               >
-                {isMicEnabled ? <Mic size={15} /> : <MicOff size={15} />}
+                {isMicEnabled ? <Mic size={18} /> : <MicOff size={18} />}
               </button>
 
               {/* Nút Zoom góc trên bên phải */}
               <button
                 onClick={handleZoomButtonClick}
-                className="pointer-events-auto min-w-[34px] h-8 px-2.5 text-white font-bold text-xs rounded-full bg-black/50 border border-white/15 backdrop-blur-md flex items-center justify-center hover:bg-black/70 active:scale-95 transition shadow-sm"
+                className="pointer-events-auto min-w-[36px] h-9 px-2.5 text-white font-bold text-xs rounded-full bg-black/45 backdrop-blur-md flex items-center justify-center hover:bg-black/60 active:scale-90 transition shadow-sm"
                 title={Math.abs(zoomScale - 1) > 0.05 ? "Nhấn để trở về 1x" : `Chế độ Zoom: ${zoomLevel}`}
               >
                 {Math.abs(zoomScale - 1) > 0.05
@@ -546,40 +546,41 @@ const MediaPreview = () => {
               </button>
             </div>
 
-            {/* Bottom Controls bên trong Camera */}
-            <div className="pointer-events-none absolute inset-x-0 bottom-5 z-[70] flex items-center justify-between px-5">
-              {/* Nút Flash góc dưới bên trái (chuẩn Locket Real theo yêu cầu) */}
+            {/* Bottom Controls bên trong Camera (Flash góc trái, Filter góc phải chuẩn Locket Real) */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-4 z-[70] flex items-center justify-between px-4">
+              {/* Nút Flash góc dưới bên trái */}
               <button
                 type="button"
                 onClick={toggleFlash}
-                className={`pointer-events-auto h-8.5 w-8.5 rounded-full backdrop-blur-md flex items-center justify-center transition active:scale-90 shadow-md ${
+                className={`pointer-events-auto h-9 w-9 rounded-full backdrop-blur-md flex items-center justify-center transition active:scale-90 shadow-md ${
                   isFlashOn
                     ? "bg-amber-400 text-black shadow-amber-400/50 ring-2 ring-amber-300 scale-105"
-                    : "bg-black/50 text-white/90 border border-white/15 hover:bg-black/70"
+                    : "bg-black/45 text-white/90 hover:bg-black/60"
                 }`}
                 title={isFlashOn ? "Đèn Flash: Đang BẬT" : "Đèn Flash: Đang TẮT"}
                 aria-label="Bật/Tắt Flash"
               >
                 <Zap
-                  size={16}
+                  size={18}
                   className={isFlashOn ? "fill-black text-black" : "text-white"}
                 />
               </button>
 
-              {/* Nhóm góc dưới bên phải: AI Filter (nếu có chọn) */}
-              <div className="flex items-center gap-2 pointer-events-auto">
-                {selectedAiFilter && (
-                  <button
-                    type="button"
-                    onClick={openAiFilterStudio}
-                    disabled={isAiGenerating}
-                    className="inline-flex h-8.5 w-8.5 items-center justify-center rounded-full bg-amber-400 text-black shadow-lg shadow-amber-400/40 transition active:scale-90"
-                    aria-label="Đổi AI Filter"
-                  >
-                    <AiSparkleIcon />
-                  </button>
-                )}
-              </div>
+              {/* Nút Filter Sparkle góc dưới bên phải */}
+              <button
+                type="button"
+                onClick={openAiFilterStudio}
+                disabled={isAiGenerating}
+                className={`pointer-events-auto h-9 w-9 rounded-full backdrop-blur-md flex items-center justify-center transition active:scale-90 shadow-md ${
+                  selectedAiFilter
+                    ? "bg-amber-400 text-black shadow-amber-400/50 ring-2 ring-amber-300 scale-105"
+                    : "bg-black/45 text-white/90 hover:bg-black/60"
+                }`}
+                title="Bộ lọc & Hiệu ứng AI"
+                aria-label="Bộ lọc AI"
+              >
+                <Sparkles size={18} />
+              </button>
             </div>
           </>
         )}
