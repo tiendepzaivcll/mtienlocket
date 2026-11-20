@@ -14,10 +14,14 @@ export const uploadFileAndGetInfoR2 = async (
 
   const fileName = `locketdio_${timestamp}_${localId}_cli${CONFIG.app.clientVersion}.${extension}`;
 
+  const cleanContentType = file.type
+    ? file.type.split(";")[0].trim().toLowerCase()
+    : (safeType === "video" ? "video/mp4" : "image/jpeg");
+
   // === Bước 1: Gọi BE để lấy Presigned URL
   const res = await api.post(`${CONFIG.api.storage}/api/presignedV3`, {
     filename: fileName,
-    contentType: file.type,
+    contentType: cleanContentType,
     type: safeType,
     size: file.size,
     uploadedAt: new Date().toISOString(),
@@ -29,7 +33,7 @@ export const uploadFileAndGetInfoR2 = async (
   const uploadRes = await fetch(url, {
     method: "PUT",
     headers: {
-      "Content-Type": file.type,
+      "Content-Type": cleanContentType,
     },
     body: file,
   });

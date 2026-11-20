@@ -102,8 +102,8 @@ const SendButton = () => {
     const isVideo = previewType === "video";
     const maxFileSize = isImage ? maxImageSizeMB : maxVideoSizeMB;
 
-    if (isVideo && isSizeMedia < 0.2) {
-      SonnerWarning("Video quá nhẹ hoặc không hợp lệ (dưới 0.2MB).");
+    if (isVideo && (!selectedFile.size || selectedFile.size < 1024)) {
+      SonnerWarning("Video rỗng hoặc không hợp lệ.");
       return;
     }
     if (isSizeMedia > maxFileSize) {

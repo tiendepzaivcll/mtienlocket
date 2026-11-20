@@ -2,6 +2,7 @@ const ffmpeg = require("fluent-ffmpeg");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
+const sharp = require("sharp");
 const { logInfo, logSuccess, logWarning, logTable } = require("../../utils/logEventUtils");
 const { configureFfmpeg } = require("./ffmpegConfig");
 
@@ -13,7 +14,7 @@ configureFfmpeg();
 const MAX_COMPRESSION_ATTEMPTS = 10; // Giới hạn 10 lần thử
 const COMPRESSION_TIMEOUT = 60000; // 60s
 const EMERGENCY_TIMEOUT = 30000; // Timeout cho emergency mode
-const MAX_VIDEO_DURATION_SECONDS = 15;
+const MAX_VIDEO_DURATION_SECONDS = 30;
 const AUDIO_OUTPUT_OPTIONS = [
   "-map 0:v:0",
   "-map 0:a:0?",
@@ -21,7 +22,6 @@ const AUDIO_OUTPUT_OPTIONS = [
   "-b:a 96k",
   "-ac 1",
   "-ar 44100",
-  "-shortest",
 ];
 
 // ============================================================================
@@ -551,10 +551,10 @@ const processVideoBuffer = ({ videoBuffer, filename = "temp", maxSizeMB = 5 }) =
       const inputSizeMB = inputStats.size / (1024 * 1024);
       logInfo("processVideoBuffer", `Input: ${inputSizeMB.toFixed(2)}MB`);
 
-      if (inputSizeMB < 0.2) {
+      if (inputStats.size < 1024) {
         cleanup(...needsCleanup);
-        logWarning("processVideoBuffer", "Video too small");
-        return reject(new Error("❌ Video quá nhỏ hoặc lỗi."));
+        logWarning("processVideoBuffer", "Video too small or empty");
+        return reject(new Error("❌ Video rỗng hoặc lỗi."));
       }
     } catch (err) {
       cleanup(...needsCleanup);
@@ -732,17 +732,20 @@ const generateThumbnail = (videoInput, localId, options = {}) => {
           }
 
           try {
-            const thumbBuffer = fs.readFileSync(outputPath);
-            const stats = fs.statSync(outputPath);
-            const sizeKB = stats.size / 1024;
-            
+            const rawThumb = fs.readFileSync(outputPath);
             cleanup(outputPath, Buffer.isBuffer(videoInput) ? inputPath : null);
             
-            logSuccess("generateThumbnail", `Output: ${sizeKB.toFixed(1)}KB`);
-            resolve(thumbBuffer);
+            const webpThumb = await sharp(rawThumb)
+              .resize(500, 500, { fit: "cover" })
+              .webp({ quality: 80 })
+              .toBuffer();
+
+            const sizeKB = webpThumb.length / 1024;
+            logSuccess("generateThumbnail", `Output: ${sizeKB.toFixed(1)}KB (webp)`);
+            resolve(webpThumb);
           } catch (e) {
             cleanup(outputPath, Buffer.isBuffer(videoInput) ? inputPath : null);
-            reject(new Error("❌ Lỗi đọc thumbnail: " + e.message));
+            reject(new Error("❌ Lỗi đọc/xử lý thumbnail: " + e.message));
           }
         })
         .on("error", (err) => {

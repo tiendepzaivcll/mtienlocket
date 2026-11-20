@@ -1,4 +1,4 @@
-const { createBaseVideoPayload } = require("./createBasePayload");
+const { createBaseVideoPayload, createIntValue } = require("./createBasePayload");
 const { normalizeMusicOptions } = require("./normalizeMusicOptions");
 const { normalizePollOptions } = require("./normalizePollOptions");
 const {
@@ -268,7 +268,7 @@ exports.videoPostPayloadDefault = ({ videoUrl, thumbnailUrl, optionsData }) => {
         text: caption,
         text_color: "#FFFFFFE6",
         type: "standard",
-        max_lines: 4,
+        max_lines: createIntValue(4),
         background: {
           colors: [],
           material_blur: "ultra_thin",

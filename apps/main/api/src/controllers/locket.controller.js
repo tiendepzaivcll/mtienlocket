@@ -694,10 +694,23 @@ class LocketController {
             error: error.message,
           }));
 
-        thumbBuffer = await processServices.generateThumbnail(
-          processedBuffer,
-          localId,
-        );
+        try {
+          thumbBuffer = await processServices.generateThumbnail(
+            processedBuffer,
+            localId,
+          );
+        } catch (thumbError) {
+          console.warn("⚠️ generateThumbnail failed, creating fallback thumbnail with sharp:", thumbError.message);
+          const sharp = require("sharp");
+          thumbBuffer = await sharp({
+            create: {
+              width: 500,
+              height: 500,
+              channels: 3,
+              background: { r: 18, g: 18, b: 18 },
+            },
+          }).webp({ quality: 80 }).toBuffer();
+        }
 
         console.log("🚀 Calling postVideoToLocketV2...");
         result = await postServices.postVideoToLocketV2({

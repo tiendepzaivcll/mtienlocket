@@ -35,8 +35,13 @@ exports.generatePresignedUrlV3 = async (req, res) => {
     });
   }
 
-  // 1️⃣ check mime
-  if (!ALLOWED_MIME_TYPES.includes(contentType)) {
+  // 1️⃣ check mime (chuẩn hoá loại bỏ tham số codecs=...)
+  const normalizedContentType = String(contentType || "")
+    .split(";")[0]
+    .trim()
+    .toLowerCase();
+
+  if (!ALLOWED_MIME_TYPES.includes(normalizedContentType)) {
     return res.status(400).json({
       status: "error",
       message: "File type not allowed",
@@ -46,7 +51,7 @@ exports.generatePresignedUrlV3 = async (req, res) => {
   }
 
   // 3️⃣ ép type theo mime (chống fake type)
-  const safeType = contentType.startsWith("video/") ? "video" : "image";
+  const safeType = normalizedContentType.startsWith("video/") ? "video" : "image";
 
   logInfo("generatePresignedUrlV2", `📩 Yêu cầu tạo URL cho: ${filename}`);
 
@@ -63,7 +68,7 @@ exports.generatePresignedUrlV3 = async (req, res) => {
     const command = new PutObjectCommand({
       Bucket: config.bucket,
       Key: filePath,
-      ContentType: contentType,
+      ContentType: normalizedContentType,
     });
 
     const url = await getSignedUrl(getS3Client(), command, { expiresIn: 300 });

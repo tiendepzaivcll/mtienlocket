@@ -1,3 +1,4 @@
+const fs = require("fs");
 const videoService = require("../DataProcessing/generateThumbnail.js");
 const axios = require("axios");
 const {
@@ -150,7 +151,14 @@ async function runVideoUploadAttempt({
   videoName,
   appCheckToken,
 }) {
-  const videoSize = video.length;
+  const videoBuffer = Buffer.isBuffer(video)
+    ? video
+    : video?.buffer
+      ? video.buffer
+      : video?.path
+        ? fs.readFileSync(video.path)
+        : Buffer.from(video);
+  const videoSize = videoBuffer.length;
   const objectPath = `users/${userId}/moments/videos/${videoName}`;
   const uploadUrl = await startResumableUpload({
     userId,
@@ -159,7 +167,7 @@ async function runVideoUploadAttempt({
     objectPath,
     appCheckToken,
   });
-  await transferVideo({ uploadUrl, video, videoSize });
+  await transferVideo({ uploadUrl, video: videoBuffer, videoSize });
   return getVideoDownloadUrl({
     userId,
     idToken,

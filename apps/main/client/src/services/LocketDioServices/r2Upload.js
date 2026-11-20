@@ -21,9 +21,12 @@ export const createR2Uploader = ({ api, storageUrl, clientVersion, fetchUpload }
     const uploadedAt = new Date().toISOString();
     const extension = file.name.split(".").pop();
     const filename = `t97_${Date.now()}_${localId}_cli${clientVersion}.${extension}`;
+    const cleanContentType = file.type
+      ? file.type.split(";")[0].trim().toLowerCase()
+      : (previewType.toLowerCase() === "video" ? "video/mp4" : "image/jpeg");
     const res = await api.post(`${baseUrl}/api/presignedV3`, {
       filename,
-      contentType: file.type,
+      contentType: cleanContentType,
       type: previewType.toLowerCase(),
       size: file.size,
       uploadedAt,
@@ -38,7 +41,7 @@ export const createR2Uploader = ({ api, storageUrl, clientVersion, fetchUpload }
       : storageData.uploadUrl;
     const response = await fetchUpload(uploadUrl, {
       method: "PUT",
-      headers: { "Content-Type": file.type },
+      headers: { "Content-Type": cleanContentType },
       body: file,
     });
     if (!response.ok) {

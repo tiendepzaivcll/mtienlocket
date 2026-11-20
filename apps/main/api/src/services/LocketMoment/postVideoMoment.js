@@ -59,6 +59,7 @@ const postVideoToLocket = async ({ userId, idToken, video, optionsData }) => {
         break;
 
       case "custom":
+      case "custome":
       case "template":
       case "image_icon":
       case "image_gif":
@@ -175,6 +176,7 @@ const postVideoToLocketV2 = async ({
         break;
 
       case "custom":
+      case "custome":
       case "template":
       case "image_icon":
       case "image_gif":
