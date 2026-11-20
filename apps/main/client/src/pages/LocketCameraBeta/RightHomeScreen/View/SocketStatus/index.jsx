@@ -39,7 +39,10 @@ const SocketStatus = ({ isConnected, connectionInfo, reconnect }) => {
 
       {open && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-3xl bg-[var(--bg-app)] border border-[var(--border-subtle)] text-[var(--text-primary)] p-5 text-left shadow-2xl">
+          <div
+            style={{ background: "var(--surface-dock)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}
+            className="w-full max-w-sm rounded-3xl border border-[var(--border-subtle)] text-[var(--text-primary)] p-5 text-left shadow-2xl"
+          >
             <div className="flex items-center justify-between">
               <h2 className="font-bold">Tình trạng hệ thống</h2>
               <button type="button" className="btn btn-circle btn-sm bg-[var(--surface-pill)] border border-[var(--border-subtle)] text-[var(--text-primary)]" onClick={() => setOpen(false)}>

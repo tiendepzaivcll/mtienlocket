@@ -56,7 +56,7 @@ export function GroupConversationItem({ group, onSelect }) {
       </div>
 
       {unread > 0 && (
-        <span className="mr-8 min-w-5 rounded-full bg-[var(--accent-primary)] px-1.5 py-0.5 text-center text-xs font-bold text-primary-content">
+        <span className="mr-8 min-w-5 rounded-full bg-[var(--accent-primary)] px-1.5 py-0.5 text-center text-xs font-extrabold text-black shadow-sm">
           {unread > 99 ? "99+" : unread}
         </span>
       )}

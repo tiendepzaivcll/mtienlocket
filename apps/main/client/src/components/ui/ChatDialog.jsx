@@ -11,7 +11,8 @@ export default function ChatDialog({ title, onClose, busy = false, children }) {
   }, []);
   return createPortal(
     <dialog ref={ref} aria-label={title}
-      className="m-auto w-[calc(100%_-_2rem)] max-w-sm max-h-[80dvh] overflow-y-auto rounded-3xl bg-base-100 p-5 text-base-content shadow-xl backdrop:bg-black/40"
+      style={{ background: "var(--surface-dock)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}
+      className="m-auto w-[calc(100%_-_2rem)] max-w-sm max-h-[80dvh] overflow-y-auto rounded-3xl p-5 border border-[var(--border-subtle)] text-[var(--text-primary)] shadow-2xl backdrop:bg-black/50"
       onCancel={(event) => { event.preventDefault(); if (!busy) onClose(); }}
       onClick={(event) => { event.stopPropagation(); if (event.target === event.currentTarget && !busy) onClose(); }}
       onTouchStart={(event) => event.stopPropagation()}

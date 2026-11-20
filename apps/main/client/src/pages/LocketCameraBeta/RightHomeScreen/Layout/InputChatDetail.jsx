@@ -140,12 +140,17 @@ const ChatDetailFooter = ({ selectedChat }) => {
         <button
           onClick={handleSend}
           disabled={disabled}
-          className="btn absolute right-3 bottom-2.5 p-1 btn-sm bg-[var(--surface-pill)] border border-[var(--border-subtle)] text-[var(--text-primary)] btn-circle flex justify-center items-center disabled:opacity-50"
+          style={!disabled ? { background: "var(--shutter-gradient)", color: "#FFFFFF", border: "none" } : undefined}
+          className={`btn absolute right-3 bottom-2.5 p-1 btn-sm btn-circle flex justify-center items-center disabled:opacity-40 transition-all ${
+            disabled
+              ? "bg-[var(--surface-pill)] border border-[var(--border-subtle)] text-[var(--text-primary)]"
+              : "shadow-md hover:scale-105 active:scale-95 text-white"
+          }`}
         >
           {loading ? (
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--text-primary)]"></div>
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
           ) : (
-            <ArrowUp className="text-[var(--text-primary)] w-5 h-5" />
+            <ArrowUp className="w-5 h-5 text-current" />
           )}
         </button>
       </div>

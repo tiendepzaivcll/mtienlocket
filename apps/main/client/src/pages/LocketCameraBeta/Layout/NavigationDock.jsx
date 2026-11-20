@@ -133,7 +133,12 @@ export default function NavigationDock({ hidden = false }) {
       style={{ bottom: "max(1rem, env(safe-area-inset-bottom))" }}
     >
       <div
-        className="pointer-events-auto relative flex w-fit items-center gap-1 rounded-full shadow-lg backdrop-blur-md bg-[var(--surface-dock)] text-[var(--text-primary)] p-1 border border-[var(--border-subtle)]"
+        style={{
+          background: "var(--surface-dock)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+        }}
+        className="pointer-events-auto relative flex w-fit items-center gap-1 rounded-full shadow-xl text-[var(--text-primary)] p-1 border border-[var(--border-subtle)]"
       >
         <div
           aria-hidden="true"

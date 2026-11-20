@@ -22,7 +22,10 @@ const HistoryArrow = ({ setIsBottomOpen }) => {
       >
         {isPWA ? (
           <div className="flex items-center gap-2 px-3 py-1 rounded-full hover:opacity-80 transition text-[var(--text-primary)]">
-            <span className="w-5.5 h-5.5 rounded-lg bg-[var(--accent-primary)] text-primary-content text-xs font-black flex items-center justify-center shadow-sm">
+            <span
+              className="w-5.5 h-5.5 rounded-lg text-black text-xs font-black flex items-center justify-center shadow-sm"
+              style={{ background: "var(--accent-primary)" }}
+            >
               {count}
             </span>
             <span className="text-sm font-bold tracking-wide text-[var(--text-primary)]">

@@ -21,18 +21,26 @@ const LeftHomeScreen = ({ setIsProfileOpen }) => {
   // handle toggle bằng true/false
   return (
     <div
-      className={`fixed inset-0 w-full grid grid-rows-[auto_1fr] z-50 bg-base-100 text-base-content transition-transform duration-500 overflow-hidden ${
+      style={{ background: "var(--bg-app)" }}
+      className={`fixed inset-0 w-full grid grid-rows-[auto_1fr] z-50 text-[var(--text-primary)] transition-transform duration-500 overflow-hidden ${
         isProfileOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >
       {/* ==== Header (sticky) ==== */}
-      <div className="relative shadow-md">
+      <div
+        style={{
+          background: "var(--surface-dock)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+        }}
+        className="relative shadow-md border-b border-[var(--border-subtle)]"
+      >
         <HeaderOne setIsProfileOpen={setIsProfileOpen} />
         <InfoUser user={user} />
       </div>
 
       {/* ==== Nội dung chính ==== */}
-      <div className="flex bg-base-200 overflow-y-auto">
+      <div className="flex bg-transparent overflow-y-auto">
         {profileSection === "rollcall" && (
           <RollcallsPost
             active={profileSection}

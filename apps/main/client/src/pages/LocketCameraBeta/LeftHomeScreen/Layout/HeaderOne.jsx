@@ -9,9 +9,9 @@ function HeaderOne({ setIsProfileOpen }) {
       </div>
       <button
         onClick={() => setIsProfileOpen(false)}
-        className="btn btn-circle p-1 border-0 hover:bg-base-200 transition cursor-pointer"
+        className="btn btn-circle p-1 border border-[var(--border-subtle)] bg-[var(--surface-pill)] text-[var(--text-primary)] hover:opacity-80 transition cursor-pointer"
       >
-        <ChevronRight size={40} />
+        <ChevronRight size={28} />
       </button>
     </div>
   );

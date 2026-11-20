@@ -37,7 +37,7 @@ const BottomMenu = ({ setOptionModalOpen }) => {
             <div>
               <button
                 aria-label="Xem dạng lưới"
-                className="btn btn-circle h-12 min-h-12 w-12 p-2 backdrop-blur-xs bg-base-100/30 text-base-content cursor-pointer hover:bg-base-200/50 rounded-full transition-colors"
+                className="btn btn-circle h-12 min-h-12 w-12 p-2 backdrop-blur-md bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] cursor-pointer hover:opacity-80 rounded-full transition-colors"
                 onClick={handleClose}
               >
                 <LayoutGrid size={28} />
@@ -48,7 +48,7 @@ const BottomMenu = ({ setOptionModalOpen }) => {
               <button
                 aria-label="Chia sẻ moment"
                 onClick={() => setOptionModalOpen(true)}
-                className="btn btn-circle h-12 min-h-12 w-12 p-2 backdrop-blur-xs bg-base-100/30 text-base-content cursor-pointer hover:bg-base-200/50 rounded-full transition-colors"
+                className="btn btn-circle h-12 min-h-12 w-12 p-2 backdrop-blur-md bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] cursor-pointer hover:opacity-80 rounded-full transition-colors"
               >
                 <Share size={28} />
               </button>
