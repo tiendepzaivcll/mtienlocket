@@ -113,18 +113,18 @@ export const CONFIG = {
     env: import.meta.env.MODE, // development | production
     camera: {
       limits: {
-        maxRecordTime: 30, // 30 giây cho VIP
+        maxRecordTime: 15, // 15 giây cho VIP (siêu nét)
         maxImageSizeMB: 10,
         maxVideoSizeMB: 10,
       },
       resolutions: {
         imageSizePx: 1920, // ảnh vuông
-        videoResolutionPx: 1080, // FullHD vuông cho Locket (1080x1080)
+        videoResolutionPx: 720, // 720x720 vuông chuẩn Locket (siêu nét, mượt mà, chống tràn RAM trên iOS)
       },
       constraints: {
         default: {
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
+          width: { ideal: 1920, max: 3840 },
+          height: { ideal: 1920, max: 3840 },
         },
         ultraHD: {
           width: { ideal: 3840 },

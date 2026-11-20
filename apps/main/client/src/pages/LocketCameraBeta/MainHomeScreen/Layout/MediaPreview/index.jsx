@@ -281,9 +281,9 @@ const MediaPreview = () => {
       : postOverlay?.type === "image_gif"
         ? "caption_gif"
         : postOverlay?.type;
+  const hasMedia = Boolean(preview) || Boolean(selectedFile);
   const hasCaptionOverlay =
-    Boolean(preview) ||
-    Boolean(selectedFile) ||
+    hasMedia &&
     (
       normalizedOverlayType &&
       (

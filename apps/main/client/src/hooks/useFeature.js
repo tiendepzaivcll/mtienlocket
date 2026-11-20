@@ -5,11 +5,11 @@ export const FULL_ACCESS_LIMITS = {
   maxImageSizeMB: 1024,
   maxVideoSizeMB: 1024,
   storage_limit_mb: -1,
-  video_record_max_length: 30, // VIP: 30 giây
+  video_record_max_length: 15, // VIP: 15 giây (siêu nét)
 };
 
-// Free tier: 10s, VIP: 30s
-const FREE_VIDEO_RECORD_LIMIT = 10;
+// Free tier: 5s, VIP: 15s
+const FREE_VIDEO_RECORD_LIMIT = 5;
 
 export const useFeatureVisible = (feature) => {
   const accessRole = useAuthStore((state) => state.accessRole);

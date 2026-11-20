@@ -109,11 +109,9 @@ const CameraButton = () => {
       canvas.width = outputSize;
       canvas.height = outputSize;
 
-      // Điều chỉnh FPS dựa trên môi trường
-      const targetFPS = detectAppEnvironment() ? 45 : undefined; // PWA: 45fps, Web: tự động
-      const canvasStream = targetFPS
-        ? canvas.captureStream(targetFPS)
-        : canvas.captureStream();
+      // FPS 30 chuẩn video mượt mà, chống tràn RAM và chống reload trang trên iOS Safari
+      const targetFPS = 30;
+      const canvasStream = canvas.captureStream(targetFPS);
 
       // Kết hợp video từ canvas và âm thanh từ Micro
       const combinedStream = new MediaStream();
@@ -323,6 +321,8 @@ const CameraButton = () => {
         const cropSide = Math.min(side / effectiveScale, Math.min(video.videoWidth, video.videoHeight));
         const sx = (video.videoWidth - cropSide) / 2;
         const sy = (video.videoHeight - cropSide) / 2;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
         ctx.drawImage(video, sx, sy, cropSide, cropSide, 0, 0, outputSize, outputSize);
 
         ctx.restore();
@@ -527,9 +527,6 @@ const CameraButton = () => {
 
     try {
       const ctx = canvas.getContext("2d");
-      canvas.width = CAMERA_CONFIG.imageSizePx;
-      canvas.height = CAMERA_CONFIG.imageSizePx;
-
       const baseSide = Math.min(video.videoWidth, video.videoHeight);
       // Zoom kỹ thuật số nếu không có hardware zoom và zoomScale !== 1
       const effectiveScale = (!hasHardwareZoom && Math.abs(zoomScale - 1) > 0.05) ? zoomScale : 1;
@@ -537,6 +534,14 @@ const CameraButton = () => {
 
       const sx = (video.videoWidth - cropSide) / 2;
       const sy = (video.videoHeight - cropSide) / 2;
+
+      // Giữ độ phân giải sắc nét Full HD chuẩn cảm biến (1080px đến 1920px), chống upscale làm mờ
+      const captureOutputSize = Math.min(CAMERA_CONFIG.imageSizePx, Math.max(cropSide, 1080));
+      canvas.width = captureOutputSize;
+      canvas.height = captureOutputSize;
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
 
       ctx.save();
       if (cameraMode === "user") {
@@ -566,7 +571,7 @@ const CameraButton = () => {
           }
         },
         "image/jpeg",
-        1.0
+        0.96
       );
 
       // Fix iOS

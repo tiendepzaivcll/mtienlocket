@@ -11,8 +11,8 @@ configureFfmpeg();
 // ============================================================================
 // CONSTANTS
 // ============================================================================
-const MAX_VIDEO_DURATION_SECONDS = 30;
-const PROCESSING_TIMEOUT_MS = 45000; // 45s tối đa cho 1 pass
+const MAX_VIDEO_DURATION_SECONDS = 15;
+const PROCESSING_TIMEOUT_MS = 30000; // 30s tối đa cho 1 pass 15s video
 const AUDIO_OUTPUT_OPTIONS = [
   "-map 0:v:0",
   "-map 0:a:0?",
@@ -170,14 +170,14 @@ const runSinglePassEncode = (inputPath, outputPath, metadata, maxSizeMB, resolut
     const targetRes = Math.min(resolution, side);
     const videoFilter = `crop=${side}:${side}:${cropX}:${cropY},scale=${targetRes}:${targetRes}`;
 
-    // Target bitrate: Tính toán để toàn bộ video (kể cả 30s) chỉ nặng ~3.0 - 3.5 MB
-    // Đảm bảo không bao giờ chạm ngưỡng 5MB
-    const targetTotalBits = 3.2 * 8 * 1024 * 1024; // 3.2 MB
+    // Target bitrate: Tính toán cho video tối đa 15s (VIP) hoặc 5s (Free)
+    // Ngân sách ~3.2 - 3.6 MB an toàn dưới 5MB của Locket, mang lại độ nét cao nhất
+    const targetTotalBits = 3.5 * 8 * 1024 * 1024; // 3.5 MB
     const audioBits = 128 * 1000 * safeDuration;
-    const availableVideoBits = Math.max(targetTotalBits - audioBits, 300000);
+    const availableVideoBits = Math.max(targetTotalBits - audioBits, 500000);
     const calculatedBitrate = Math.max(
-      Math.min(Math.floor(availableVideoBits / safeDuration), 1500000),
-      250000
+      Math.min(Math.floor(availableVideoBits / safeDuration), 2200000),
+      500000
     );
     const targetBitrate = forcedBitrate || calculatedBitrate;
 

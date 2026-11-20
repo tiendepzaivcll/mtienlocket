@@ -1,6 +1,7 @@
 import React from "react";
 import { useApp } from "@/context/AppContext";
 import { RefreshCcw } from "lucide-react";
+import { CONFIG } from "@/config";
 
 const CameraToggle = () => {
   const { camera, post, useloading } = useApp();
@@ -49,7 +50,10 @@ const CameraToggle = () => {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: newMode },
+        video: {
+          facingMode: newMode,
+          ...CONFIG.app.camera.constraints.default,
+        },
         audio: false,
       });
       streamRef.current = stream;
