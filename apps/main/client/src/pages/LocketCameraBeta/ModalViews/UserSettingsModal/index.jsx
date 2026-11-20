@@ -112,7 +112,9 @@ export default function UserSettingsModal({ isOpen, onClose }) {
   );
   const currentIconObj = APP_ICONS.find((i) => i.id === currentAppIcon) || APP_ICONS[0];
 
-  const handleAppIconClick = () => {
+  const handleAppIconClick = (e) => {
+    e?.stopPropagation?.();
+    e?.preventDefault?.();
     setShowAppIconModal(true);
   };
 
@@ -241,7 +243,10 @@ export default function UserSettingsModal({ isOpen, onClose }) {
       >
         {/* Header */}
         {!isAuth || !user?.uid ? (
-          <div className="p-5 sm:p-6 border-b border-white/10 shrink-0 bg-white/[0.02]">
+          <div
+            className="p-5 sm:p-6 border-b border-white/10 shrink-0 bg-white/[0.02]"
+            style={{ paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center text-gray-300 border border-white/10 shadow-sm">
@@ -258,10 +263,11 @@ export default function UserSettingsModal({ isOpen, onClose }) {
               </div>
               <button
                 onClick={onClose}
-                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/15 flex items-center justify-center text-gray-300 hover:text-white transition"
-                aria-label="Đóng"
+                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-gray-200 hover:text-white transition cursor-pointer shrink-0"
+                aria-label="Đóng Cài đặt"
+                title="Đóng"
               >
-                <X size={18} />
+                <X size={20} strokeWidth={2.4} />
               </button>
             </div>
 
@@ -278,7 +284,10 @@ export default function UserSettingsModal({ isOpen, onClose }) {
             </button>
           </div>
         ) : (
-          <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-white/10 shrink-0">
+          <div
+            className="flex items-center justify-between px-6 pb-4 border-b border-white/10 shrink-0"
+            style={{ paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}
+          >
             <div className="flex items-center gap-3">
               <img
                 src={getAvatarSource(user)}
@@ -296,10 +305,11 @@ export default function UserSettingsModal({ isOpen, onClose }) {
             <button
               onClick={onClose}
               disabled={Boolean(sessionAction)}
-              className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/15 flex items-center justify-center text-gray-300 hover:text-white transition"
-              aria-label="Đóng"
+              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-gray-200 hover:text-white transition cursor-pointer shrink-0"
+              aria-label="Đóng Cài đặt"
+              title="Đóng"
             >
-              <X size={18} />
+              <X size={20} strokeWidth={2.4} />
             </button>
           </div>
         )}
@@ -1072,11 +1082,13 @@ export default function UserSettingsModal({ isOpen, onClose }) {
       )}
 
       {/* Modal Đổi Biểu Tượng Ứng Dụng */}
-      <AppIconModal
-        isOpen={showAppIconModal}
-        onClose={() => setShowAppIconModal(false)}
-        onIconChange={(iconId) => setCurrentAppIcon(iconId)}
-      />
+      {showAppIconModal && (
+        <AppIconModal
+          isOpen={showAppIconModal}
+          onClose={() => setShowAppIconModal(false)}
+          onIconChange={(iconId) => setCurrentAppIcon(iconId)}
+        />
+      )}
     </div>,
     document.body
   );

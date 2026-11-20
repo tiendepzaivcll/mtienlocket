@@ -90,24 +90,43 @@ export default function AppIconModal({ isOpen, onClose, onIconChange }) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-md transition-all duration-300"
-      onClick={onClose}
+      className="fixed inset-0 flex items-end sm:items-center justify-center bg-black/80 transition-all duration-300"
+      style={{ zIndex: 9999 }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClose();
+      }}
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchMove={(e) => e.stopPropagation()}
+      onTouchEnd={(e) => e.stopPropagation()}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-md bg-[#2d221f] sm:bg-[#2b201d] border border-white/10 rounded-t-[32px] sm:rounded-[32px] max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-slide-up"
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        className="relative w-full max-w-md bg-[#2d221f] sm:bg-[#2b201d] border border-white/10 rounded-t-[32px] sm:rounded-[32px] max-h-[88vh] flex flex-col shadow-2xl overflow-hidden animate-slide-up"
+        style={{ zIndex: 9999 }}
       >
         {/* Header: Title + Close Button */}
-        <div className="relative flex items-center justify-center pt-5 pb-2 px-5">
+        <div
+          className="relative flex items-center justify-center pt-5 pb-2 px-5"
+          style={{ paddingTop: "max(1.25rem, calc(env(safe-area-inset-top) + 8px))" }}
+        >
           <h2 className="text-base sm:text-lg font-bold text-white tracking-wide">
             Biểu tượng ứng dụng
           </h2>
           <button
-            onClick={onClose}
-            className="absolute right-4 top-4.5 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-gray-300 hover:text-white transition"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            className="absolute right-4 top-4.5 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-gray-200 hover:text-white transition cursor-pointer"
             aria-label="Đóng"
           >
-            <X size={17} />
+            <X size={18} strokeWidth={2.4} />
           </button>
         </div>
 
@@ -138,9 +157,12 @@ export default function AppIconModal({ isOpen, onClose, onIconChange }) {
                 <button
                   key={icon.id}
                   type="button"
-                  onClick={() => handleSelectIcon(icon.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSelectIcon(icon.id);
+                  }}
                   aria-label={icon.name}
-                  className={`relative aspect-square rounded-2xl overflow-hidden transition-all duration-200 active:scale-90 ${
+                  className={`relative aspect-square rounded-2xl overflow-hidden transition-all duration-200 active:scale-90 cursor-pointer ${
                     active
                       ? "ring-2.5 ring-[#ff6347] scale-105 shadow-lg shadow-[#ff6347]/30"
                       : "opacity-85 hover:opacity-100 hover:scale-102"
@@ -162,11 +184,14 @@ export default function AppIconModal({ isOpen, onClose, onIconChange }) {
         </div>
 
         {/* Bottom Action Button: Xong */}
-        <div className="p-4 pt-2 border-t border-white/5 bg-[#251b19]/80 backdrop-blur-sm">
+        <div className="p-4 pt-2 border-t border-white/5 bg-[#251b19]/90 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <button
             type="button"
-            onClick={onClose}
-            className="w-full py-3.5 rounded-2xl bg-[#ff6347] hover:bg-[#ff5236] active:scale-98 text-white font-bold text-base transition shadow-lg shadow-[#ff6347]/25"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            className="w-full py-3.5 rounded-2xl bg-[#ff6347] hover:bg-[#ff5236] active:scale-98 text-white font-bold text-base transition shadow-lg shadow-[#ff6347]/25 cursor-pointer"
           >
             Xong
           </button>

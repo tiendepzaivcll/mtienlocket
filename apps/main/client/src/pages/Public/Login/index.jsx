@@ -12,7 +12,7 @@ import "./styles.css";
 import { ensureDBOwner } from "@/cache/configDB";
 import { useAuthStore } from "@/stores";
 import TurnstileCaptcha from "./TurnstileCaptcha";
-import { ArrowRight, Eye, EyeOff, LockKeyhole } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, LockKeyhole, X } from "lucide-react";
 import { loginWithEmail } from "@/services";
 import { saveCurrentAccountToPool } from "@/utils/auth/accountManager";
 
@@ -140,6 +140,27 @@ const Login = () => {
 
   return (
     <div className="mtien-login">
+      {/* Nút đóng X rõ ràng để quay lại camera */}
+      <button
+        type="button"
+        onClick={() => {
+          if (window.history.length > 1) {
+            navigate(-1);
+          } else {
+            navigate("/locket-beta");
+          }
+        }}
+        className="fixed top-4 right-4 z-50 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white border border-white/15 shadow-lg transition cursor-pointer"
+        style={{
+          top: "calc(env(safe-area-inset-top) + 14px)",
+          right: "16px",
+        }}
+        aria-label="Đóng và quay lại"
+        title="Quay lại"
+      >
+        <X size={20} strokeWidth={2.4} />
+      </button>
+
       <div className="mtien-login-layout mtien-container">
         <section className="mtien-login-aside" aria-label="Khoảnh khắc cùng LOCKET-PRO">
           <div className="mtien-eyebrow"><span /> NHỮNG ĐIỀU NHỎ, KẾT NỐI LỚN</div>
@@ -180,8 +201,25 @@ const Login = () => {
             </div>
             <label className="mtien-remember"><input id="rememberMe" type="checkbox" disabled checked={rememberMe} onChange={() => setRememberMe(!rememberMe)} /><span>Ghi nhớ đăng nhập</span></label>
             <TurnstileCaptcha onVerify={setCaptchaToken} />
-            <button type="submit" className="mtien-button mtien-button-primary mtien-login-submit" disabled={isActiveLogin}>
-              {isLoginLoading ? <><LoadingRing size={18} stroke={3} speed={2} color="#15251b" />Đang đăng nhập...</> : <>Đăng nhập<ArrowRight size={19} /></>}
+            <button
+              type="submit"
+              className="mtien-login-submit w-full py-3.5 rounded-xl font-bold text-base text-white flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                background: "var(--shutter-gradient, linear-gradient(135deg, #FFB800, #FF7A00))",
+              }}
+              disabled={isActiveLogin}
+            >
+              {isLoginLoading ? (
+                <>
+                  <LoadingRing size={18} stroke={3} speed={2} color="#ffffff" />
+                  <span>Đang đăng nhập...</span>
+                </>
+              ) : (
+                <>
+                  <span>Đăng nhập</span>
+                  <ArrowRight size={19} className="shrink-0" />
+                </>
+              )}
             </button>
             <div className="mtien-server-status"><StatusServer /></div>
           </form>

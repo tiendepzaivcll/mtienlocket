@@ -48,6 +48,12 @@ const CameraButton = () => {
   const { preview, setPreview, setSelectedFile, setSizeMedia, setPostOverlay } = post;
   const { setIsCaptionLoading, uploadLoading, setUploadLoading } = useloading;
 
+  const isPWA =
+    Boolean(navigation?.isPWA) ||
+    (typeof window !== "undefined" &&
+      (window.matchMedia?.("(display-mode: standalone)").matches ||
+        window.navigator?.standalone === true));
+
   const holdStartTimeRef = useRef(null);
   const holdTimeoutRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -685,14 +691,14 @@ const CameraButton = () => {
         }}
       >
         <div
-          className={`absolute w-20 h-20 rounded-full z-10 border-camera-custome pointer-events-none transition-transform duration-300 ${
+          className={`absolute ${isPWA ? "w-[82px] h-[82px]" : "w-20 h-20"} rounded-full z-10 border-camera-custome pointer-events-none transition-transform duration-300 ${
             isHolding ? "animate-borderExpand" : ""
           }`}
         ></div>
         <div
           className={`absolute rounded-full z-0 transition-all duration-300 shadow-md ${
-            navigation?.isPWA
-              ? `w-16 h-16 bg-white ${isHolding ? "scale-75 opacity-90" : "scale-100 opacity-100"}`
+            isPWA
+              ? `w-[65px] h-[65px] bg-white ${isHolding ? "scale-75 opacity-90" : "scale-100 opacity-100"}`
               : `btn w-19 h-19 bg-white border-0 ${isHolding ? "scale-77 opacity-90" : "scale-100 opacity-100"}`
           }`}
         ></div>

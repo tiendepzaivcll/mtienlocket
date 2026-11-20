@@ -169,7 +169,9 @@ const MomentSlide = ({ moment, me, handleClose, isActive = true }) => {
         {/* Close button */}
         <button
           onClick={handleClose}
-          className="absolute flex justify-center items-center top-4 right-4 z-50 p-2 bg-black/40 rounded-full hover:bg-black/60"
+          style={{ top: "calc(env(safe-area-inset-top) + 16px)" }}
+          className="absolute flex justify-center items-center right-4 z-50 p-2 bg-black/40 rounded-full hover:bg-black/60 active:scale-95 transition cursor-pointer"
+          aria-label="Đóng moment"
         >
           <X className="w-6 h-6 text-white" />
         </button>

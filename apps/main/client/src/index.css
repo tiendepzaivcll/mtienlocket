@@ -299,11 +299,11 @@ body.is-pwa .pwa-camera-frame {
   width: 92vw;
   max-width: min(92vw, calc(100dvh - 310px), 414px);
   aspect-ratio: 1 / 1;
-  border-radius: 40px;
+  border-radius: 42px;
 }
 
 body.is-pwa .pwa-thumb-stack-back {
-  transform: rotate(-6deg);
+  transform: rotate(-7deg);
 }
 
 @media (display-mode: standalone) {
@@ -311,11 +311,39 @@ body.is-pwa .pwa-thumb-stack-back {
     width: 92vw;
     max-width: min(92vw, calc(100dvh - 310px), 414px);
     aspect-ratio: 1 / 1;
-    border-radius: 40px;
+    border-radius: 42px;
   }
   .pwa-thumb-stack-back {
-    transform: rotate(-6deg);
+    transform: rotate(-7deg);
   }
 }
+
+/* Ensure no pseudo-element, bar or overlay causes top blur or blocks touches in PWA mode */
+body.is-pwa::before,
+body.is-pwa::after {
+  display: none !important;
+  content: none !important;
+}
+
+@media (display-mode: standalone) {
+  body::before,
+  body::after {
+    display: none !important;
+    content: none !important;
+  }
+}
+
+/* Tắt nền vàng Autofill của iOS Safari & WebKit trên ô input */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #171c22 inset !important;
+  box-shadow: 0 0 0 1000px #171c22 inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 
 

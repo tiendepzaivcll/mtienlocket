@@ -82,9 +82,11 @@ const UploadFile = () => {
     setVideoCropArea,
   ]);
 
+  const { navigation } = useApp();
   const isPWA = Boolean(
-    typeof window !== "undefined" &&
-    (window.matchMedia?.("(display-mode: standalone)").matches || window.navigator?.standalone === true)
+    navigation?.isPWA ||
+    (typeof window !== "undefined" &&
+      (window.matchMedia?.("(display-mode: standalone)").matches || window.navigator?.standalone === true))
   );
   const latestMoment = useMomentsStoreV2((s) => s.momentsByUser["all"]?.items?.[0]);
   const latestThumb = latestMoment?.thumbnail_url || latestMoment?.image_url;
@@ -102,9 +104,9 @@ const UploadFile = () => {
         {isPWA ? (
           latestThumb ? (
             <div className="relative w-12 h-12 flex items-center justify-center select-none">
-              {/* Lớp ảnh phía sau xoay nghiêng nhẹ -6deg */}
+              {/* Lớp ảnh phía sau xoay nghiêng -7deg */}
               <div
-                className="pwa-thumb-stack-back absolute w-12 h-12 rounded-xl bg-[var(--surface-pill)] border border-[var(--border-subtle)] shadow-sm pointer-events-none transform -rotate-6"
+                className="pwa-thumb-stack-back absolute w-12 h-12 rounded-xl bg-[var(--surface-pill)] border border-[var(--border-subtle)] shadow-sm pointer-events-none transform -rotate-[7deg]"
                 style={{
                   backgroundImage: `url(${latestThumb})`,
                   backgroundSize: "cover",
@@ -123,7 +125,7 @@ const UploadFile = () => {
             </div>
           ) : (
             <div className="relative w-12 h-12 flex items-center justify-center">
-              <div className="pwa-thumb-stack-back absolute w-12 h-12 rounded-xl bg-[var(--surface-pill)] border border-[var(--border-subtle)] transform -rotate-6 opacity-35 pointer-events-none" />
+              <div className="pwa-thumb-stack-back absolute w-12 h-12 rounded-xl bg-[var(--surface-pill)] border border-[var(--border-subtle)] transform -rotate-[7deg] opacity-35 pointer-events-none" />
               <div className="relative w-12 h-12 rounded-xl bg-[var(--surface-pill)] backdrop-blur-md border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)] shadow-md z-10">
                 <ImageUp size={22} />
               </div>

@@ -5,7 +5,11 @@ import { ChevronDown } from "lucide-react";
 
 const HistoryArrow = ({ setIsBottomOpen }) => {
   const { navigation } = useApp();
-  const isPWA = navigation?.isPWA;
+  const isPWA =
+    Boolean(navigation?.isPWA) ||
+    (typeof window !== "undefined" &&
+      (window.matchMedia?.("(display-mode: standalone)").matches ||
+        window.navigator?.standalone === true));
   const moments = useMomentsStoreV2((s) => s.momentsByUser["all"]?.items) || [];
   const count = moments.length > 0 ? moments.length : 6;
 
@@ -21,17 +25,17 @@ const HistoryArrow = ({ setIsBottomOpen }) => {
         aria-label="Xem lịch sử khoảnh khắc"
       >
         {isPWA ? (
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full hover:opacity-85 transition text-[var(--text-primary)] bg-[var(--surface-pill)] border border-[var(--border-subtle)] shadow-sm">
+          <div className="inline-flex items-center gap-2 py-1 hover:opacity-85 transition text-[var(--text-primary)]">
             <span
-              className="min-w-5 h-5 px-1 rounded-md text-black text-xs font-black flex items-center justify-center shadow-xs shrink-0"
+              className="min-w-5 h-5 px-1.5 rounded-md text-black text-xs font-black flex items-center justify-center shadow-xs shrink-0"
               style={{ background: "var(--accent-primary)" }}
             >
               {count}
             </span>
-            <span className="text-[13px] font-bold tracking-wide text-[var(--text-primary)] select-none">
+            <span className="text-[14px] font-bold tracking-wide text-[var(--text-primary)] select-none">
               Lịch sử
             </span>
-            <ChevronDown size={15} strokeWidth={2.8} className="text-[var(--text-primary)] opacity-80 shrink-0" />
+            <ChevronDown size={16} strokeWidth={2.8} className="text-[var(--text-primary)] opacity-85 shrink-0" />
           </div>
         ) : (
           <div className="flex flex-col items-center text-[var(--text-primary)]">

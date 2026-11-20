@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, Download, Megaphone } from "lucide-react";
+import { ChevronDown, Download, Megaphone, X } from "lucide-react";
 import HistorySelectFriend from "@/pages/LocketCameraBeta/ModalViews/HistorySelectFriend";
 import UserSettingsModal from "@/pages/LocketCameraBeta/ModalViews/UserSettingsModal";
 import { useAuthStore, useFriendList } from "@/stores";
@@ -68,18 +68,18 @@ const HeaderHome = ({
     <>
       {selectedFile && (
         <div
-          className="fixed top-0 left-0 w-full px-3 flex items-center justify-between z-50"
+          className="fixed top-0 left-0 w-full px-3 flex items-center justify-between z-50 pointer-events-none"
           style={{ paddingTop: "max(0.5rem, env(safe-area-inset-top))" }}
         >
           <div></div>
-          <div className="absolute flex justify-center items-center flex-row gap-1 left-1/2 transform -translate-x-1/2 text-lg font-bold text-[var(--text-primary)]">
+          <div className="absolute flex justify-center items-center flex-row gap-1 left-1/2 transform -translate-x-1/2 text-lg font-bold text-[var(--text-primary)] pointer-events-none select-none">
             Gửi đến...
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 pointer-events-auto">
             <button
               onClick={handleDownload}
-              className="w-11 h-11 flex items-center justify-center bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:opacity-80 rounded-full transition shadow-sm backdrop-blur-xl active:scale-95"
+              className="w-11 h-11 flex items-center justify-center bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:opacity-80 rounded-full transition shadow-sm active:scale-95 cursor-pointer pointer-events-auto"
               aria-label="Tải ảnh về máy"
               title="Tải ảnh về máy"
             >
@@ -91,18 +91,29 @@ const HeaderHome = ({
 
       {!selectedFile && (
         <div
-          className="fixed top-0 left-0 w-full px-3 flex items-center justify-between z-50"
+          className="fixed top-0 left-0 w-full px-3 flex items-center justify-between z-50 pointer-events-none"
           style={{ paddingTop: "max(0.5rem, env(safe-area-inset-top))" }}
         >
-          {/* Nút Rollcall góc trên bên trái */}
-          <button
-            onClick={handleOpenRollcall}
-            className="w-11 h-11 flex items-center justify-center bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] backdrop-blur-xl hover:opacity-90 rounded-full active:scale-95 transition shadow-sm"
-            aria-label="Mở Rollcall"
-            title="Rollcall"
-          >
-            <Megaphone size={19} strokeWidth={2.2} />
-          </button>
+          {/* Khi mở Nhật ký: Nút đóng X rõ ràng để quay lại camera; Khi ở Camera: Nút Rollcall */}
+          {isBottomOpen ? (
+            <button
+              onClick={() => navigation?.setIsBottomOpen?.(false)}
+              className="w-11 h-11 flex items-center justify-center bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:opacity-90 rounded-full active:scale-95 transition shadow-sm cursor-pointer pointer-events-auto"
+              aria-label="Đóng Nhật ký"
+              title="Đóng Nhật ký"
+            >
+              <X size={20} strokeWidth={2.4} />
+            </button>
+          ) : (
+            <button
+              onClick={handleOpenRollcall}
+              className="w-11 h-11 flex items-center justify-center bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:opacity-90 rounded-full active:scale-95 transition shadow-sm cursor-pointer pointer-events-auto"
+              aria-label="Mở Rollcall"
+              title="Rollcall"
+            >
+              <Megaphone size={19} strokeWidth={2.2} />
+            </button>
+          )}
 
           {/* Bạn bè / Mọi người ở giữa */}
           <button
@@ -111,7 +122,7 @@ const HeaderHome = ({
             navigation?.isPWA
               ? "h-10 px-5 rounded-full font-bold text-sm"
               : "text-base font-semibold px-4 py-2 rounded-3xl"
-          } bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] backdrop-blur-xl hover:opacity-90 active:scale-105 select-none shadow-sm`}
+          } bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:opacity-90 active:scale-105 select-none shadow-sm cursor-pointer pointer-events-auto`}
             onClick={toggleDropdown}
           >
             {isBottomOpen ? (
@@ -147,18 +158,18 @@ const HeaderHome = ({
           </button>
 
           {/* Avatar chuyển sang bên phải */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 pointer-events-auto">
             <button
               onClick={() => {
                 setIsSettingsModalOpen(true);
                 navigation?.setSettingTabOpen?.(true);
               }}
-              className="relative flex items-center justify-center w-11 h-11 cursor-pointer active:scale-105"
+              className="relative flex items-center justify-center w-11 h-11 cursor-pointer active:scale-105 pointer-events-auto"
               aria-label="Cài đặt & Tài khoản"
               title="Cài đặt & Tài khoản"
             >
-              {/* Nền mờ */}
-              <div className="bg-[var(--surface-pill)] border border-[var(--border-subtle)] backdrop-blur-[4px] w-11.5 h-11.5 rounded-full absolute" />
+              {/* Nền nút */}
+              <div className="bg-[var(--surface-pill)] border border-[var(--border-subtle)] w-11.5 h-11.5 rounded-full absolute" />
 
               {/* Hiển thị vòng loading khi ảnh chưa load */}
               {!isImageLoaded && (
@@ -172,7 +183,7 @@ const HeaderHome = ({
                 onError={handleAvatarError}
                 className={`rounded-full ${
                   navigation?.isPWA ? "h-10.5 w-10.5" : "h-9.5 w-9.5"
-                } relative object-cover backdrop-blur-3xl transition-opacity duration-300 ${
+                } relative object-cover transition-opacity duration-300 ${
                   isImageLoaded ? "opacity-100" : "opacity-0 bg-[var(--surface-pill)]"
                 }`}
               />

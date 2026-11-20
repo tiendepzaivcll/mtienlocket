@@ -116,7 +116,10 @@ export default function MainHomeScreen() {
             isBottomOpen ? "translate-x-0" : "fixed translate-y-full"
           }`}
         >
-          <div className="w-full h-full overflow-y-auto">
+          <div
+            className="w-full h-full overflow-y-auto"
+            style={{ paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}
+          >
             <div className="h-16" />
             <Suspense fallback={null}>
               <BottomHomeScreen />
