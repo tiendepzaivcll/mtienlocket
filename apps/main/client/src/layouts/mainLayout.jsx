@@ -9,6 +9,7 @@ const CropImageStudio = lazy(() => import("@/features/EditorStudio/CropImageStud
 
 const DefaultLayout = ({ children }) => {
   const location = useLocation();
+  const isLoginPage = location.pathname === "/login";
   const shouldHideFloating = location.pathname.startsWith("/tools");
   const shouldShowFloating = !shouldHideFloating &&
     !["/", "/login", "/home"].includes(location.pathname);
@@ -18,10 +19,10 @@ const DefaultLayout = ({ children }) => {
 
   return (
     <div className="mtien-shell">
-      <Header />
-      <div className="mtien-header-spacer" aria-hidden="true" />
+      {!isLoginPage && <Header />}
+      {!isLoginPage && <div className="mtien-header-spacer" aria-hidden="true" />}
       <main className="mtien-content">{children}</main>
-      {!shouldHideFloating && <Footer />}
+      {!shouldHideFloating && !isLoginPage && <Footer />}
       <Suspense fallback={null}>
         {shouldShowCrop && <CropImageStudio />}
         {shouldShowFloating && <FloatingActions />}

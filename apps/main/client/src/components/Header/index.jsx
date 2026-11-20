@@ -1,10 +1,13 @@
 import "./header.css";
 import { ArrowUpRight, Crown, Menu } from "lucide-react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
 import { useAuthStore } from "@/stores";
 
 const Header = () => {
+  const location = useLocation();
+  if (location.pathname === "/login") return null;
+
   const { navigation } = useApp();
   const user = useAuthStore((state) => state.user);
   const accessRole = useAuthStore((state) => state.accessRole);
