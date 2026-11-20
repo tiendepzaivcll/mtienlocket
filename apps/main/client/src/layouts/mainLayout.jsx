@@ -9,10 +9,11 @@ const CropImageStudio = lazy(() => import("@/features/EditorStudio/CropImageStud
 
 const DefaultLayout = ({ children }) => {
   const location = useLocation();
-  const isLoginPage = location.pathname === "/login";
+  const isLoginPage = location.pathname.startsWith("/login");
   const shouldHideFloating = location.pathname.startsWith("/tools");
   const shouldShowFloating = !shouldHideFloating &&
-    !["/", "/login", "/home"].includes(location.pathname);
+    !["/", "/login", "/home"].includes(location.pathname) &&
+    !isLoginPage;
   const shouldShowCrop = ["/postmoments", "/restore-streak"].some((path) =>
     location.pathname.startsWith(path),
   );

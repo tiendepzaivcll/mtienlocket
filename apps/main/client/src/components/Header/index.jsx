@@ -6,7 +6,7 @@ import { useAuthStore } from "@/stores";
 
 const Header = () => {
   const location = useLocation();
-  if (location.pathname === "/login") return null;
+  if (location.pathname.startsWith("/login")) return null;
 
   const { navigation } = useApp();
   const user = useAuthStore((state) => state.user);

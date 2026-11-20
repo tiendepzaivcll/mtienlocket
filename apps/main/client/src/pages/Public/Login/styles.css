@@ -1,4 +1,9 @@
 .mtien-login{min-height:100vh;min-height:100dvh;padding-top:calc(env(safe-area-inset-top) + 16px);position:relative}
+.mtien-shell:has(.mtien-login) .mtien-header,
+.mtien-shell:has(.mtien-login) .mtien-header-spacer,
+.mtien-login ~ .mtien-header {
+  display: none !important;
+}
 .mtien-login-layout{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:110px;min-height:780px;padding-top:28px;padding-bottom:70px}
 .mtien-login-aside h2{font-size:38px;font-weight:550;line-height:1.2;letter-spacing:-1.6px;margin:20px 0 13px}
 .mtien-login-aside h2>span{color:var(--mt-mint)}

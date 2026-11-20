@@ -91,8 +91,18 @@ export default function MainHomeScreen() {
   return (
     <>
       <div
-        style={{ background: "var(--bg-app)", color: "var(--text-primary)" }}
-        className={`relative transition-all duration-500 flex flex-col justify-center items-center w-full h-[100dvh] max-h-[100dvh] overflow-hidden text-[var(--text-primary)] ${
+        id="camera-screen-container"
+        style={{
+          background: "var(--bg-app)",
+          color: "var(--text-primary)",
+          height: "100dvh",
+          maxHeight: "100dvh",
+          overflow: "hidden",
+          overscrollBehavior: "none",
+          position: "fixed",
+          inset: 0,
+        }}
+        className={`fixed inset-0 w-full h-[100dvh] max-h-[100dvh] overflow-hidden text-[var(--text-primary)] transition-all duration-500 flex flex-col justify-between items-center select-none ${
           isProfileOpen
             ? "translate-x-full"
             : isHomeOpen
@@ -130,12 +140,19 @@ export default function MainHomeScreen() {
         </div>
         <div
           className={`w-full h-full flex flex-col transition-all duration-500 justify-between items-center ${
-            isPWA
-              ? "pt-[max(4.2rem,calc(env(safe-area-inset-top)+3.2rem))] pb-[max(5.8rem,calc(env(safe-area-inset-bottom)+5.2rem))] px-0"
-              : "pt-12 pb-24 px-3"
-          } ${
             isBottomOpen ? "fixed -translate-y-full" : "translate-x-0"
           }`}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            paddingTop: "max(3.2rem, calc(env(safe-area-inset-top) + 3rem))",
+            paddingBottom: "max(4.8rem, calc(env(safe-area-inset-bottom) + 4.5rem))",
+            height: "100%",
+            maxHeight: "100dvh",
+            overflow: "hidden",
+            overscrollBehavior: "none",
+          }}
         >
           <div className="flex-1 flex flex-col justify-center items-center w-full min-h-0">
             <MediaPreview />

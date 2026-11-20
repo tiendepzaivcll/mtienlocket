@@ -45,8 +45,18 @@ export default function LocketCameraBeta() {
 
   return (
     <div
-      className="w-full h-full min-h-[100dvh] relative overflow-hidden"
-      style={{ background: "var(--bg-app)", color: "var(--text-primary)" }}
+      id="locket-camera-root"
+      className="w-full h-full min-h-[100dvh] max-h-[100dvh] fixed inset-0 overflow-hidden select-none"
+      style={{
+        background: "var(--bg-app)",
+        color: "var(--text-primary)",
+        position: "fixed",
+        inset: 0,
+        height: "100dvh",
+        maxHeight: "100dvh",
+        overflow: "hidden",
+        overscrollBehavior: "none",
+      }}
     >
       <Suspense fallback={null}>
         <BgLocketdio bgSrc={background?.url} />
