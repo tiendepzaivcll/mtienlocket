@@ -21,17 +21,17 @@ const HistoryArrow = ({ setIsBottomOpen }) => {
         aria-label="Xem lịch sử khoảnh khắc"
       >
         {isPWA ? (
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full hover:bg-white/10 transition">
-            <span className="w-5.5 h-5.5 rounded-lg bg-primary text-black text-xs font-black flex items-center justify-center shadow-sm">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full hover:opacity-80 transition text-[var(--text-primary)]">
+            <span className="w-5.5 h-5.5 rounded-lg bg-[var(--accent-primary)] text-primary-content text-xs font-black flex items-center justify-center shadow-sm">
               {count}
             </span>
-            <span className="text-sm font-bold tracking-wide text-white">
+            <span className="text-sm font-bold tracking-wide text-[var(--text-primary)]">
               Lịch sử
             </span>
-            <ChevronDown size={16} strokeWidth={2.5} className="text-white/80" />
+            <ChevronDown size={16} strokeWidth={2.5} className="text-[var(--text-primary)] opacity-80" />
           </div>
         ) : (
-          <div className="flex flex-col items-center text-base-content">
+          <div className="flex flex-col items-center text-[var(--text-primary)]">
             <span className="text-sm font-bold tracking-wide">
               Lịch sử
             </span>
@@ -41,7 +41,7 @@ const HistoryArrow = ({ setIsBottomOpen }) => {
               viewBox="0 0 24 14"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              className="mt-0.5"
+              className="mt-0.5 text-[var(--text-primary)]"
             >
               <path
                 d="M3 3L12 11L21 3"

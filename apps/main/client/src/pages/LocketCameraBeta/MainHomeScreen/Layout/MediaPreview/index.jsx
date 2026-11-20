@@ -489,7 +489,7 @@ const MediaPreview = () => {
         onTouchCancel={handleTouchEnd}
         className={`relative ${
           isPWA
-            ? "w-[min(calc(100vw-20px),calc(100dvh-270px),440px)] aspect-square rounded-[46px]"
+            ? "w-full max-w-[min(100vw,calc(100dvh-320px))] aspect-square rounded-[44px]"
             : "w-[min(calc(100vw-24px),calc(100dvh-290px),400px)] aspect-square rounded-[48px]"
         } bg-gray-900 overflow-hidden transition-all duration-300 touch-none select-none shadow-2xl`}
       >

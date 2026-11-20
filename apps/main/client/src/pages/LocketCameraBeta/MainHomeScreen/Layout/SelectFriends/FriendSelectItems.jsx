@@ -19,8 +19,8 @@ export default function FriendSelectItems({ uid, isSelected, onToggle }) {
         className={clsx(
           "flex p-0.5 flex-col items-center justify-center cursor-pointer rounded-full border-[2.5px] transition-all duration-300 transform",
           isSelected
-            ? "border-amber-400 scale-100"
-            : "border-gray-700 scale-95",
+            ? "border-[var(--accent-primary)] scale-100"
+            : "border-[var(--border-subtle)] scale-95",
         )}
       >
         <img
@@ -31,7 +31,7 @@ export default function FriendSelectItems({ uid, isSelected, onToggle }) {
         />
       </div>
 
-      <span className="text-xs mt-1 text-center max-w-[4rem] font-semibold truncate text-base-content transition-opacity duration-300">
+      <span className="text-xs mt-1 text-center max-w-[4rem] font-semibold truncate text-[var(--text-primary)] transition-opacity duration-300">
         {friend?.firstName} {friend?.lastName}
       </span>
     </div>

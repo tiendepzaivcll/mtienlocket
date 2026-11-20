@@ -42,11 +42,13 @@ const DelButton = () => {
   return (
     <>
       <button
-        className="cursor-pointer active:scale-95 text-base-content"
+        className="cursor-pointer active:scale-95 text-[var(--text-primary)] flex items-center justify-center"
         onClick={handleDelete}
         disabled={sendLoading || uploadLoading}
+        aria-label="Đóng ảnh"
+        title="Đóng ảnh"
       >
-        <X size={35} />
+        <X size={34} strokeWidth={2.4} />
       </button>
     </>
   );

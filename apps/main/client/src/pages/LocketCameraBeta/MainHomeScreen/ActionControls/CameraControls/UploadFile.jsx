@@ -98,16 +98,16 @@ const UploadFile = () => {
       <label htmlFor="file-upload" className="cursor-pointer active:scale-95 block">
         {isPWA ? (
           latestThumb ? (
-            <div className="w-12 h-12 rounded-2xl overflow-hidden ring-2 ring-base-content/20 shadow-md bg-base-300/40">
+            <div className="w-12 h-12 rounded-2xl overflow-hidden border border-[var(--border-subtle)] shadow-md bg-[var(--surface-pill)]">
               <img src={latestThumb} alt="Ảnh mới nhất" className="w-full h-full object-cover" />
             </div>
           ) : (
-            <div className="w-12 h-12 rounded-2xl bg-base-300/80 backdrop-blur-md border border-base-content/15 flex items-center justify-center text-base-content shadow-md">
+            <div className="w-12 h-12 rounded-2xl bg-[var(--surface-pill)] backdrop-blur-md border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)] shadow-md">
               <ImageUp size={24} />
             </div>
           )
         ) : (
-          <ImageUp size={35} className="text-base-content" />
+          <ImageUp size={35} className="text-[var(--text-primary)]" />
         )}
       </label>
     </>

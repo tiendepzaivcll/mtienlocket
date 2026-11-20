@@ -44,7 +44,7 @@ const ActionControls = () => {
             <button
               type="button"
               onClick={handleCancelPhotobooth}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-white shadow-lg backdrop-blur-md transition active:scale-90 hover:bg-white/30"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] shadow-lg backdrop-blur-md transition active:scale-90 hover:opacity-80"
               aria-label="Thoát Photobooth"
               title="Thoát Photobooth"
             >

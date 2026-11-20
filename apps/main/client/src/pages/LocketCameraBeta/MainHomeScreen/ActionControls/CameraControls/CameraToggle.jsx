@@ -69,7 +69,7 @@ const CameraToggle = () => {
     <>
       <button
         type="button"
-        className="cursor-pointer active:scale-90 transition text-base-content"
+        className="cursor-pointer active:scale-90 transition text-[var(--text-primary)] flex items-center justify-center"
         onClick={handleRotateCamera}
         aria-label="Đổi camera"
       >

@@ -6,11 +6,86 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* ── LOCKET-PRO Theme Semantic Tokens ── */
+  --bg-app: var(--fallback-b1, oklch(var(--b1)/1));
+  --text-primary: #ffffff;
+  --surface-pill: rgba(255, 255, 255, 0.12);
+  --border-subtle: rgba(255, 255, 255, 0.15);
+  --accent-primary: var(--fallback-p, oklch(var(--p)/1));
+}
+
+/* Explicit Dark themes & Dark mode */
+[data-theme="dark"],
+[data-theme="black"],
+[data-theme="dracula"],
+[data-theme="luxury"],
+[data-theme="night"],
+[data-theme="dim"],
+[data-theme="sunset"],
+[data-theme="business"],
+[data-theme="halloween"],
+[data-theme="forest"],
+[data-theme="synthwave"],
+[data-theme="coffee"] {
+  --bg-app: var(--fallback-b1, oklch(var(--b1)/1));
+  --text-primary: #ffffff;
+  --surface-pill: rgba(255, 255, 255, 0.12);
+  --border-subtle: rgba(255, 255, 255, 0.15);
+  --accent-primary: var(--fallback-p, oklch(var(--p)/1));
+}
+
+/* Black theme specifically defaults to Locket gold/amber */
+[data-theme="black"] {
+  --bg-app: #000000;
+  --text-primary: #ffffff;
+  --surface-pill: rgba(255, 255, 255, 0.12);
+  --border-subtle: rgba(255, 255, 255, 0.15);
+  --accent-primary: #f59e0b;
+}
+
+/* Explicit Light themes & Light mode */
+[data-theme="light"],
+[data-theme="bumblebee"],
+[data-theme="emerald"],
+[data-theme="autumn"],
+[data-theme="cupcake"],
+[data-theme="retro"],
+[data-theme="cyberpunk"],
+[data-theme="valentine"],
+[data-theme="garden"],
+[data-theme="aqua"],
+[data-theme="lofi"],
+[data-theme="pastel"],
+[data-theme="fantasy"],
+[data-theme="wireframe"],
+[data-theme="cmyk"],
+[data-theme="acid"],
+[data-theme="lemonade"],
+[data-theme="winter"],
+[data-theme="nord"],
+[data-theme="corporate"],
+[data-theme="silk"] {
+  --bg-app: var(--fallback-b1, oklch(var(--b1)/1));
+  --text-primary: #111111;
+  --surface-pill: rgba(0, 0, 0, 0.06);
+  --border-subtle: rgba(0, 0, 0, 0.12);
+  --accent-primary: var(--fallback-p, oklch(var(--p)/1));
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --bg-app: #ffffff;
+    --text-primary: #111111;
+    --surface-pill: rgba(0, 0, 0, 0.06);
+    --border-subtle: rgba(0, 0, 0, 0.12);
+    --accent-primary: #f59e0b;
+  }
 }
 
 body {
-  color: var(--fallback-bc, oklch(var(--bc)/1));
-  background-color: var(--fallback-b1, oklch(var(--b1)/1));
+  color: var(--text-primary);
+  background-color: var(--bg-app);
   min-height: 100vh;
 }
 .no-save {

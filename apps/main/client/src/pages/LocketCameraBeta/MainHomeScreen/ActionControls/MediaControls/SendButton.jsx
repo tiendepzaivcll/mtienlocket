@@ -237,16 +237,16 @@ const SendButton = () => {
       <button
         onClick={handleSubmit}
         disabled={uploadLoading || Boolean(restoreFlow.pendingDate)}
-        className={`rounded-full w-24 h-24 duration-500 outline-base-300 backdrop-blur-4xl text-center flex items-center justify-center disabled:opacity-50 transition-all ease-in-out active:scale-95 ${
+        className={`rounded-full w-24 h-24 duration-500 backdrop-blur-2xl text-center flex items-center justify-center disabled:opacity-50 transition-all ease-in-out active:scale-95 shadow-xl ${
           hasNoData
-            ? "bg-yellow-500/20"
+            ? "bg-yellow-500/20 border border-yellow-500/30"
             : isTooBig
-              ? "bg-red-500/20"
+              ? "bg-red-500/20 border border-red-500/30"
               : isSuccess
-                ? "bg-green-500/20"
+                ? "bg-green-500/20 border border-green-500/30"
                 : uploadLoading
-                  ? "bg-blue-500/20"
-                  : "bg-base-300/50 hover:bg-base-300/70"
+                  ? "bg-blue-500/20 border border-blue-500/30"
+                  : "bg-[var(--surface-pill)] border border-[var(--border-subtle)] hover:opacity-90 text-[var(--text-primary)]"
         }`}
         style={{
           animation: isSuccess ? "success-pulse 1s ease-in-out" : "none",

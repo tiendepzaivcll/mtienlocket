@@ -133,21 +133,13 @@ export default function NavigationDock({ hidden = false }) {
       style={{ bottom: "max(1rem, env(safe-area-inset-bottom))" }}
     >
       <div
-        className={`pointer-events-auto relative flex w-fit items-center gap-1 rounded-full shadow-2xl backdrop-blur-2xl ${
-          navigation?.isPWA
-            ? "bg-[#1c1c1e]/90 border border-white/5 p-1 text-white"
-            : "bg-base-300/85 text-base-content p-1 border border-base-content/15"
-        }`}
+        className="pointer-events-auto relative flex w-fit items-center gap-1 rounded-full shadow-2xl backdrop-blur-2xl bg-[var(--surface-pill)] text-[var(--text-primary)] p-1 border border-[var(--border-subtle)]"
       >
         <div
           aria-hidden="true"
-          className={`pointer-events-none absolute left-1/2 top-1/2 z-0 rounded-full shadow-sm px-8.5 py-6 transition-[transform,opacity] duration-300 ${
-            navigation?.isPWA
-              ? "bg-[#3a3a3c] border border-white/10"
-              : "bg-base-100 border border-base-content/10"
-          }`}
+          className="pointer-events-none absolute left-1/2 top-1/2 z-0 rounded-full shadow-sm px-8.5 py-6 transition-[transform,opacity] duration-300 bg-[var(--bg-app)] border border-[var(--border-subtle)]"
           style={{
-            opacity: isViewingMoment ? 0 : 1,
+            opacity: isViewingMoment ? 0 : 0.85,
             transform: `translate(${activeOffset[activeId]}, -50%) scale(${isViewingMoment ? 0.7 : 1})`,
           }}
         />
@@ -167,7 +159,7 @@ export default function NavigationDock({ hidden = false }) {
               >
                 <span
                   aria-hidden="true"
-                  className="absolute inset-0 flex items-center justify-center text-primary transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                  className="absolute inset-0 flex items-center justify-center text-[var(--accent-primary)] transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
                   style={{
                     opacity: isViewingMoment ? 0 : 1,
                     transform: isViewingMoment
@@ -179,7 +171,7 @@ export default function NavigationDock({ hidden = false }) {
                 </span>
                 <span
                   aria-hidden="true"
-                  className="pointer-events-none absolute flex h-9 w-9 items-center justify-center rounded-full ring-4 ring-primary bg-base-100/10 shadow-sm transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                  className="pointer-events-none absolute flex h-9 w-9 items-center justify-center rounded-full ring-4 ring-[var(--accent-primary)] bg-[var(--surface-pill)] shadow-sm transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
                   style={{
                     opacity: isViewingMoment ? 1 : 0,
                     transform: isViewingMoment
@@ -187,7 +179,7 @@ export default function NavigationDock({ hidden = false }) {
                       : "scale(0.35) rotate(-90deg)",
                   }}
                 >
-                  <span className="h-8 w-8 rounded-full border border-base-300 bg-base-100 transition-transform duration-300" />
+                  <span className="h-8 w-8 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-app)] transition-transform duration-300" />
                 </span>
               </button>
             );
@@ -201,7 +193,7 @@ export default function NavigationDock({ hidden = false }) {
               aria-current={active ? "page" : undefined}
               onClick={() => select(id)}
               className={`relative z-10 flex items-center justify-center rounded-full px-6 py-3.5 transition-colors duration-300 ease-out active:scale-95 ${
-                active ? "text-primary" : "text-base-content/50"
+                active ? "text-[var(--accent-primary)]" : "text-[var(--text-primary)] opacity-50 hover:opacity-80"
               }`}
             >
               {icon}

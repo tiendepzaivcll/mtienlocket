@@ -72,16 +72,18 @@ const HeaderHome = ({
           style={{ paddingTop: "max(0.5rem, env(safe-area-inset-top))" }}
         >
           <div></div>
-          <div className="absolute flex justify-center items-center flex-row gap-1 left-1/2 transform -translate-x-1/2 text-xl font-semibold text-base-content">
+          <div className="absolute flex justify-center items-center flex-row gap-1 left-1/2 transform -translate-x-1/2 text-lg font-bold text-[var(--text-primary)]">
             Gửi đến...
           </div>
 
           <div className="flex items-center gap-3">
             <button
               onClick={handleDownload}
-              className="w-11 h-11 flex items-center justify-center hover:bg-base-300 rounded-full transition"
+              className="w-11 h-11 flex items-center justify-center bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:opacity-80 rounded-full transition shadow-sm backdrop-blur-xl active:scale-95"
+              aria-label="Tải ảnh về máy"
+              title="Tải ảnh về máy"
             >
-              <Download size={28} strokeWidth={2} />
+              <Download size={22} strokeWidth={2.2} />
             </button>
           </div>
         </div>
@@ -95,11 +97,7 @@ const HeaderHome = ({
           {/* Nút Rollcall góc trên bên trái */}
           <button
             onClick={handleOpenRollcall}
-            className={`flex items-center justify-center ${
-              navigation?.isPWA
-                ? "w-11 h-11 bg-[#242426]/90 text-white border-0 shadow-sm"
-                : "w-10 h-10 bg-base-300/80 text-base-content border border-base-content/15 shadow-sm"
-            } backdrop-blur-xl hover:opacity-90 rounded-full active:scale-95 transition`}
+            className="w-11 h-11 flex items-center justify-center bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] backdrop-blur-xl hover:opacity-90 rounded-full active:scale-95 transition shadow-sm"
             aria-label="Mở Rollcall"
             title="Rollcall"
           >
@@ -111,9 +109,9 @@ const HeaderHome = ({
             className={`absolute flex z-90 transition-all justify-center items-center flex-row gap-1.5 left-1/2 
           transform -translate-x-1/2 ${
             navigation?.isPWA
-              ? "h-10 px-5 rounded-full bg-[#242426]/90 text-white font-bold text-sm border-0 shadow-sm"
-              : "text-lg font-semibold px-3 py-2 rounded-3xl bg-base-300/80 text-base-content border border-base-content/15 shadow-sm"
-          } backdrop-blur-xl hover:opacity-90 active:scale-105 select-none`}
+              ? "h-10 px-5 rounded-full font-bold text-sm"
+              : "text-base font-semibold px-4 py-2 rounded-3xl"
+          } bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] backdrop-blur-xl hover:opacity-90 active:scale-105 select-none shadow-sm`}
             onClick={toggleDropdown}
           >
             {isBottomOpen ? (
@@ -160,11 +158,11 @@ const HeaderHome = ({
               title="Cài đặt & Tài khoản"
             >
               {/* Nền mờ */}
-              <div className="bg-base-300/70 backdrop-blur-[4px] w-11.5 h-11.5 rounded-full absolute" />
+              <div className="bg-[var(--surface-pill)] border border-[var(--border-subtle)] backdrop-blur-[4px] w-11.5 h-11.5 rounded-full absolute" />
 
               {/* Hiển thị vòng loading khi ảnh chưa load */}
               {!isImageLoaded && (
-                <div className="absolute w-5 h-5 border-t-transparent border-white rounded-full animate-spin" />
+                <div className="absolute w-5 h-5 border-t-transparent border-[var(--text-primary)] rounded-full animate-spin" />
               )}
 
               <img
@@ -175,7 +173,7 @@ const HeaderHome = ({
                 className={`rounded-full ${
                   navigation?.isPWA ? "h-10.5 w-10.5" : "h-9.5 w-9.5"
                 } relative object-cover backdrop-blur-3xl transition-opacity duration-300 ${
-                  isImageLoaded ? "opacity-100" : "opacity-0 bg-base-300"
+                  isImageLoaded ? "opacity-100" : "opacity-0 bg-[var(--surface-pill)]"
                 }`}
               />
             </button>

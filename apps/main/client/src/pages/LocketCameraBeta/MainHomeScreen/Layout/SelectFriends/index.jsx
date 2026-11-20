@@ -122,15 +122,15 @@ const SelectFriendsList = ({}) => {
             className={clsx(
               "flex p-0.5 flex-col items-center justify-center cursor-pointer rounded-full border-[2.5px] transition-all duration-300 transform",
               isPrivateMode()
-                ? "border-amber-400 scale-100"
-                : "border-gray-700 scale-95",
+                ? "border-[var(--accent-primary)] scale-100"
+                : "border-[var(--border-subtle)] scale-95",
             )}
           >
-            <div className="w-11 h-11 rounded-full bg-base-300 flex items-center justify-center text-xl font-bold text-primary">
-              <FaLock className="w-5 h-5 text-base-content" />
+            <div className="w-11 h-11 rounded-full bg-[var(--surface-pill)] flex items-center justify-center text-xl font-bold">
+              <FaLock className="w-5 h-5 text-[var(--text-primary)]" />
             </div>
           </div>
-          <span className="text-xs mt-1 text-base-content font-semibold">
+          <span className="text-xs mt-1 text-[var(--text-primary)] font-semibold">
             Riêng tư
           </span>
         </div>
@@ -147,15 +147,15 @@ const SelectFriendsList = ({}) => {
             className={clsx(
               "flex p-0.5 flex-col items-center justify-center cursor-pointer rounded-full border-[2.5px] transition-all duration-300 transform",
               isSelectAll()
-                ? "border-amber-400 scale-100"
-                : "border-gray-700 scale-95",
+                ? "border-[var(--accent-primary)] scale-100"
+                : "border-[var(--border-subtle)] scale-95",
             )}
           >
-            <div className="w-11 h-11 rounded-full bg-base-300 flex items-center justify-center text-xl font-bold text-primary">
-              <FaUserFriends className="w-6 h-6 text-base-content" />
+            <div className="w-11 h-11 rounded-full bg-[var(--surface-pill)] flex items-center justify-center text-xl font-bold">
+              <FaUserFriends className="w-6 h-6 text-[var(--text-primary)]" />
             </div>
           </div>
-          <span className="text-xs mt-1 text-base-content font-semibold">
+          <span className="text-xs mt-1 text-[var(--text-primary)] font-semibold">
             Tất cả
           </span>
         </div>
