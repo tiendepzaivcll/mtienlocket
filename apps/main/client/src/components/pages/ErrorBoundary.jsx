@@ -52,8 +52,8 @@ export default class ErrorBoundary extends React.Component {
         await Promise.all(registrations.map((reg) => reg.unregister()));
       }
 
-      // 5. Reload
-      window.location.reload();
+      // 5. Hard reload with cache buster
+      window.location.href = window.location.origin + window.location.pathname + "?t=" + Date.now();
     } catch (err) {
       console.error("Lỗi khi reset app:", err);
       window.location.reload();
