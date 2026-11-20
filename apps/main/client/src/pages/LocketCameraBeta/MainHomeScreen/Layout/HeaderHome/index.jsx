@@ -95,11 +95,7 @@ const HeaderHome = ({
           {/* Nút Rollcall góc trên bên trái */}
           <button
             onClick={handleOpenRollcall}
-            className={`flex items-center justify-center w-10 h-10 ${
-              navigation?.isPWA
-                ? "bg-white/10 text-white border-white/15"
-                : "bg-base-300/80 text-base-content border-base-content/10"
-            } backdrop-blur-md hover:opacity-90 rounded-full active:scale-95 transition shadow-sm border`}
+            className="flex items-center justify-center w-10 h-10 bg-base-300/80 text-base-content border-base-content/15 backdrop-blur-md hover:opacity-90 rounded-full active:scale-95 transition shadow-sm border"
             aria-label="Mở Rollcall"
             title="Rollcall"
           >
@@ -111,9 +107,9 @@ const HeaderHome = ({
             className={`absolute flex z-90 transition-all justify-center items-center flex-row gap-1.5 left-1/2 
           transform -translate-x-1/2 ${
             navigation?.isPWA
-              ? "text-sm font-bold bg-white/10 text-white border-white/15 px-4 py-1.5 rounded-full"
-              : "text-lg font-semibold bg-base-300/80 text-base-content border-base-content/10 px-3 py-2 rounded-3xl"
-          } backdrop-blur-md hover:opacity-90 active:scale-105 select-none shadow-sm border`}
+              ? "text-sm font-bold px-4 py-1.5 rounded-full"
+              : "text-lg font-semibold px-3 py-2 rounded-3xl"
+          } bg-base-300/80 text-base-content border-base-content/15 backdrop-blur-md hover:opacity-90 active:scale-105 select-none shadow-sm border`}
             onClick={toggleDropdown}
           >
             {isBottomOpen ? (

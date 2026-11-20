@@ -118,7 +118,7 @@ const CameraButton = () => {
       canvasStream.getVideoTracks().forEach((track) => combinedStream.addTrack(track));
 
       let micStream = null;
-      const isMicEnabled = localStorage.getItem("setting_camera_mic_enabled") !== "false"; // Mặc định bật mic
+      const isMicEnabled = localStorage.getItem("setting_camera_mic_enabled") === "true"; // Mic luôn tắt mặc định, chỉ thu khi người dùng chủ động bật mic
 
       if (isMicEnabled && navigator.mediaDevices?.getUserMedia) {
         try {
@@ -685,11 +685,7 @@ const CameraButton = () => {
         }}
       >
         <div
-          className={`absolute w-20 h-20 rounded-full z-10 ${
-            navigation?.isPWA
-              ? "border-[4.5px] border-[#ff5b5b]"
-              : "border-camera-custome text-primary/80"
-          } ${
+          className={`absolute w-20 h-20 rounded-full z-10 border-camera-custome text-primary ${
             isHolding ? "animate-borderExpand" : ""
           }`}
         ></div>
