@@ -59,23 +59,23 @@ const ChatDetailHeader = ({ selectedChat, onBack }) => {
   };
 
   return (
-    <div className="flex items-center justify-between shadow-lg px-4 py-2">
+    <div className="flex items-center justify-between px-4 py-2.5 bg-[var(--bg-app)]/85 backdrop-blur-md border-b border-[var(--border-subtle)] text-[var(--text-primary)]">
       {/* Left */}
       <div className="flex items-center">
         <button
           onClick={onBack}
           disabled={busy}
           aria-label="Quay lại danh sách tin nhắn"
-          className="btn p-1 border-0 rounded-full hover:bg-base-200 transition cursor-pointer"
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:opacity-80 transition cursor-pointer active:scale-95"
         >
-          <ChevronLeft size={30} />
+          <ChevronLeft size={24} />
         </button>
       </div>
 
       {/* Center */}
       <div className="flex-1 flex justify-center items-center flex-row gap-3 text-center">
         {isGroup && !group?.image_url ? (
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/15 text-primary">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--surface-pill)] text-[var(--accent-primary)]">
             <Users size={20} />
           </div>
         ) : (
@@ -85,10 +85,10 @@ const ChatDetailHeader = ({ selectedChat, onBack }) => {
             }
             alt="avatar"
             onError={handleAvatarError}
-            className="w-9 h-9 rounded-full object-cover"
+            className="w-9 h-9 rounded-full object-cover border border-[var(--border-subtle)]"
           />
         )}
-        <h2 className="text-lg font-bold truncate">
+        <h2 className="text-base font-bold truncate text-[var(--text-primary)]">
           {isGroup
             ? group?.name || "Nhóm chat"
             : selectedChat?.friend
@@ -101,13 +101,13 @@ const ChatDetailHeader = ({ selectedChat, onBack }) => {
         {canAct && <button type="button" aria-label="Tùy chọn cuộc trò chuyện"
           aria-expanded={menuOpen} aria-haspopup="menu" disabled={busy}
           onClick={() => setMenuOpen((value) => !value)}
-          className="btn p-1 border-0 rounded-full hover:bg-base-200 transition cursor-pointer">
-          <Ellipsis size={30} />
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:opacity-80 transition cursor-pointer active:scale-95">
+          <Ellipsis size={22} />
         </button>}
         {canAct && menuOpen && <div role="menu" aria-label="Tùy chọn bạn bè"
-          className="absolute right-0 top-full z-[90] mt-2 w-44 rounded-2xl border border-base-200 bg-base-100 p-2 shadow-xl">
+          className="absolute right-0 top-full z-[90] mt-2 w-44 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-app)] p-2 shadow-xl text-[var(--text-primary)]">
           <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); setAction("remove"); }}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm hover:bg-base-200"><UserMinus size={17} /> Xóa bạn</button>
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm hover:bg-[var(--surface-pill)]"><UserMinus size={17} /> Xóa bạn</button>
           <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); setAction("block"); }}
             className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-error hover:bg-error/10"><Ban size={17} /> Chặn</button>
         </div>}

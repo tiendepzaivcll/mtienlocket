@@ -303,7 +303,7 @@ const RightHomeScreen = ({ setIsHomeOpen }) => {
     <>
       {/* ================= Conversation list ================= */}
       <div
-        className={`fixed inset-0 flex flex-col transition-transform duration-500 bg-base-100 overflow-hidden
+        className={`fixed inset-0 flex flex-col transition-transform duration-500 bg-[var(--bg-app)] overflow-hidden
         ${
           isHomeOpen
             ? selectedChat
@@ -312,15 +312,16 @@ const RightHomeScreen = ({ setIsHomeOpen }) => {
             : "translate-x-full"
         }`}
       >
-        <div className="relative flex items-center shadow-lg justify-between px-4 py-2 text-base-content">
+        <div className="sticky top-0 z-20 flex items-center justify-between px-4 py-2.5 bg-[var(--bg-app)]/85 backdrop-blur-md border-b border-[var(--border-subtle)] text-[var(--text-primary)]">
           <button
             onClick={() => {
               setIsHomeOpen(false);
               setSelectedChat(null);
             }}
-            className="btn p-1 border-0 rounded-full hover:bg-base-200 transition cursor-pointer z-10"
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:opacity-80 transition cursor-pointer z-10 active:scale-95"
+            aria-label="Quay lại"
           >
-            <ChevronLeft size={30} />
+            <ChevronLeft size={24} />
           </button>
           <SocketStatus
             isConnected={isConnected}
@@ -330,9 +331,9 @@ const RightHomeScreen = ({ setIsHomeOpen }) => {
         </div>
 
         <div
-          className="flex-1 space-y-4 overflow-y-auto px-4 pt-6"
+          className="flex-1 space-y-3 overflow-y-auto px-4 pt-4"
           style={{
-            paddingBottom: "calc(6.5rem + env(safe-area-inset-bottom))",
+            paddingBottom: "calc(8rem + env(safe-area-inset-bottom))",
           }}
         >
           {(loading || loadingGroups) && sortedMessages.length === 0 ? (
@@ -363,7 +364,7 @@ const RightHomeScreen = ({ setIsHomeOpen }) => {
               {remainingCount > 0 && (
                 <button
                   onClick={handleLoadMore}
-                  className="w-full py-3 mt-4 text-sm font-medium text-primary hover:bg-base-200 rounded-lg transition-colors duration-200"
+                  className="w-full py-3 mt-4 text-sm font-semibold text-[var(--accent-primary)] bg-[var(--surface-card)] border border-[var(--border-subtle)] hover:opacity-85 rounded-2xl transition"
                 >
                   Xem thêm {remainingCount} cuộc hội thoại
                 </button>
@@ -371,7 +372,7 @@ const RightHomeScreen = ({ setIsHomeOpen }) => {
 
               {/* Thông báo khi không có conversations */}
               {sortedMessages.length === 0 && (
-                <div className="text-center text-base-content/60 py-8">
+                <div className="text-center text-[var(--text-secondary)] py-8 font-medium">
                   Chưa có cuộc hội thoại nào
                 </div>
               )}

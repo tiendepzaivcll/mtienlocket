@@ -22,8 +22,7 @@ export const ConversationItem = ({ msg, onSelect }) => {
           friend: friendDetail || null,
         })
       }
-      className={`relative w-full flex items-center gap-3 p-3 rounded-3xl shadow-sm cursor-pointer transition 
-      ${isUnread ? "bg-base-200" : "bg-base-200"}`}
+      className={`relative w-full flex items-center gap-3.5 p-3.5 rounded-3xl shadow-sm border border-[var(--border-subtle)] bg-[var(--surface-card)] cursor-pointer transition active:scale-[0.99]`}
     >
       {/* Avatar */}
       {friendDetail ? (
@@ -31,32 +30,30 @@ export const ConversationItem = ({ msg, onSelect }) => {
           src={getAvatarSource(friendDetail)}
           alt={friendDetail?.firstName || "user"}
           onError={handleAvatarError}
-          className={`w-15 h-15 rounded-full p-0.5 object-cover transition-all duration-200 
+          className={`w-14 h-14 rounded-full p-0.5 object-cover transition-all duration-200 shrink-0
             ${
               isUnread
-                ? "border-[3px] border-amber-400"
-                : "border-[3px] border-gray-300"
+                ? "border-[2.5px] border-[var(--accent-primary)]"
+                : "border-[2.5px] border-[var(--border-subtle)]"
             }`}
         />
       ) : (
-        <div className="w-15 h-15 rounded-full bg-gray-300 animate-pulse" />
+        <div className="w-14 h-14 rounded-full bg-[var(--border-subtle)] animate-pulse shrink-0" />
       )}
 
       {/* Nội dung */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 pr-6">
         <p
-          className={`text-lg truncate ${
-            isUnread
-              ? "font-bold text-black"
-              : "font-semibold text-black opacity-60"
+          className={`text-base truncate text-[var(--text-primary)] ${
+            isUnread ? "font-bold" : "font-semibold opacity-90"
           }`}
         >
           {friendDetail?.firstName} {friendDetail?.lastName} ~{" "}
           {formatTimeAgoV2(Number(msg.latestMessage?.createdAt))}
         </p>
         <p
-          className={`text-md truncate pt-1 font-semibold ${
-            isUnread ? "text-black" : "text-gray-500 opacity-60"
+          className={`text-sm truncate pt-0.5 text-[var(--text-secondary)] ${
+            isUnread ? "font-medium" : "opacity-80"
           }`}
         >
           {msg.latestMessage?.replyMoment
@@ -67,7 +64,7 @@ export const ConversationItem = ({ msg, onSelect }) => {
 
       {/* Chevron */}
       <div className="absolute right-4 top-1/2 -translate-y-1/2">
-        <ChevronRight className="w-6 h-6 text-gray-500" />
+        <ChevronRight className="w-5 h-5 text-[var(--text-secondary)]" />
       </div>
     </div>
   );

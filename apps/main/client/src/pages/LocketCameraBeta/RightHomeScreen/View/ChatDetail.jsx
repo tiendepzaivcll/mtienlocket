@@ -430,11 +430,11 @@ const ChatDetail = ({
 
   return (
     <div
-      className={`fixed inset-0 z-60 flex flex-col bg-base-100 text-base-content transition-transform duration-500 ${
+      className={`fixed inset-0 z-60 flex flex-col bg-[var(--bg-app)] text-[var(--text-primary)] transition-transform duration-500 ${
         selectedChat ? "translate-x-0" : "translate-x-full"
       }`}
     >
-      <div className="sticky top-0 z-10 bg-base-100">
+      <div className="sticky top-0 z-10 bg-[var(--bg-app)]">
         <ChatDetailHeader
           selectedChat={selectedChat}
           onBack={() => setSelectedChat(null)}

@@ -123,7 +123,7 @@ const ChatDetailFooter = ({ selectedChat }) => {
 
   return (
     <div className="">
-      <div className="flex w-full items-end gap-3 px-4 py-3.5 bg-base-200 rounded-3xl shadow-md relative">
+      <div className="flex w-full items-end gap-3 px-4 py-3 bg-[var(--surface-card)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-3xl shadow-md relative">
         <textarea
           ref={textareaRef}
           placeholder={
@@ -134,18 +134,18 @@ const ChatDetailFooter = ({ selectedChat }) => {
           value={message}
           onChange={handleChange}
           rows={1}
-          className="flex-1 bg-transparent focus:outline-none font-semibold pl-1 pr-7 resize-none disabled:opacity-50 leading-6 overflow-y-auto"
+          className="flex-1 bg-transparent focus:outline-none font-semibold pl-1 pr-8 resize-none disabled:opacity-50 leading-6 overflow-y-auto text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]"
           disabled={loading}
         />
         <button
           onClick={handleSend}
           disabled={disabled}
-          className="btn absolute right-3 bottom-3 p-1 btn-sm bg-base-300 btn-circle flex justify-center items-center disabled:opacity-50"
+          className="btn absolute right-3 bottom-2.5 p-1 btn-sm bg-[var(--surface-pill)] border border-[var(--border-subtle)] text-[var(--text-primary)] btn-circle flex justify-center items-center disabled:opacity-50"
         >
           {loading ? (
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-base-content"></div>
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--text-primary)]"></div>
           ) : (
-            <ArrowUp className="text-base-content w-7 h-7" />
+            <ArrowUp className="text-[var(--text-primary)] w-5 h-5" />
           )}
         </button>
       </div>

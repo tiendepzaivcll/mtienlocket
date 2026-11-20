@@ -26,23 +26,23 @@ const SocketStatus = ({ isConnected, connectionInfo, reconnect }) => {
 
   return (
     <>
-      <button type="button" onClick={openHealth} className="flex items-center gap-2">
+      <button type="button" onClick={openHealth} className="flex items-center gap-2 cursor-pointer hover:opacity-85 transition">
         <div className="inline-grid *:[grid-area:1/1]">
           <div className={`status ${statusClass} animate-ping`}></div>
           <div className={`status ${statusClass}`}></div>
         </div>
-        <span className={isConnected ? "text-success" : "text-error"}>
+        <span className={isConnected ? "text-emerald-500 font-medium text-sm" : "text-error font-medium text-sm"}>
           {isConnected ? "Connected to MTIEN Service" : "Disconnected"}
         </span>
-        <Activity className="h-4 w-4 opacity-60" />
+        <Activity className="h-4 w-4 opacity-70 text-[var(--text-secondary)]" />
       </button>
 
       {open && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-3xl bg-base-100 p-5 text-left shadow-2xl">
+          <div className="w-full max-w-sm rounded-3xl bg-[var(--bg-app)] border border-[var(--border-subtle)] text-[var(--text-primary)] p-5 text-left shadow-2xl">
             <div className="flex items-center justify-between">
               <h2 className="font-bold">Tình trạng hệ thống</h2>
-              <button type="button" className="btn btn-circle btn-sm" onClick={() => setOpen(false)}>
+              <button type="button" className="btn btn-circle btn-sm bg-[var(--surface-pill)] border border-[var(--border-subtle)] text-[var(--text-primary)]" onClick={() => setOpen(false)}>
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -50,14 +50,14 @@ const SocketStatus = ({ isConnected, connectionInfo, reconnect }) => {
               <p className="py-8 text-center text-sm opacity-60">Đang kiểm tra…</p>
             ) : (
               <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-                <div className="rounded-xl bg-base-200 p-3">API<br /><b>{health?.status || "unknown"}</b></div>
-                <div className="rounded-xl bg-base-200 p-3">Socket<br /><b>{isConnected ? "connected" : "disconnected"}</b></div>
-                <div className="rounded-xl bg-base-200 p-3">R2<br /><b>{health?.checks?.storage?.mode || "unknown"}</b></div>
-                <div className="rounded-xl bg-base-200 p-3">App Check<br /><b>{health?.checks?.appCheck?.mode || "unknown"}</b></div>
-                <div className="rounded-xl bg-base-200 p-3">Requests<br /><b>{telemetry.requests ?? 0}</b></div>
-                <div className="rounded-xl bg-base-200 p-3">Lỗi 5xx<br /><b>{telemetry.errors5xx ?? 0}</b></div>
-                <div className="rounded-xl bg-base-200 p-3">Độ trễ TB<br /><b>{telemetry.averageDurationMs ?? 0} ms</b></div>
-                <div className="rounded-xl bg-base-200 p-3">Deploy<br /><b>{deployment.ready ? "ready" : "thiếu cấu hình"}</b></div>
+                <div className="rounded-xl bg-[var(--surface-card)] border border-[var(--border-subtle)] p-3">API<br /><b>{health?.status || "unknown"}</b></div>
+                <div className="rounded-xl bg-[var(--surface-card)] border border-[var(--border-subtle)] p-3">Socket<br /><b>{isConnected ? "connected" : "disconnected"}</b></div>
+                <div className="rounded-xl bg-[var(--surface-card)] border border-[var(--border-subtle)] p-3">R2<br /><b>{health?.checks?.storage?.mode || "unknown"}</b></div>
+                <div className="rounded-xl bg-[var(--surface-card)] border border-[var(--border-subtle)] p-3">App Check<br /><b>{health?.checks?.appCheck?.mode || "unknown"}</b></div>
+                <div className="rounded-xl bg-[var(--surface-card)] border border-[var(--border-subtle)] p-3">Requests<br /><b>{telemetry.requests ?? 0}</b></div>
+                <div className="rounded-xl bg-[var(--surface-card)] border border-[var(--border-subtle)] p-3">Lỗi 5xx<br /><b>{telemetry.errors5xx ?? 0}</b></div>
+                <div className="rounded-xl bg-[var(--surface-card)] border border-[var(--border-subtle)] p-3">Độ trễ TB<br /><b>{telemetry.averageDurationMs ?? 0} ms</b></div>
+                <div className="rounded-xl bg-[var(--surface-card)] border border-[var(--border-subtle)] p-3">Deploy<br /><b>{deployment.ready ? "ready" : "thiếu cấu hình"}</b></div>
               </div>
             )}
             {!isConnected && (

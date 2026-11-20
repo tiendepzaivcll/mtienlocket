@@ -10,7 +10,10 @@
   /* ── LOCKET-PRO Theme Semantic Tokens ── */
   --bg-app: var(--fallback-b1, oklch(var(--b1)/1));
   --text-primary: #ffffff;
+  --text-secondary: #9CA3AF;
   --surface-pill: rgba(255, 255, 255, 0.12);
+  --surface-dock: rgba(28, 28, 30, 0.88);
+  --surface-card: #1F2937;
   --border-subtle: rgba(255, 255, 255, 0.15);
   --accent-primary: var(--fallback-p, oklch(var(--p)/1));
 }
@@ -30,7 +33,10 @@
 [data-theme="coffee"] {
   --bg-app: var(--fallback-b1, oklch(var(--b1)/1));
   --text-primary: #ffffff;
+  --text-secondary: #9CA3AF;
   --surface-pill: rgba(255, 255, 255, 0.12);
+  --surface-dock: rgba(28, 28, 30, 0.88);
+  --surface-card: #1F2937;
   --border-subtle: rgba(255, 255, 255, 0.15);
   --accent-primary: var(--fallback-p, oklch(var(--p)/1));
 }
@@ -39,7 +45,10 @@
 [data-theme="black"] {
   --bg-app: #000000;
   --text-primary: #ffffff;
+  --text-secondary: #9CA3AF;
   --surface-pill: rgba(255, 255, 255, 0.12);
+  --surface-dock: rgba(24, 24, 27, 0.90);
+  --surface-card: #18181b;
   --border-subtle: rgba(255, 255, 255, 0.15);
   --accent-primary: #f59e0b;
 }
@@ -68,8 +77,11 @@
 [data-theme="silk"] {
   --bg-app: var(--fallback-b1, oklch(var(--b1)/1));
   --text-primary: #111111;
+  --text-secondary: #6B7280;
   --surface-pill: rgba(0, 0, 0, 0.06);
-  --border-subtle: rgba(0, 0, 0, 0.12);
+  --surface-dock: rgba(255, 255, 255, 0.85);
+  --surface-card: #F3F4F6;
+  --border-subtle: rgba(0, 0, 0, 0.08);
   --accent-primary: var(--fallback-p, oklch(var(--p)/1));
 }
 
@@ -77,8 +89,11 @@
   :root:not([data-theme]) {
     --bg-app: #ffffff;
     --text-primary: #111111;
+    --text-secondary: #6B7280;
     --surface-pill: rgba(0, 0, 0, 0.06);
-    --border-subtle: rgba(0, 0, 0, 0.12);
+    --surface-dock: rgba(255, 255, 255, 0.85);
+    --surface-card: #F3F4F6;
+    --border-subtle: rgba(0, 0, 0, 0.08);
     --accent-primary: #f59e0b;
   }
 }
