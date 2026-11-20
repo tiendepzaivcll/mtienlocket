@@ -44,9 +44,9 @@ const DEFAULT_AI_PLANS = [
 ];
 
 const FEATURE_ROWS = [
-  { icon: Video, label: "Thời lượng video", free: "10 giây", vip: "30 giây" },
-  { icon: Upload, label: "Chất lượng upload", free: "HD", vip: "HD cao nhất" },
-  { icon: MessageSquare, label: "Caption", free: "General & Holiday", vip: "Đầy đủ + tuỳ chỉnh" },
+  { icon: Video, label: "Thời lượng video", free: "5 giây", vip: "15 giây (Siêu nét)" },
+  { icon: Upload, label: "Chất lượng hình ảnh", free: "Chuẩn HD", vip: "Full HD (1080p - 2K)" },
+  { icon: MessageSquare, label: "Caption & Icon", free: "Cơ bản", vip: "Đầy đủ + tuỳ chỉnh" },
   { icon: Camera, label: "Photobooth 4 ô", free: false, vip: true, isBoolean: true },
   { icon: Camera, label: "Khung Camera", free: false, vip: true, isBoolean: true },
   { icon: Flame, label: "Khôi phục streak", free: false, vip: true, isBoolean: true },
@@ -614,7 +614,7 @@ export default function PricingPage() {
         {activeTab === "vip" ? (
           <div className="mb-8 space-y-4">
             <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 px-4 py-2.5 text-xs text-amber-200/90">
-              👑 <strong>Gói Locket VIP:</strong> Mở khoá Video 30s, Photobooth 4 ô, Khung Camera, Caption đầy đủ, Công cụ Locket & Khôi phục chuỗi.{" "}
+              👑 <strong>Gói Locket VIP:</strong> Mở khoá Video 15s (Siêu nét), Photobooth 4 ô, Khung Camera, Caption đầy đủ, Công cụ Locket & Khôi phục chuỗi.{" "}
               <span className="font-semibold text-yellow-300">Đặc biệt: Tặng kèm lượt tạo ảnh AI Filter!</span>
             </div>
             {renderVipPlans()}
