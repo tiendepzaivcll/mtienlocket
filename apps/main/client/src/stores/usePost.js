@@ -9,7 +9,7 @@ export const defaultPostOverlay = {
   caption: "",
   type: "default",
   background: [],
-  is_selected: false,
+  is_selected: true,
 };
 
 export const usePost = () => {

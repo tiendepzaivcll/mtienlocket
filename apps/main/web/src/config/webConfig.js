@@ -32,7 +32,7 @@ export const CONFIG = {
     env: import.meta.env.MODE, // development | production
     camera: {
       limits: {
-        maxRecordTime: 15, // giây
+        maxRecordTime: 30, // 30 giây cho VIP
         maxImageSizeMB: 20,
         maxVideoSizeMB: 40,
       },

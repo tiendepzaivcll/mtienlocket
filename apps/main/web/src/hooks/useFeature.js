@@ -28,7 +28,7 @@ export const getMaxUploads = () => {
 export const getVideoRecordLimit = () => {
   // const userPlan = useAuthStore((s) => s.userPlan);
 
-  const limit = 15;
+  const limit = 30;
 
   return limit;
 };

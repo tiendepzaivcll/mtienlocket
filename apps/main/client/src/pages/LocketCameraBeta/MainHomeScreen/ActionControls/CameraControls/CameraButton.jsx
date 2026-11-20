@@ -9,6 +9,7 @@ import { useCameraCaptureMode } from "@/hooks/useCameraCaptureMode";
 import { usePhotoboothStore } from "@/stores";
 import { PHOTOBOOTH_FRAMES } from "@/data/photoboothFrames";
 import { capturePhotoboothFrame, composePhotoboothGrid } from "@/utils/photobooth";
+import { defaultPostOverlay } from "@/stores/usePost.js";
 
 const CameraButton = () => {
   const { camera, post, useloading } = useApp();
@@ -44,7 +45,7 @@ const CameraButton = () => {
     isScreenFlashing,
     setIsScreenFlashing,
   } = camera;
-  const { preview, setPreview, setSelectedFile, setSizeMedia } = post;
+  const { preview, setPreview, setSelectedFile, setSizeMedia, setPostOverlay } = post;
   const { setIsCaptionLoading, uploadLoading, setUploadLoading } = useloading;
 
   const holdStartTimeRef = useRef(null);
@@ -259,6 +260,7 @@ const CameraButton = () => {
         setSizeMedia(fileSizeInMB.toFixed(2));
         setPreview({ type: "video", data: videoUrl });
         setSelectedFile(file);
+        setPostOverlay(defaultPostOverlay);
         setCameraActive(false);
         setIsCaptionLoading(true);
         stopCamera();
@@ -558,6 +560,7 @@ const CameraButton = () => {
             setSizeMedia(fileSizeInMB.toFixed(2));
 
             setSelectedFile(file);
+            setPostOverlay(defaultPostOverlay);
             setIsCaptionLoading(true);
             setCameraActive(false);
           }

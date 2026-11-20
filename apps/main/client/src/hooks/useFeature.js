@@ -5,10 +5,10 @@ export const FULL_ACCESS_LIMITS = {
   maxImageSizeMB: 1024,
   maxVideoSizeMB: 1024,
   storage_limit_mb: -1,
-  video_record_max_length: CONFIG.app.camera.limits.maxRecordTime,
+  video_record_max_length: 30, // VIP: 30 giây
 };
 
-// Free tier: 10s, VIP: 15s (from config)
+// Free tier: 10s, VIP: 30s
 const FREE_VIDEO_RECORD_LIMIT = 10;
 
 export const useFeatureVisible = (feature) => {

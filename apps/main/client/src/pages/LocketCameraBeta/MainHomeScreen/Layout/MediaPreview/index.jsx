@@ -282,16 +282,20 @@ const MediaPreview = () => {
         ? "caption_gif"
         : postOverlay?.type;
   const hasCaptionOverlay =
-    normalizedOverlayType &&
+    Boolean(preview) ||
+    Boolean(selectedFile) ||
     (
-      normalizedOverlayType !== "default" ||
-      postOverlay.is_selected === true ||
-      Boolean(postOverlay.caption) ||
-      Boolean(postOverlay.icon) ||
-      Boolean(postOverlay.color_top) ||
-      Boolean(postOverlay.color_bottom) ||
-      Boolean(postOverlay.background?.colors?.length) ||
-      Boolean(Array.isArray(postOverlay.background) && postOverlay.background.length)
+      normalizedOverlayType &&
+      (
+        normalizedOverlayType !== "default" ||
+        postOverlay.is_selected === true ||
+        Boolean(postOverlay.caption) ||
+        Boolean(postOverlay.icon) ||
+        Boolean(postOverlay.color_top) ||
+        Boolean(postOverlay.color_bottom) ||
+        Boolean(postOverlay.background?.colors?.length) ||
+        Boolean(Array.isArray(postOverlay.background) && postOverlay.background.length)
+      )
     );
 
   const iosDevice = isIOS();
