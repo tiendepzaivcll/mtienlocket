@@ -157,7 +157,7 @@ const probeVideoBuffer = (videoBuffer, filename = "probe.mp4") => {
  * - Tự động tính bitrate để file luôn luôn < maxSizeMB (5MB)
  * - Dùng preset 'ultrafast' để giảm tải RAM/CPU tối đa, chống OOM SIGKILL trên Railway
  */
-const runSinglePassEncode = (inputPath, outputPath, metadata, maxSizeMB, resolution = 720) => {
+const runSinglePassEncode = (inputPath, outputPath, metadata, maxSizeMB, resolution = 720, forcedBitrate = null) => {
   return new Promise((resolve, reject) => {
     const { width, height, duration } = metadata;
     const safeDuration = Math.min(duration || 15, MAX_VIDEO_DURATION_SECONDS);
@@ -170,15 +170,16 @@ const runSinglePassEncode = (inputPath, outputPath, metadata, maxSizeMB, resolut
     const targetRes = Math.min(resolution, side);
     const videoFilter = `crop=${side}:${side}:${cropX}:${cropY},scale=${targetRes}:${targetRes}`;
 
-    // Target bitrate: dự trù 80% của maxSizeMB (dưới 4MB) để tuyệt đối không vượt 5MB
-    // Audio 96kbps = 12 KB/s
-    const targetTotalBytes = maxSizeMB * 0.8 * 1024 * 1024;
-    const audioBits = 96 * 1000 * safeDuration;
-    const availableVideoBits = Math.max(targetTotalBytes * 8 - audioBits, 400000);
-    const targetBitrate = Math.max(
-      Math.min(Math.floor(availableVideoBits / safeDuration), 2000000),
+    // Target bitrate: Tính toán để toàn bộ video (kể cả 30s) chỉ nặng ~3.0 - 3.5 MB
+    // Đảm bảo không bao giờ chạm ngưỡng 5MB
+    const targetTotalBits = 3.2 * 8 * 1024 * 1024; // 3.2 MB
+    const audioBits = 128 * 1000 * safeDuration;
+    const availableVideoBits = Math.max(targetTotalBits - audioBits, 300000);
+    const calculatedBitrate = Math.max(
+      Math.min(Math.floor(availableVideoBits / safeDuration), 1500000),
       250000
     );
+    const targetBitrate = forcedBitrate || calculatedBitrate;
 
     let timeout;
     const command = ffmpeg(inputPath)
@@ -186,10 +187,10 @@ const runSinglePassEncode = (inputPath, outputPath, metadata, maxSizeMB, resolut
       .videoFilters(videoFilter)
       .videoCodec("libx264")
       .outputOptions([
-        "-preset ultrafast",
+        "-preset veryfast",
         `-b:v ${targetBitrate}`,
-        `-maxrate ${Math.floor(targetBitrate * 1.3)}`,
-        `-bufsize ${Math.floor(targetBitrate * 2)}`,
+        `-maxrate ${Math.floor(targetBitrate * 1.15)}`,
+        `-bufsize ${Math.floor(targetBitrate * 1.5)}`,
         "-pix_fmt yuv420p",
         "-r 30",
         "-profile:v baseline",
@@ -228,7 +229,7 @@ const runSinglePassEncode = (inputPath, outputPath, metadata, maxSizeMB, resolut
 // MAIN PROCESSING FUNCTION
 // ============================================================================
 
-const processVideoBuffer = ({ videoBuffer, filename = "temp", maxSizeMB = 5 }) => {
+const processVideoBuffer = ({ videoBuffer, filename = "temp", maxSizeMB = 15 }) => {
   return new Promise(async (resolve, reject) => {
     logInfo("processVideoBuffer", `Start processing: ${filename}`);
 
@@ -260,11 +261,11 @@ const processVideoBuffer = ({ videoBuffer, filename = "temp", maxSizeMB = 5 }) =
       // BƯỚC 1: Lấy metadata
       const metadata = await getVideoMetadata(inputPath);
 
-      // BƯỚC 2: Kiểm tra nếu video đã tối ưu sẵn (MP4, vuông, <= maxSizeMB, <= 30s)
+      // BƯỚC 2: Kiểm tra nếu video đã tối ưu sẵn (MP4, vuông, <= 4.5MB, <= 30s)
       if (
         metadata.isMp4 &&
         metadata.isSquare &&
-        metadata.sizeMB <= maxSizeMB &&
+        metadata.sizeMB <= 4.5 &&
         metadata.duration <= MAX_VIDEO_DURATION_SECONDS
       ) {
         const resultBuffer = fs.readFileSync(inputPath);
@@ -276,7 +277,7 @@ const processVideoBuffer = ({ videoBuffer, filename = "temp", maxSizeMB = 5 }) =
         return resolve(resultBuffer);
       }
 
-      // BƯỚC 3: Xử lý siêu tốc trong 1 lượt (Single-pass ultrafast)
+      // BƯỚC 3: Xử lý siêu tốc trong 1 lượt (Single-pass veryfast)
       const outputPath = path.join(tmpDir, `${timestamp}_${filename}_fast.mp4`);
       needsCleanup.push(outputPath);
 
@@ -285,15 +286,15 @@ const processVideoBuffer = ({ videoBuffer, filename = "temp", maxSizeMB = 5 }) =
       let finalStats = fs.statSync(outputPath);
       let finalSizeMB = finalStats.size / (1024 * 1024);
 
-      // Nếu hiếm hoi vẫn > maxSizeMB, chạy nén fallback nhanh ở 540p
-      if (finalSizeMB > maxSizeMB) {
+      // Nếu hiếm hoi vẫn > 4.8MB, chạy nén fallback nhanh ở 540p với bitrate giảm sâu
+      if (finalSizeMB > 4.8) {
         logWarning(
           "processVideoBuffer",
-          `Output ${finalSizeMB.toFixed(2)}MB > ${maxSizeMB}MB, chạy fallback 540p...`
+          `Output ${finalSizeMB.toFixed(2)}MB > 4.8MB, chạy fallback 540p với 550kbps...`
         );
         const fallbackPath = path.join(tmpDir, `${timestamp}_${filename}_fallback.mp4`);
         needsCleanup.push(fallbackPath);
-        await runSinglePassEncode(inputPath, fallbackPath, metadata, maxSizeMB, 540);
+        await runSinglePassEncode(inputPath, fallbackPath, metadata, maxSizeMB, 540, 550000);
         finalStats = fs.statSync(fallbackPath);
         finalSizeMB = finalStats.size / (1024 * 1024);
         const resultBuffer = fs.readFileSync(fallbackPath);

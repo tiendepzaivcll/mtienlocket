@@ -14,7 +14,7 @@ const {
 } = require("../utils/logEventUtils");
 
 const MAX_SIZE_MB_UPLOAD = 20; //MB
-const MAX_VIDEO_SIZE_MB_AFTER_COMPRESS = 5;
+const MAX_VIDEO_SIZE_MB_AFTER_COMPRESS = 15; // Cho phép linh hoạt tối đa 15MB, không gây chặn nhầm video 30s
 
 const getLocketUploadData = (result) =>
   result?.data ||
