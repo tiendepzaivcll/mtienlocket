@@ -15,6 +15,18 @@ const getCleanIcon = (icon) => {
   return "";
 };
 
+const getLuminance = (color) => {
+  if (!color || typeof color !== "string") return 0.5;
+  const hex = color.replace("#", "").trim();
+  if (hex.length === 6) {
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  }
+  return 0.5;
+};
+
 const ThemesCustomes = ({ title = "Chọn preset", presets = [], onSelect }) => {
   const [expanded, setExpanded] = useState(false);
   const isLoading = !presets || presets.length === 0;
@@ -54,15 +66,21 @@ const ThemesCustomes = ({ title = "Chọn preset", presets = [], onSelect }) => 
                 "",
               cleanIcon,
             );
+            const topColor = preset.top || preset.color_top || "#3A3A3C";
+            const botColor = preset.color_bot || preset.color_bottom || "#1C1C1E";
+            const avgLum = (getLuminance(topColor) + getLuminance(botColor)) / 2;
+            const adaptiveTextColor = avgLum > 0.58 ? "#18181b" : "#FFFFFF";
+            const finalTextColor = preset.color_text || preset.text_color || adaptiveTextColor;
+
             const cleanPreset = {
               overlay_id: preset.overlay_id || preset.preset_id || preset.id,
               icon: cleanIcon,
-              color_top: preset.top || preset.color_top,
-              color_bottom: preset.color_bot || preset.color_bottom,
+              color_top: topColor,
+              color_bottom: botColor,
               caption: cleanCaption,
-              text_color: preset.color_text || preset.text_color || "#FFFFFF",
+              text_color: finalTextColor,
               type: preset.type || "custome",
-              background: preset.background || [preset.top || preset.color_top, preset.color_bot || preset.color_bottom],
+              background: preset.background || [topColor, botColor],
             };
             
             return (

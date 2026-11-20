@@ -94,8 +94,16 @@ export default function UserSettingsModal({ isOpen, onClose }) {
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [showAppIconModal, setShowAppIconModal] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
-  const savedIconId = localStorage.getItem("pwa_icon") || "3D-heart-gold";
-  const savedIconObj = APP_ICONS.find((i) => i.id === savedIconId) || APP_ICONS[0];
+  const [currentAppIcon, setCurrentAppIcon] = useState(
+    () => localStorage.getItem("pwa_icon") || "3D-heart-gold"
+  );
+  const currentIconObj = APP_ICONS.find((i) => i.id === currentAppIcon) || APP_ICONS[0];
+
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentAppIcon(localStorage.getItem("pwa_icon") || "3D-heart-gold");
+    }
+  }, [isOpen]);
   const [customName, setCustomName] = useState(
     user?.displayName || `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || ""
   );
@@ -275,15 +283,15 @@ export default function UserSettingsModal({ isOpen, onClose }) {
                 <div className="flex items-center gap-3.5 min-w-0">
                   <div className="w-9 h-9 rounded-xl overflow-hidden shadow-md ring-1 ring-white/10 shrink-0">
                     <img
-                      src={`/pwa-icons/${savedIconObj.id}/android-chrome-192x192.png`}
-                      alt={savedIconObj.name}
+                      src={`/pwa-icons/${currentIconObj.id}/android-chrome-192x192.png`}
+                      alt={currentIconObj.name}
                       className="w-full h-full object-cover"
                     />
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-white">Đổi biểu tượng ứng dụng</p>
                     <p className="text-xs text-gray-400 truncate">
-                      {savedIconObj.name} • Nhấn để đổi icon
+                      {currentIconObj.name} • Nhấn để đổi icon
                     </p>
                   </div>
                 </div>
@@ -700,17 +708,25 @@ export default function UserSettingsModal({ isOpen, onClose }) {
             <div className="rounded-2xl bg-white/[0.04] border border-white/5 divide-y divide-white/5 overflow-hidden">
               <button
                 type="button"
-                onClick={() => {
-                  onClose();
-                  navigate("/download");
-                }}
+                onClick={() => setShowAppIconModal(true)}
                 className="w-full flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition text-left"
               >
-                <div className="flex items-center gap-3.5">
-                  <Smartphone size={19} className="text-purple-400" />
-                  <span className="text-sm font-medium text-white">Cài đặt WebApp</span>
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl overflow-hidden shadow-md ring-1 ring-white/10 shrink-0">
+                    <img
+                      src={`/pwa-icons/${currentIconObj.id}/android-chrome-192x192.png`}
+                      alt={currentIconObj.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-white">Đổi biểu tượng ứng dụng</p>
+                    <p className="text-xs text-gray-400 truncate">
+                      {currentIconObj.name} • Cài đặt WebApp
+                    </p>
+                  </div>
                 </div>
-                <ChevronRight size={17} className="text-gray-500" />
+                <ChevronRight size={17} className="text-gray-500 shrink-0" />
               </button>
 
               <button
@@ -901,6 +917,7 @@ export default function UserSettingsModal({ isOpen, onClose }) {
       <AppIconModal
         isOpen={showAppIconModal}
         onClose={() => setShowAppIconModal(false)}
+        onIconChange={(iconId) => setCurrentAppIcon(iconId)}
       />
     </div>
   );

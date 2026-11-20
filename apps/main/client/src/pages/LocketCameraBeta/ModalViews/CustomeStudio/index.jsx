@@ -299,41 +299,17 @@ const ScreenCustomeStudio = () => {
             onSelect={handleCustomeSelect}
           />
 
-          {/* === VIP ONLY SECTIONS === */}
+          {/* === VIP ONLY SECTIONS (Giữ theme Locket riu chuẩn) === */}
           {isVip ? (
             <>
-              <SuggestCaption
-                title="🎨 Suggest Caption"
-                presets={captionOverlays.suggest}
-                onSelect={handleCustomeSelect}
-              />
               {/* Decorative by Locket */}
-              <ThemesCustomes
-                title="🎨 Decorative by Locket"
-                presets={captionOverlays.decorative}
-                onSelect={handleCustomeSelect}
-              />
-              <ThemesCustomes
-                title="🎨 Decorative by MTIEN"
-                presets={captionOverlays.custome}
-                onSelect={handleCustomeSelect}
-              />
-              <FeatureGate canUse={canUseCaptionIcon}>
-                <CaptionIconSelector
-                  title="🎨 Caption Icon - Truy cập sớm"
-                  captionThemes={captionOverlays}
-                  onSelect={handleCustomeSelectTest}
+              {captionOverlays?.decorative?.length > 0 && (
+                <ThemesCustomes
+                  title="🎨 Decorative by Locket"
+                  presets={captionOverlays.decorative}
+                  onSelect={handleCustomeSelect}
                 />
-              </FeatureGate>
-              <FeatureGate canUse={canUseCaptionimage}>
-                <ImageCaptionSelector title="🎨 Caption Ảnh - Truy cập sớm" />
-              </FeatureGate>
-              <div className="px-4 pb-6">
-                <h2 className="text-md font-semibold text-primary">
-                  🎨 Caption Logo
-                </h2>
-                <p className="text-xs">Comming Soon?...</p>
-              </div>
+              )}
             </>
           ) : (
             <div className="px-4 py-6">

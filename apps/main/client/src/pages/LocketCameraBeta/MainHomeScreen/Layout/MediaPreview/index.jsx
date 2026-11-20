@@ -287,21 +287,8 @@ const MediaPreview = () => {
         ? "caption_gif"
         : postOverlay?.type;
   const hasMedia = Boolean(preview) || Boolean(selectedFile);
-  const hasCaptionOverlay =
-    hasMedia &&
-    (
-      normalizedOverlayType &&
-      (
-        normalizedOverlayType !== "default" ||
-        postOverlay.is_selected === true ||
-        Boolean(postOverlay.caption) ||
-        Boolean(postOverlay.icon) ||
-        Boolean(postOverlay.color_top) ||
-        Boolean(postOverlay.color_bottom) ||
-        Boolean(postOverlay.background?.colors?.length) ||
-        Boolean(Array.isArray(postOverlay.background) && postOverlay.background.length)
-      )
-    );
+  // Chỉ xuất hiện caption khi đã chụp ảnh xong hoặc quay video xong (hasMedia === true)
+  const hasCaptionOverlay = hasMedia;
 
   const iosDevice = isIOS();
   const isCameraScreenActive = !isBottomOpen && !isHomeOpen && !isProfileOpen;
@@ -499,7 +486,7 @@ const MediaPreview = () => {
         className={`relative ${
           isPWA
             ? "w-full max-w-md aspect-square rounded-[65px]"
-            : "w-[min(88vw,41vh,350px)] aspect-square rounded-[48px]"
+            : "w-[min(80vw,34vh,300px)] aspect-square rounded-[40px]"
         } bg-gray-800 overflow-hidden transition-all duration-300 touch-none select-none shadow-2xl`}
       >
         {!preview && !selectedFile && cameraActive && (

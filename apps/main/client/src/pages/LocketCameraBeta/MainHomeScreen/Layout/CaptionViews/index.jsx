@@ -979,7 +979,7 @@ const AutoResizeCaption = () => {
         textShadow: bgTextShadow,
       }
     : getCaptionGlassStyle(adaptiveContrast);
-  const placeholder = "Nhập tin nhắn...";
+  const placeholder = "Thêm một tin nhắn";
   // Decorative / custome / template captions ship with just an emoji icon and an
   // empty caption — users are meant to type their own text next to the icon.
   const isEditable = true;

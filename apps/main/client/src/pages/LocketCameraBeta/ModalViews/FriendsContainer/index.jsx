@@ -62,6 +62,8 @@ const FriendsContainer = () => {
     }
   };
 
+  if (!isFriendsTabOpen) return null;
+
   return (
     <>
       {/* Overlay */}
@@ -77,17 +79,13 @@ const FriendsContainer = () => {
 
       {/* Popup */}
       <div
-        className={`fixed inset-0 z-50 flex justify-center items-end transition-all duration-500 ease text-base-content ${
-          isFriendsTabOpen
-            ? "translate-y-0 opacity-100"
-            : "translate-y-[110%] opacity-0 pointer-events-none invisible"
-        }`}
+        className="fixed inset-0 z-50 flex justify-center items-end text-base-content"
       >
         <div
           ref={popupRef}
           className={`relative w-full ${isPWA ? "h-[95vh]" : "h-[85vh]"}
-            bg-base-100 flex flex-col rounded-t-4xl shadow-lg
-            will-change-transform outline-2 outline-base-content outline-dashed z-50`}
+            bg-base-100 flex flex-col rounded-t-4xl shadow-2xl border-t border-white/10
+            will-change-transform z-50`}
         >
           {/* Header */}
           <div className="sticky top-0 shadow-md z-10 flex flex-col items-center pb-2 px-3 bg-base-100 rounded-t-4xl">

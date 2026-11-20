@@ -39,7 +39,7 @@ export const APP_ICONS = [
   { id: "default", name: "Mặc định (Tim vàng)" },
 ];
 
-export default function AppIconModal({ isOpen, onClose }) {
+export default function AppIconModal({ isOpen, onClose, onIconChange }) {
   const [selectedIcon, setSelectedIcon] = useState("3D-heart-gold");
   const [isPWA, setIsPWA] = useState(false);
 
@@ -65,6 +65,7 @@ export default function AppIconModal({ isOpen, onClose }) {
     localStorage.setItem("pwa_icon", iconId);
     setPWAIcon(iconId);
     updateFavicons(iconId);
+    onIconChange?.(iconId);
   };
 
   return (

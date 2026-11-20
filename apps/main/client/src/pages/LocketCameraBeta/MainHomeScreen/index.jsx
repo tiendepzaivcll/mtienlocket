@@ -125,7 +125,7 @@ export default function MainHomeScreen() {
         </div>
         <div
           className={`w-full h-full flex flex-col transition-all duration-500 justify-between items-center ${
-            isPWA ? "pt-12 pb-6 px-3" : "pt-14 pb-20 px-3"
+            isPWA ? "pt-12 pb-6 px-3" : "pt-12 pb-24 px-3"
           } ${
             isBottomOpen ? "fixed -translate-y-full" : "translate-x-0"
           }`}
