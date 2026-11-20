@@ -155,14 +155,11 @@ const CameraButton = () => {
         }
       }
 
-      // Cấu hình recorder options với bitrate phù hợp cho PWA
+      // Cấu hình recorder options với bitrate tối ưu: siêu nét nhưng file nhẹ (~3-4MB cho 15s), upload lên R2 cực nhanh
       const recorderOptions = mimeType ? { mimeType } : {};
-      if (detectAppEnvironment() && mimeType) {
-        recorderOptions.videoBitsPerSecond = 8000000; // 8 Mbps cho FullHD
-        if (micStream) recorderOptions.audioBitsPerSecond = 128000;
-      } else if (mimeType) {
-        recorderOptions.videoBitsPerSecond = 12000000; // 12 Mbps cho FullHD
-        if (micStream) recorderOptions.audioBitsPerSecond = 128000;
+      if (mimeType) {
+        recorderOptions.videoBitsPerSecond = 2500000; // 2.5 Mbps: Nét chuẩn HD, nhẹ, upload 1-2s
+        if (micStream) recorderOptions.audioBitsPerSecond = 96000;
       }
 
       const recorder = new MediaRecorder(combinedStream, recorderOptions);

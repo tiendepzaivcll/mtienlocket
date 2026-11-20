@@ -98,14 +98,10 @@ const CameraButton = () => {
         }
       }
 
-      // Cấu hình recorder options với bitrate phù hợp cho PWA
+      // Cấu hình recorder options với bitrate tối ưu: 2.5 Mbps nét chuẩn HD, nhẹ, upload cực nhanh
       const recorderOptions = mimeType ? { mimeType } : {};
-      if (detectAppEnvironment() && mimeType) {
-        // Nâng bitrate cho PWA để tăng chất lượng
-        recorderOptions.videoBitsPerSecond = 5000000; // 5 Mbps
-      } else if (mimeType) {
-        // Web thường mạnh hơn => bitrate cao hơn
-        recorderOptions.videoBitsPerSecond = 8000000; // 8 Mbps
+      if (mimeType) {
+        recorderOptions.videoBitsPerSecond = 2500000; // 2.5 Mbps
       }
 
       const recorder = new MediaRecorder(canvasStream, recorderOptions);
