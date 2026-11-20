@@ -17,8 +17,7 @@ const AUDIO_OUTPUT_OPTIONS = [
   "-map 0:v:0",
   "-map 0:a:0?",
   "-c:a aac",
-  "-b:a 96k",
-  "-ac 1",
+  "-b:a 128k",
   "-ar 44100",
 ];
 

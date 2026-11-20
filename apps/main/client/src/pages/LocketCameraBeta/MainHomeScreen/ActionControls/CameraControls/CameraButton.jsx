@@ -51,6 +51,7 @@ const CameraButton = () => {
   const holdTimeoutRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const micStreamRef = useRef(null);
+  const audioContextRef = useRef(null);
   const intervalRef = useRef(null);
   const isTryingToRecordRef = useRef(false);
   const isRecordingRef = useRef(false);
@@ -122,23 +123,51 @@ const CameraButton = () => {
 
       if (isMicEnabled && navigator.mediaDevices?.getUserMedia) {
         try {
+          // Tắt triệt để echoCancellation, noiseSuppression và autoGainControl
+          // để ép iPhone/Android thu âm nguyên bản chất lượng cao như app Locket native, KHÔNG bị tự động dìm/bóp âm thanh
           micStream = await navigator.mediaDevices.getUserMedia({
             audio: {
               echoCancellation: false,
               noiseSuppression: false,
-              autoGainControl: true,
+              autoGainControl: false,
             },
           });
-          micStream.getAudioTracks().forEach((track) => combinedStream.addTrack(track));
-          micStreamRef.current = micStream;
-          console.log("🎙️ Đã kết nối Microphone vào luồng ghi hình");
         } catch (audioErr) {
           try {
             micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            micStream.getAudioTracks().forEach((track) => combinedStream.addTrack(track));
-            micStreamRef.current = micStream;
           } catch (fallbackErr) {
             console.warn("⚠️ Không thể truy cập mic, quay video im lặng:", fallbackErr);
+          }
+        }
+
+        if (micStream) {
+          micStreamRef.current = micStream;
+          let trackToAdd = micStream.getAudioTracks()[0];
+
+          // Dùng Web Audio GainNode khuếch đại âm lượng 1.8x cố định, tuyệt đối không bị bóp nghẹt
+          try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) {
+              const audioCtx = new AudioCtx();
+              if (audioCtx.state === "suspended") {
+                await audioCtx.resume();
+              }
+              const source = audioCtx.createMediaStreamSource(micStream);
+              const gainNode = audioCtx.createGain();
+              gainNode.gain.value = 1.8; // Tăng âm lượng 1.8x cố định
+              const dest = audioCtx.createMediaStreamDestination();
+              source.connect(gainNode);
+              gainNode.connect(dest);
+              trackToAdd = dest.stream.getAudioTracks()[0];
+              audioContextRef.current = audioCtx;
+            }
+          } catch (gainErr) {
+            console.warn("⚠️ GainNode fallback:", gainErr);
+          }
+
+          if (trackToAdd) {
+            combinedStream.addTrack(trackToAdd);
+            console.log("🎙️ Đã kết nối Microphone (thuần khiết, gain 1.8x, không AGC) vào luồng ghi hình");
           }
         }
       }
@@ -180,6 +209,11 @@ const CameraButton = () => {
 
       recorder.onstop = async () => {
         console.log("📹 Video recording stopped, chunks:", chunks.length);
+
+        if (audioContextRef.current) {
+          audioContextRef.current.close().catch(() => {});
+          audioContextRef.current = null;
+        }
 
         if (micStreamRef.current) {
           micStreamRef.current.getTracks().forEach((track) => track.stop());
@@ -437,6 +471,10 @@ const CameraButton = () => {
 
     // Nếu đã timeout và đang holding nhưng chưa bắt đầu record
     if (isHolding && !isRecordingRef.current) {
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(() => {});
+        audioContextRef.current = null;
+      }
       if (micStreamRef.current) {
         micStreamRef.current.getTracks().forEach((track) => track.stop());
         micStreamRef.current = null;
