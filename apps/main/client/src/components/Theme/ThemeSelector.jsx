@@ -73,72 +73,70 @@ const ThemeSelector = () => {
   const { theme, changeTheme } = useTheme();
 
   return (
-    <div className="w-full flex flex-col items-center">
-      <div className="w-full">
-        <h2 className="text-sm font-semibold text-gray-300 mb-2 px-1">
-          🎨 Giao diện Locket chính thức
+    <div className="w-full flex flex-col">
+      <div className="flex items-center justify-between px-1 mb-2">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-300">
+          Chủ đề màu sắc (Vuốt để chọn)
         </h2>
+        <span className="text-xs text-amber-400 font-medium">
+          {LOCKET_THEMES_INFO[theme]?.name || "Mặc định"}
+        </span>
+      </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[380px] overflow-y-auto px-1 py-1">
-          {CONFIG.ui.themes.map((t) => {
-            const info = LOCKET_THEMES_INFO[t] || {
-              name: t,
-              desc: "Giao diện Locket",
-              primary: "#f59e0b",
-              bg: "#1f2937",
-              textColor: "#ffffff",
-            };
-            const isSelected = theme === t;
+      {/* Thanh vuốt ngang chọn màu kiểu Locket real */}
+      <div className="w-full overflow-x-auto no-scrollbar py-2 px-1 flex items-center gap-4 scroll-smooth">
+        {CONFIG.ui.themes.map((t) => {
+          const info = LOCKET_THEMES_INFO[t] || {
+            name: t,
+            desc: "Locket",
+            primary: "#f59e0b",
+            bg: "#1f2937",
+            textColor: "#ffffff",
+          };
+          const isSelected = theme === t;
 
-            return (
-              <button
-                key={t}
-                type="button"
-                onClick={() => changeTheme(t)}
-                className={`relative flex items-center gap-3 p-2.5 rounded-2xl border transition-all text-left ${
+          return (
+            <button
+              key={t}
+              type="button"
+              onClick={() => changeTheme(t)}
+              className="flex flex-col items-center gap-1.5 shrink-0 group focus:outline-none"
+            >
+              <div
+                className={`relative w-13 h-13 rounded-full flex items-center justify-center transition-all duration-200 shadow-md ${
                   isSelected
-                    ? "border-amber-400 bg-white/10 ring-1 ring-amber-400 shadow-md"
-                    : "border-white/10 bg-white/[0.04] hover:bg-white/[0.08]"
+                    ? "ring-3 ring-amber-400 scale-105 shadow-amber-400/30"
+                    : "ring-1 ring-white/20 group-hover:scale-102 opacity-85 hover:opacity-100"
+                }`}
+                style={{
+                  background: info.bg,
+                }}
+              >
+                {/* Vòng màu chính ở giữa */}
+                <div
+                  className="w-7 h-7 rounded-full shadow-sm flex items-center justify-center border border-white/20"
+                  style={{ backgroundColor: info.primary }}
+                >
+                  {isSelected && (
+                    <Check
+                      size={14}
+                      strokeWidth={3}
+                      className={t === "bumblebee" || t === "light" ? "text-black" : "text-white"}
+                    />
+                  )}
+                </div>
+              </div>
+
+              <span
+                className={`text-[11px] font-medium transition-colors ${
+                  isSelected ? "text-amber-400 font-bold" : "text-gray-300 group-hover:text-white"
                 }`}
               >
-                {/* Visual Color Preview Capsule */}
-                <div
-                  className="w-11 h-11 rounded-xl shadow-md flex items-center justify-center shrink-0 border border-white/10"
-                  style={{ backgroundColor: info.bg }}
-                >
-                  <div
-                    className="w-5 h-5 rounded-full shadow-inner ring-2 ring-white/30"
-                    style={{ backgroundColor: info.primary }}
-                  />
-                </div>
-
-                {/* Details */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <p className="text-sm font-bold text-white truncate">
-                      {info.name}
-                    </p>
-                    {t === "bumblebee" && (
-                      <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-md bg-amber-400/20 text-amber-300">
-                        Gốc
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-gray-400 truncate">
-                    {info.desc}
-                  </p>
-                </div>
-
-                {/* Checked Icon */}
-                {isSelected && (
-                  <div className="w-6 h-6 rounded-full bg-amber-400 text-black flex items-center justify-center shrink-0 shadow-sm">
-                    <Check size={14} strokeWidth={3} />
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
+                {info.name.replace("Locket ", "")}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

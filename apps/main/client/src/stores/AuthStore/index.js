@@ -13,6 +13,7 @@ import {
   clearUserCache,
   getToken,
 } from "@/utils";
+import { saveCurrentAccountToPool } from "@/utils/auth/accountManager";
 import { create } from "zustand";
 
 const fullAccessPlan = {
@@ -234,6 +235,13 @@ export const useAuthStore = create((set) => ({
         }
         saveUserCache(userInfo);
         set({ user: userInfo });
+      }
+
+      try {
+        const { refreshToken } = getToken();
+        saveCurrentAccountToPool(userInfo, { idToken, localId, refreshToken });
+      } catch (poolErr) {
+        console.warn("Failed to pool account", poolErr);
       }
 
       const access = await checkAccessApproval();

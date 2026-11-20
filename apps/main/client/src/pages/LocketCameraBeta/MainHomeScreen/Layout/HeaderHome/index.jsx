@@ -142,7 +142,10 @@ const HeaderHome = ({
           {/* Avatar chuyển sang bên phải */}
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setIsSettingsModalOpen(true)}
+              onClick={() => {
+                setIsSettingsModalOpen(true);
+                navigation?.setSettingTabOpen?.(true);
+              }}
               className="relative flex items-center justify-center w-11 h-11 cursor-pointer active:scale-105"
               aria-label="Cài đặt & Tài khoản"
               title="Cài đặt & Tài khoản"
@@ -177,7 +180,10 @@ const HeaderHome = ({
           {/* Modal Cài đặt & Tài khoản theo thiết kế mới */}
           <UserSettingsModal
             isOpen={isSettingsModalOpen}
-            onClose={() => setIsSettingsModalOpen(false)}
+            onClose={() => {
+              setIsSettingsModalOpen(false);
+              navigation?.setSettingTabOpen?.(false);
+            }}
           />
         </div>
       )}

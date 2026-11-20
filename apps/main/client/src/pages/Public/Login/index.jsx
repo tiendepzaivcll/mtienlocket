@@ -12,15 +12,14 @@ import "./styles.css";
 import { ensureDBOwner } from "@/cache/configDB";
 import { useAuthStore } from "@/stores";
 import TurnstileCaptcha from "./TurnstileCaptcha";
-import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail, Phone } from "lucide-react";
-import { loginWithEmail, loginWithPhone } from "@/services";
-import { PhoneInput } from "./PhoneInput";
+import { ArrowRight, Eye, EyeOff, LockKeyhole } from "lucide-react";
+import { loginWithEmail } from "@/services";
+import { saveCurrentAccountToPool } from "@/utils/auth/accountManager";
 
 const Login = () => {
   const initAuth = useAuthStore((s) => s.initAuth);
   const hydrateAuth = useAuthStore((s) => s.hydrateAuth);
   const [captchaToken, setCaptchaToken] = useState(null);
-  const [loginMethod, setLoginMethod] = useState("email"); // "email" hoặc "phone"
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -48,35 +47,21 @@ const Login = () => {
       return;
     }
 
-    // Validate
-    if (loginMethod === "email") {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(identifier)) {
-        SonnerError("Email không hợp lệ!");
-        return;
-      }
-    } else {
-      const phoneRegex = /^\+[1-9]\d{6,14}$/;
-      if (!phoneRegex.test(identifier)) {
-        SonnerError("Số điện thoại không hợp lệ!");
-        return;
-      }
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(identifier.trim())) {
+      SonnerError("Email không hợp lệ!");
+      return;
     }
+
     setIsLoginLoading(true);
 
     try {
-      const res =
-        loginMethod === "email"
-          ? await loginWithEmail({
-              email: identifier,
-              password,
-              captchaToken,
-            })
-          : await loginWithPhone({
-              phone: identifier,
-              password,
-              captchaToken,
-            });
+      const res = await loginWithEmail({
+        email: identifier.trim(),
+        password,
+        captchaToken,
+      });
 
       if (!res?.data) throw new Error("Server không trả về dữ liệu");
 
@@ -92,6 +77,12 @@ const Login = () => {
 
       if (!authUser) {
         return;
+      }
+
+      try {
+        saveCurrentAccountToPool(authUser, { idToken, localId, refreshToken });
+      } catch (poolErr) {
+        console.warn("Could not save to accounts pool", poolErr);
       }
 
       SonnerSuccess(
@@ -135,12 +126,6 @@ const Login = () => {
     setShowPassword(!showPassword);
   };
 
-  const toggleLoginMethod = () => {
-    setLoginMethod(loginMethod === "email" ? "phone" : "email");
-    setIdentifier("");
-    setPassword("");
-  };
-
   const isActiveLogin =
     isStatusServer !== true ||
     isLoginLoading ||
@@ -158,22 +143,14 @@ const Login = () => {
         <section className="mtien-login-form-section" aria-labelledby="mtien-login-title">
           <div className="mtien-login-welcome"><img src="/locket-pro-icon-192x192.png" width="42" height="42" alt="" /><div className="locket-pro-login-brand"><strong>LOCKET-PRO</strong><span>Quản trị bởi <b>MTIEN</b></span></div></div>
           <h1 id="mtien-login-title">Chào bạn trở lại.</h1>
-          <p className="mtien-login-subtitle">Dùng tài khoản Locket của bạn để tiếp tục.</p>
-          <div className="mtien-login-method" role="group" aria-label="Phương thức đăng nhập">
-            <button type="button" aria-pressed={loginMethod === "email"} onClick={() => loginMethod !== "email" && toggleLoginMethod()}><Mail size={17} />Email</button>
-            <button type="button" aria-pressed={loginMethod === "phone"} onClick={() => loginMethod !== "phone" && toggleLoginMethod()}><Phone size={17} />Số điện thoại</button>
-          </div>
+          <p className="mtien-login-subtitle">Dùng email tài khoản Locket của bạn để tiếp tục.</p>
           <form onSubmit={handleLogin} className="mtien-login-form">
             <div className="mtien-field">
-              <label htmlFor="mtien-identifier">{loginMethod === "email" ? "Email" : "Số điện thoại"}</label>
-              {loginMethod === "email" ? (
-                <input id="mtien-identifier" name="username" autoComplete="username" type="email" value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="ban@example.com" required />
-              ) : (
-                <PhoneInput id="mtien-identifier" value={identifier} onChange={setIdentifier} />
-              )}
+              <label htmlFor="mtien-identifier">Email Locket</label>
+              <input id="mtien-identifier" name="username" autoComplete="username" type="email" value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="ban@example.com" required />
             </div>
             <div className="mtien-field">
-              <div className="mtien-field-label"><label htmlFor="mtien-password">Mật khẩu</label><Link to="/forgot-password">Quên mật khẩu?</Link></div>
+              <div className="mtien-field-label"><label htmlFor="mtien-password">Mật khẩu</label></div>
               <div className="mtien-password-wrap">
                 <input id="mtien-password" name="password" autoComplete="current-password" type={showPassword ? "text" : "password"} placeholder="Nhập mật khẩu Locket" value={password} onChange={(e) => setPassword(e.target.value)} required />
                 <button type="button" className="mtien-password-toggle" onClick={togglePasswordVisibility} aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"} aria-pressed={showPassword}>{showPassword ? <EyeOff size={19} /> : <Eye size={19} />}</button>

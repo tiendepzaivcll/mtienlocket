@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { X, Check } from "lucide-react";
 import { isRunningPWA, setPWAIcon, updateFavicons } from "@/utils";
 import { SonnerSuccess } from "@/components/ui/SonnerToast";
@@ -57,20 +58,9 @@ export default function AppIconModal({ isOpen, onClose, onIconChange }) {
 
   if (!isOpen) return null;
 
-  const currentIconObj = APP_ICONS.find((i) => i.id === selectedIcon) || APP_ICONS[0];
-  const domain = typeof window !== "undefined" ? window.location.host : "locket-pro.online";
-
-  const handleSelectIcon = (iconId) => {
-    setSelectedIcon(iconId);
-    localStorage.setItem("pwa_icon", iconId);
-    setPWAIcon(iconId);
-    updateFavicons(iconId);
-    onIconChange?.(iconId);
-  };
-
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-md transition-all duration-300"
+      className="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-md transition-all duration-300"
       onClick={onClose}
     >
       <div
@@ -152,6 +142,7 @@ export default function AppIconModal({ isOpen, onClose, onIconChange }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

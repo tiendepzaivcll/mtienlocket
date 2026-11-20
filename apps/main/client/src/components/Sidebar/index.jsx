@@ -122,7 +122,6 @@ const Sidebar = () => {
     {
       title: "Hệ thống & Hỗ trợ",
       items: [
-        { to: "/admin", icon: ShieldCheck, text: "Quản trị" },
         { to: "/contact", icon: MessageCircle, text: "Liên hệ admin" },
         // { to: "/devpage", icon: Code2, text: "Trang lập trình", badge: "New" },
         { to: "/privacy", icon: ShieldCheck, text: "Chính sách bảo mật" },
@@ -148,7 +147,6 @@ const Sidebar = () => {
     {
       title: "Hệ thống & Hỗ trợ",
       items: [
-        { to: "/admin", icon: ShieldCheck, text: "Quản trị" },
         { to: "/contact", icon: MessageCircle, text: "Liên hệ admin" },
         { to: "/privacy", icon: ShieldCheck, text: "Chính sách bảo mật" },
         { to: "/settings", icon: Settings, text: "Cài đặt" },

@@ -57,6 +57,7 @@ export default function NavigationDock({ hidden = false }) {
     isBottomOpen,
     setIsBottomOpen,
     setFriendHistoryOpen,
+    isSettingTabOpen,
   } = navigation;
   const {
     selectedMoment,
@@ -112,7 +113,14 @@ export default function NavigationDock({ hidden = false }) {
     setIsBottomOpen(false);
   };
 
-  const modalOpen = isSidebarOpen || isFriendsTabOpen || isOptionModalOpen || isFilterOpen || isAiFilterOpen || post.showEmojiPicker;
+  const modalOpen =
+    isSidebarOpen ||
+    isFriendsTabOpen ||
+    isOptionModalOpen ||
+    isFilterOpen ||
+    isAiFilterOpen ||
+    isSettingTabOpen ||
+    post.showEmojiPicker;
   if (hidden || isChatDetailOpen || modalOpen || (isProfileOpen && profileSection === "rollcall")) return null;
 
   return (

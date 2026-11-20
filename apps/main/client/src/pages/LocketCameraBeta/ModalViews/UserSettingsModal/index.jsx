@@ -25,6 +25,9 @@ import {
   Sparkles,
   Gift,
   Loader2,
+  User,
+  LogIn,
+  UserPlus,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { instanceMain } from "@/libs/instanceMain";
@@ -35,11 +38,17 @@ import { getAvatarSource, handleAvatarError } from "@/utils/avatar";
 import { SonnerSuccess, SonnerError } from "@/components/ui/SonnerToast";
 import ThemeSelector from "@/components/Theme/ThemeSelector";
 import AppIconModal, { APP_ICONS } from "../AppIconModal";
+import {
+  getSavedAccounts,
+  removeAccountFromPool,
+  switchToAccount,
+} from "@/utils/auth/accountManager";
 
 export default function UserSettingsModal({ isOpen, onClose }) {
   const navigate = useNavigate();
   const {
     user,
+    isAuth,
     clearAndlogout,
     accessRole,
     vipPlanId,
@@ -49,7 +58,8 @@ export default function UserSettingsModal({ isOpen, onClose }) {
     hasUsedTrial,
     refreshAccessRole,
   } = useAuthStore();
-  const { camera, useloading } = useApp();
+  const { camera, useloading, navigation } = useApp();
+  const isPWA = navigation?.isPWA;
   const queueBusy = useUploadQueueStore((state) => state.isQueueRunning ||
     state.uploadItems.some((item) => item.status === "queued" || item.status === "uploading"));
   const operationsBusy = Boolean(queueBusy || camera.isHolding || useloading.sendLoading ||
@@ -58,6 +68,8 @@ export default function UserSettingsModal({ isOpen, onClose }) {
   const [sessionAction, setSessionAction] = useState(null);
   const endingSessionRef = useRef(false);
   const [claimingTrial, setClaimingTrial] = useState(false);
+  const [savedAccounts, setSavedAccounts] = useState([]);
+  const [isSwitching, setIsSwitching] = useState(false);
 
   const handleClaimTrial = async () => {
     const rawUsername = user?.username || "";
@@ -102,6 +114,7 @@ export default function UserSettingsModal({ isOpen, onClose }) {
   useEffect(() => {
     if (isOpen) {
       setCurrentAppIcon(localStorage.getItem("pwa_icon") || "3D-heart-gold");
+      setSavedAccounts(getSavedAccounts());
     }
   }, [isOpen]);
   const [customName, setCustomName] = useState(
@@ -216,33 +229,219 @@ export default function UserSettingsModal({ isOpen, onClose }) {
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-white/10 shrink-0">
-          <div className="flex items-center gap-3">
-            <img
-              src={getAvatarSource(user)}
-              alt="avatar"
-              onError={handleAvatarError}
-              className="w-10 h-10 rounded-full object-cover border-2 border-primary/50 shadow-sm"
-            />
-            <div>
-              <h2 className="text-base font-bold text-white leading-tight">
-                {displayName}
-              </h2>
-              <p className="text-xs text-gray-400">@{user?.username || "locket"}</p>
+        {!isAuth || !user?.uid ? (
+          <div className="p-5 sm:p-6 border-b border-white/10 shrink-0 bg-white/[0.02]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center text-gray-300 border border-white/10 shadow-sm">
+                  <User size={22} />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-white leading-tight">
+                    Chưa đăng nhập
+                  </h2>
+                  <p className="text-xs text-gray-400">
+                    Đăng nhập để xem khoảnh khắc & bạn bè
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/15 flex items-center justify-center text-gray-300 hover:text-white transition"
+                aria-label="Đóng"
+              >
+                <X size={18} />
+              </button>
             </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                navigate("/login");
+              }}
+              className="w-full mt-3.5 py-3 px-4 rounded-2xl bg-amber-400 hover:bg-amber-300 active:scale-[0.98] text-black font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-400/20 transition cursor-pointer"
+            >
+              <LogIn size={18} />
+              Đăng nhập tài khoản Locket
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            disabled={Boolean(sessionAction)}
-            className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/15 flex items-center justify-center text-gray-300 hover:text-white transition"
-            aria-label="Đóng"
-          >
-            <X size={18} />
-          </button>
-        </div>
+        ) : (
+          <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-white/10 shrink-0">
+            <div className="flex items-center gap-3">
+              <img
+                src={getAvatarSource(user)}
+                alt="avatar"
+                onError={handleAvatarError}
+                className="w-10 h-10 rounded-full object-cover border-2 border-primary/50 shadow-sm"
+              />
+              <div>
+                <h2 className="text-base font-bold text-white leading-tight">
+                  {displayName}
+                </h2>
+                <p className="text-xs text-gray-400">@{user?.username || "locket"}</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              disabled={Boolean(sessionAction)}
+              className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/15 flex items-center justify-center text-gray-300 hover:text-white transition"
+              aria-label="Đóng"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        )}
 
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5 pb-16">
+          {/* Section: Chuyển đổi tài khoản (Account Switcher) */}
+          <div>
+            <div className="flex items-center justify-between px-2 mb-2">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                Tài khoản ({savedAccounts.length || (isAuth ? 1 : 0)})
+              </h3>
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  navigate("/login");
+                }}
+                className="text-xs text-amber-400 font-semibold flex items-center gap-1 hover:underline cursor-pointer"
+              >
+                <UserPlus size={13} />
+                Thêm tài khoản
+              </button>
+            </div>
+
+            <div className="rounded-2xl bg-white/[0.04] border border-white/5 divide-y divide-white/5 overflow-hidden">
+              {savedAccounts.length > 0 ? (
+                savedAccounts.map((acc) => {
+                  const isCurrent =
+                    Boolean(user?.uid && acc.uid === user.uid) ||
+                    Boolean(user?.username && acc.username === user.username) ||
+                    Boolean(user?.localId && acc.localId === user.localId);
+
+                  return (
+                    <div
+                      key={acc.uid || acc.username}
+                      className="flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition"
+                    >
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (isCurrent || isSwitching) return;
+                          setIsSwitching(true);
+                          SonnerSuccess("Đang chuyển sang tài khoản", `@${acc.username}`);
+                          try {
+                            await switchToAccount(acc);
+                          } catch (err) {
+                            SonnerError("Không thể chuyển tài khoản", err.message);
+                            setIsSwitching(false);
+                          }
+                        }}
+                        disabled={isCurrent || isSwitching}
+                        className="flex items-center gap-3 min-w-0 text-left flex-1 cursor-pointer"
+                      >
+                        <img
+                          src={acc.avatar || "/locket-pro-icon-192x192.png"}
+                          alt={acc.username}
+                          className="w-9 h-9 rounded-full object-cover border border-white/15 shrink-0"
+                          onError={(e) => {
+                            e.currentTarget.src = "/locket-pro-icon-192x192.png";
+                          }}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-white truncate">
+                            {acc.displayName || acc.username}
+                          </p>
+                          <p className="text-xs text-gray-400 truncate">@{acc.username}</p>
+                        </div>
+                      </button>
+
+                      <div className="flex items-center gap-2 shrink-0 ml-2">
+                        {isCurrent ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            Đang dùng
+                          </span>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (isSwitching) return;
+                                setIsSwitching(true);
+                                SonnerSuccess("Đang chuyển sang tài khoản", `@${acc.username}`);
+                                try {
+                                  await switchToAccount(acc);
+                                } catch (err) {
+                                  SonnerError("Không thể chuyển", err.message);
+                                  setIsSwitching(false);
+                                }
+                              }}
+                              className="px-3 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-black text-xs font-bold transition active:scale-95 shadow-sm cursor-pointer"
+                            >
+                              Đổi
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const updated = removeAccountFromPool(acc.uid || acc.username);
+                                setSavedAccounts(updated);
+                                SonnerSuccess("Đã xoá tài khoản khỏi máy", `@${acc.username}`);
+                              }}
+                              className="p-1 text-gray-500 hover:text-red-400 transition"
+                              title="Gỡ tài khoản này"
+                            >
+                              <X size={15} />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              ) : isAuth && user?.uid ? (
+                <div className="flex items-center justify-between p-3.5">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <img
+                      src={getAvatarSource(user)}
+                      alt="avatar"
+                      className="w-9 h-9 rounded-full object-cover border border-white/15 shrink-0"
+                      onError={handleAvatarError}
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-white truncate">{displayName}</p>
+                      <p className="text-xs text-gray-400 truncate">@{user?.username || "locket"}</p>
+                    </div>
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Đang dùng
+                  </span>
+                </div>
+              ) : (
+                <div className="p-4 text-center">
+                  <p className="text-xs text-gray-400">
+                    Chưa lưu tài khoản nào trên thiết bị này.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      navigate("/login");
+                    }}
+                    className="mt-2 text-xs text-amber-400 font-bold hover:underline"
+                  >
+                    + Đăng nhập tài khoản
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Section 1: Giao diện */}
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 px-2 mb-2">
@@ -259,9 +458,9 @@ export default function UserSettingsModal({ isOpen, onClose }) {
                     <Palette size={19} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-white">Chủ đề & kiểu giao diện</p>
+                    <p className="text-sm font-semibold text-white">Chủ đề màu sắc</p>
                     <p className="text-xs text-gray-400 truncate">
-                      {theme || "Mặc định"} • Phong cách tinh tế
+                      {theme || "Mặc định"} • Vuốt để đổi màu
                     </p>
                   </div>
                 </div>
@@ -269,7 +468,7 @@ export default function UserSettingsModal({ isOpen, onClose }) {
               </button>
 
               {showThemePicker && (
-                <div className="p-3 bg-black/30 animate-fade-in">
+                <div className="p-3 bg-black/30 animate-fade-in border-t border-white/5">
                   <ThemeSelector />
                 </div>
               )}
@@ -291,7 +490,7 @@ export default function UserSettingsModal({ isOpen, onClose }) {
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-white">Đổi biểu tượng ứng dụng</p>
                     <p className="text-xs text-gray-400 truncate">
-                      {currentIconObj.name} • Nhấn để đổi icon
+                      {currentIconObj.name} • {isPWA ? "Nhấn để đổi icon" : "Cài đặt WebApp"}
                     </p>
                   </div>
                 </div>
@@ -601,106 +800,88 @@ export default function UserSettingsModal({ isOpen, onClose }) {
             </div>
           </div>
 
-          {/* Section 2: Chung */}
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 px-2 mb-2">
-              Chung
-            </h3>
-            <div className="rounded-2xl bg-white/[0.04] border border-white/5 divide-y divide-white/5 overflow-hidden">
-              {/* Chuyển tài khoản */}
-              <button
-                type="button"
-                onClick={() => endSession("switch")}
-                disabled={Boolean(sessionAction) || operationsBusy}
-                aria-busy={sessionAction === "switch"}
-                className="w-full flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition text-left disabled:opacity-50 disabled:cursor-wait"
-              >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
-                    <Users size={19} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-white">{sessionAction === "switch" ? "Đang chuyển tài khoản…" : "Chuyển tài khoản"}</p>
-                    <p className="text-xs text-gray-400">{operationsBusy ? "Đợi gửi ảnh hoặc hàng đợi hoàn tất" : "Đăng nhập bằng tài khoản khác"}</p>
-                  </div>
-                </div>
-                <ChevronRight size={17} className="text-gray-500 shrink-0" />
-              </button>
-
-              {/* Sửa tên */}
-              <button
-                type="button"
-                onClick={() => setShowNameModal(true)}
-                className="w-full flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition text-left"
-              >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal-400 shrink-0">
-                    <UserRoundPen size={19} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-white">Sửa tên</p>
-                    <p className="text-xs text-gray-400 truncate">{displayName}</p>
-                  </div>
-                </div>
-                <ChevronRight size={17} className="text-gray-500 shrink-0" />
-              </button>
-
-              {/* Email */}
-              <div className="flex items-center justify-between p-3.5">
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
-                    <Mail size={19} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-white">Email</p>
-                    <p className="text-xs text-gray-400 truncate">
-                      {user?.email || "Chưa liên kết email"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Mã tài khoản */}
-              <div
-                className="flex items-center justify-between p-3.5 hover:bg-white/[0.03] transition cursor-pointer"
-                onClick={handleCopyUid}
-              >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-                    <Hash size={19} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-white">Mã tài khoản</p>
-                    <p className="text-xs text-gray-400 font-mono truncate">
-                      {user?.uid || "Không có"}
-                    </p>
-                  </div>
-                </div>
+          {/* Section 2: Thông tin tài khoản */}
+          {isAuth && user?.uid && (
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 px-2 mb-2">
+                Thông tin tài khoản
+              </h3>
+              <div className="rounded-2xl bg-white/[0.04] border border-white/5 divide-y divide-white/5 overflow-hidden">
+                {/* Sửa tên */}
                 <button
                   type="button"
-                  className="p-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-gray-300"
-                  aria-label="Sao chép UID"
+                  onClick={() => setShowNameModal(true)}
+                  className="w-full flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition text-left cursor-pointer"
                 >
-                  {copiedUid ? <Check size={15} className="text-emerald-400" /> : <Copy size={15} />}
-                </button>
-              </div>
-
-              {/* Ngày tham gia */}
-              <div className="flex items-center justify-between p-3.5">
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
-                    <Calendar size={19} />
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal-400 shrink-0">
+                      <UserRoundPen size={19} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-white">Sửa tên</p>
+                      <p className="text-xs text-gray-400 truncate">{displayName}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-white">Ngày tham gia</p>
-                    <p className="text-xs text-gray-400">{joinDateFormatted}</p>
+                  <ChevronRight size={17} className="text-gray-500 shrink-0" />
+                </button>
+
+                {/* Email */}
+                <div className="flex items-center justify-between p-3.5">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
+                      <Mail size={19} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-white">Email</p>
+                      <p className="text-xs text-gray-400 truncate">
+                        {user?.email || "Chưa liên kết email"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mã tài khoản */}
+                <div
+                  className="flex items-center justify-between p-3.5 hover:bg-white/[0.03] transition cursor-pointer"
+                  onClick={handleCopyUid}
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                      <Hash size={19} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-white">Mã tài khoản</p>
+                      <p className="text-xs text-gray-400 font-mono truncate">
+                        {user?.uid || "Không có"}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-gray-300"
+                    aria-label="Sao chép UID"
+                  >
+                    {copiedUid ? <Check size={15} className="text-emerald-400" /> : <Copy size={15} />}
+                  </button>
+                </div>
+
+                {/* Ngày tham gia */}
+                <div className="flex items-center justify-between p-3.5">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                      <Calendar size={19} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-white">Ngày tham gia</p>
+                      <p className="text-xs text-gray-400">{joinDateFormatted}</p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Section 3: Tính năng & Điều hướng (Từ menu 3 gạch chuyển vào) */}
+          {/* Section 3: Tính năng Locket (Từ menu chuyển vào) */}
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 px-2 mb-2">
               Tính năng Locket
@@ -708,34 +889,11 @@ export default function UserSettingsModal({ isOpen, onClose }) {
             <div className="rounded-2xl bg-white/[0.04] border border-white/5 divide-y divide-white/5 overflow-hidden">
               <button
                 type="button"
-                onClick={() => setShowAppIconModal(true)}
-                className="w-full flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition text-left"
-              >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-8 h-8 rounded-xl overflow-hidden shadow-md ring-1 ring-white/10 shrink-0">
-                    <img
-                      src={`/pwa-icons/${currentIconObj.id}/android-chrome-192x192.png`}
-                      alt={currentIconObj.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-white">Đổi biểu tượng ứng dụng</p>
-                    <p className="text-xs text-gray-400 truncate">
-                      {currentIconObj.name} • Cài đặt WebApp
-                    </p>
-                  </div>
-                </div>
-                <ChevronRight size={17} className="text-gray-500 shrink-0" />
-              </button>
-
-              <button
-                type="button"
                 onClick={() => {
                   onClose();
                   navigate("/tools");
                 }}
-                className="w-full flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition text-left"
+                className="w-full flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition text-left cursor-pointer"
               >
                 <div className="flex items-center gap-3.5">
                   <Wrench size={19} className="text-blue-400" />
@@ -750,7 +908,7 @@ export default function UserSettingsModal({ isOpen, onClose }) {
                   onClose();
                   navigate("/diary");
                 }}
-                className="w-full flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition text-left"
+                className="w-full flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition text-left cursor-pointer"
               >
                 <div className="flex items-center gap-3.5">
                   <CalendarClock size={19} className="text-orange-400" />
@@ -765,7 +923,7 @@ export default function UserSettingsModal({ isOpen, onClose }) {
                   onClose();
                   navigate("/newsfeed");
                 }}
-                className="w-full flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition text-left"
+                className="w-full flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition text-left cursor-pointer"
               >
                 <div className="flex items-center gap-3.5">
                   <Newspaper size={19} className="text-emerald-400" />
@@ -778,24 +936,9 @@ export default function UserSettingsModal({ isOpen, onClose }) {
                 type="button"
                 onClick={() => {
                   onClose();
-                  navigate("/contact");
-                }}
-                className="w-full flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition text-left"
-              >
-                <div className="flex items-center gap-3.5">
-                  <MessageCircle size={19} className="text-teal-400" />
-                  <span className="text-sm font-medium text-white">Liên hệ admin</span>
-                </div>
-                <ChevronRight size={17} className="text-gray-500" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
                   navigate("/privacy");
                 }}
-                className="w-full flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition text-left"
+                className="w-full flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition text-left cursor-pointer"
               >
                 <div className="flex items-center gap-3.5">
                   <ShieldCheck size={19} className="text-cyan-400" />
@@ -833,43 +976,45 @@ export default function UserSettingsModal({ isOpen, onClose }) {
           </div>
 
           {/* Section 5: Vùng nguy hiểm */}
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-red-400/80 px-2 mb-2">
-              Vùng nguy hiểm
-            </h3>
-            <div className="rounded-2xl bg-red-950/20 border border-red-500/15 divide-y divide-red-500/10 overflow-hidden">
-              {/* Đăng xuất */}
-              <button
-                type="button"
-                onClick={handleLogout}
-                disabled={Boolean(sessionAction) || operationsBusy}
-                className="w-full flex items-center gap-3.5 p-3.5 hover:bg-red-500/10 transition text-left disabled:opacity-50"
-              >
-                <LogOut size={19} className="text-red-400" />
-                <span className="text-sm font-semibold text-red-300">Đăng xuất</span>
-              </button>
+          {isAuth && user?.uid && (
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-red-400/80 px-2 mb-2">
+                Vùng nguy hiểm
+              </h3>
+              <div className="rounded-2xl bg-red-950/20 border border-red-500/15 divide-y divide-red-500/10 overflow-hidden">
+                {/* Đăng xuất */}
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  disabled={Boolean(sessionAction) || operationsBusy}
+                  className="w-full flex items-center gap-3.5 p-3.5 hover:bg-red-500/10 transition text-left disabled:opacity-50 cursor-pointer"
+                >
+                  <LogOut size={19} className="text-red-400" />
+                  <span className="text-sm font-semibold text-red-300">Đăng xuất</span>
+                </button>
 
-              {/* Xoá dữ liệu */}
-              <button
-                type="button"
-                onClick={handleClearBrowserData}
-                disabled={Boolean(sessionAction)}
-                className="w-full flex items-center justify-between p-3.5 hover:bg-red-500/10 transition text-left"
-              >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <Trash2 size={19} className="text-red-400 shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-red-300">
-                      Xoá dữ liệu trên trình duyệt
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      Mọi tài khoản đã lưu và cài đặt trên máy này
-                    </p>
+                {/* Xoá dữ liệu */}
+                <button
+                  type="button"
+                  onClick={handleClearBrowserData}
+                  disabled={Boolean(sessionAction)}
+                  className="w-full flex items-center justify-between p-3.5 hover:bg-red-500/10 transition text-left cursor-pointer"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <Trash2 size={19} className="text-red-400 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-red-300">
+                        Xoá dữ liệu trên trình duyệt
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        Mọi tài khoản đã lưu và cài đặt trên máy này
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </button>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
