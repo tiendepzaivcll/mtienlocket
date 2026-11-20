@@ -9,7 +9,14 @@ const THEME_META_COLORS = {
 };
 
 export const applyTheme = (theme) => {
-  document.documentElement.setAttribute("data-theme", theme);
+  if (typeof document !== "undefined") {
+    document.documentElement.setAttribute("data-theme", theme);
+    document.documentElement.style.background = "var(--bg-app)";
+    if (document.body) {
+      document.body.setAttribute("data-theme", theme);
+      document.body.style.background = "var(--bg-app)";
+    }
+  }
   localStorage.setItem("theme", theme);
 
   let metaTheme = document.querySelector('meta[name="theme-color"]');

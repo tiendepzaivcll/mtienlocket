@@ -44,7 +44,10 @@ export default function LocketCameraBeta() {
   }, []);
 
   return (
-    <>
+    <div
+      className="w-full h-full min-h-[100dvh] relative overflow-hidden"
+      style={{ background: "var(--bg-app)", color: "var(--text-primary)" }}
+    >
       <Suspense fallback={null}>
         <BgLocketdio bgSrc={background?.url} />
       </Suspense>
@@ -83,6 +86,6 @@ export default function LocketCameraBeta() {
       <canvas ref={canvasRef} className="hidden" />
       {/* Audio Music */}
       {postOverlay.music && <MusicPlayer music={postOverlay.music} />}
-    </>
+    </div>
   );
 }

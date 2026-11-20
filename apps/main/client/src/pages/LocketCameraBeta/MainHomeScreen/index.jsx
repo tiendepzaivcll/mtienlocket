@@ -91,7 +91,8 @@ export default function MainHomeScreen() {
   return (
     <>
       <div
-        className={`relative transition-all duration-500 flex flex-col justify-center items-center w-full h-[100dvh] max-h-[100dvh] overflow-hidden text-base-content ${
+        style={{ background: "var(--bg-app)", color: "var(--text-primary)" }}
+        className={`relative transition-all duration-500 flex flex-col justify-center items-center w-full h-[100dvh] max-h-[100dvh] overflow-hidden text-[var(--text-primary)] ${
           isProfileOpen
             ? "translate-x-full"
             : isHomeOpen
@@ -110,6 +111,7 @@ export default function MainHomeScreen() {
         />
         <RestoreFlowBanner />
         <div
+          style={{ background: "var(--bg-app)", color: "var(--text-primary)" }}
           className={`w-full h-full flex flex-1 flex-col transition-all duration-500 justify-center items-center ${
             isBottomOpen ? "translate-x-0" : "fixed translate-y-full"
           }`}

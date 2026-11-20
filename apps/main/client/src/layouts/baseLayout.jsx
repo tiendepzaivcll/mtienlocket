@@ -2,12 +2,15 @@ import Sidebar from "@/components/Sidebar";
 
 export default function LayoutWithSidebar({ Layout, children }) {
   return (
-    <div className="flex">
+    <div className="flex min-h-screen" style={{ background: "var(--bg-app)" }}>
       <div>
         <Sidebar />
       </div>
 
-      <div className="flex-1 bg-base-100 text-base-content overflow-hidden">
+      <div
+        className="flex-1 overflow-hidden"
+        style={{ background: "var(--bg-app)", color: "var(--text-primary)" }}
+      >
         <Layout>{children}</Layout>
       </div>
     </div>

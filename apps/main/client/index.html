@@ -17,6 +17,19 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <script>
       (function() {
+        try {
+          var savedTheme = localStorage.getItem('theme') || 'midnight-black';
+          var validThemes = ['midnight-black', 'crimson-wine', 'royal-purple', 'ocean-blue', 'matcha-forest', 'soft-pastel-pink'];
+          if (validThemes.indexOf(savedTheme) === -1) savedTheme = 'midnight-black';
+          document.documentElement.setAttribute('data-theme', savedTheme);
+          document.documentElement.style.background = 'var(--bg-app)';
+          document.addEventListener('DOMContentLoaded', function() {
+            if (document.body) {
+              document.body.setAttribute('data-theme', savedTheme);
+              document.body.style.background = 'var(--bg-app)';
+            }
+          });
+        } catch(e) {}
         if (window.matchMedia && (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true)) {
           document.documentElement.classList.add('is-pwa');
           document.addEventListener('DOMContentLoaded', function() {

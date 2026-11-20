@@ -304,7 +304,7 @@ const RightHomeScreen = ({ setIsHomeOpen }) => {
       {/* ================= Conversation list ================= */}
       <div
         style={{ background: "var(--bg-app)" }}
-        className={`fixed inset-0 flex flex-col transition-transform duration-500 overflow-hidden
+        className={`fixed inset-0 flex flex-col text-[var(--text-primary)] transition-transform duration-500 overflow-hidden
         ${
           isHomeOpen
             ? selectedChat

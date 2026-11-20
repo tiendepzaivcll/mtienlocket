@@ -17,6 +17,11 @@
   --shutter-gradient: linear-gradient(135deg, #FFB800, #FF7A00);
   --accent-primary: #FFB800;
   --border-subtle: rgba(255, 255, 255, 0.15);
+  --color-base-100: #000000;
+  --color-base-200: #121212;
+  --color-base-300: #1e1e1e;
+  --color-base-content: #FFFFFF;
+  color-scheme: dark;
 }
 
 /* 1. Midnight Black */
@@ -31,6 +36,11 @@
   --shutter-gradient: linear-gradient(135deg, #FFB800, #FF7A00);
   --accent-primary: #FFB800;
   --border-subtle: rgba(255, 255, 255, 0.15);
+  --color-base-100: #000000;
+  --color-base-200: #121212;
+  --color-base-300: #1e1e1e;
+  --color-base-content: #FFFFFF;
+  color-scheme: dark;
 }
 
 /* 2. Crimson Wine (Đỏ rượu vang) */
@@ -44,6 +54,11 @@
   --shutter-gradient: linear-gradient(135deg, #FF2E93, #FF5E3A);
   --accent-primary: #FF2E93;
   --border-subtle: rgba(255, 255, 255, 0.15);
+  --color-base-100: #260A12;
+  --color-base-200: #350E1A;
+  --color-base-300: #4A1525;
+  --color-base-content: #FFFFFF;
+  color-scheme: dark;
 }
 
 /* 3. Royal Purple (Tím mộng mơ) */
@@ -57,6 +72,11 @@
   --shutter-gradient: linear-gradient(135deg, #C084FC, #EC4899);
   --accent-primary: #C084FC;
   --border-subtle: rgba(255, 255, 255, 0.15);
+  --color-base-100: #160D29;
+  --color-base-200: #21143D;
+  --color-base-300: #2D1B4E;
+  --color-base-content: #FFFFFF;
+  color-scheme: dark;
 }
 
 /* 4. Ocean Blue (Xanh biển sâu) */
@@ -70,6 +90,11 @@
   --shutter-gradient: linear-gradient(135deg, #38BDF8, #3B82F6);
   --accent-primary: #38BDF8;
   --border-subtle: rgba(255, 255, 255, 0.15);
+  --color-base-100: #071524;
+  --color-base-200: #0B1F33;
+  --color-base-300: #0F2942;
+  --color-base-content: #FFFFFF;
+  color-scheme: dark;
 }
 
 /* 5. Matcha Forest (Xanh rêu trầm) */
@@ -83,6 +108,11 @@
   --shutter-gradient: linear-gradient(135deg, #4ADE80, #10B981);
   --accent-primary: #4ADE80;
   --border-subtle: rgba(255, 255, 255, 0.15);
+  --color-base-100: #0A1A13;
+  --color-base-200: #0E261C;
+  --color-base-300: #143326;
+  --color-base-content: #FFFFFF;
+  color-scheme: dark;
 }
 
 /* 6. Soft Pastel Pink (Hồng phấn sáng) */
@@ -97,13 +127,19 @@
   --shutter-gradient: linear-gradient(135deg, #F472B6, #FB7185);
   --accent-primary: #F472B6;
   --border-subtle: rgba(0, 0, 0, 0.08);
+  --color-base-100: #FFF0F5;
+  --color-base-200: #FCE7F3;
+  --color-base-300: #FBCFE8;
+  --color-base-content: #18181B;
+  color-scheme: light;
 }
 
-html, body {
-  color: var(--text-primary);
-  background: var(--bg-app);
-  background-attachment: fixed;
+html, body, #root {
+  color: var(--text-primary) !important;
+  background: var(--bg-app) !important;
+  background-attachment: fixed !important;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 .no-save {
   pointer-events: none; /* Ngăn mọi tương tác chuột */
