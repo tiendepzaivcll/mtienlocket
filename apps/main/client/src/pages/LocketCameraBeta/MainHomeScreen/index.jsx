@@ -124,28 +124,20 @@ export default function MainHomeScreen() {
           <BottomMenu setOptionModalOpen={setOptionModalOpen} />
         </div>
         <div
-          className={`w-full h-full flex flex-col transition-all duration-500 items-center ${
+          className={`w-full h-full flex flex-col transition-all duration-500 justify-between items-center ${
             isPWA
-              ? "pt-14 pb-2 px-1.5 justify-start gap-2.5"
-              : "pt-12 pb-24 px-3 justify-between"
+              ? "pt-[max(3.6rem,calc(env(safe-area-inset-top)+3rem))] pb-[max(5.2rem,calc(env(safe-area-inset-bottom)+4.6rem))] px-4"
+              : "pt-12 pb-24 px-3"
           } ${
             isBottomOpen ? "fixed -translate-y-full" : "translate-x-0"
           }`}
         >
-          <div
-            className={`w-full flex flex-col items-center ${
-              isPWA ? "shrink-0 pt-1" : "flex-1 justify-center min-h-0 py-1"
-            }`}
-          >
+          <div className="flex-1 flex flex-col justify-center items-center w-full min-h-0">
             <MediaPreview />
             <MediaSizeInfo />
           </div>
 
-          <div
-            className={`w-full flex flex-col items-center shrink-0 ${
-              isPWA ? "gap-2 -mt-0.5" : "gap-1"
-            }`}
-          >
+          <div className="w-full flex flex-col items-center gap-3 shrink-0">
             <ActionControls />
             {/* Click để mở lịch sử */}
             <div className="relative w-full">
@@ -168,7 +160,7 @@ export default function MainHomeScreen() {
               {/* HistoryArrow */}
               <div
                 className={`
-                pb-1 transition-all duration-300
+                transition-all duration-300
                 ${
                   !selectedFile
                     ? "opacity-100 visible"
