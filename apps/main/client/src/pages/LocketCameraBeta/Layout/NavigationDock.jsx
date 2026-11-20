@@ -124,10 +124,10 @@ export default function NavigationDock({ hidden = false }) {
       }`}
       style={{ bottom: "max(1rem, env(safe-area-inset-bottom))" }}
     >
-      <div className="pointer-events-auto relative flex w-fit items-center gap-1 rounded-full bg-base-300/70 p-0.5 shadow-sm backdrop-blur-[4px]">
+      <div className="pointer-events-auto relative flex w-fit items-center gap-1 rounded-full bg-base-300/80 p-0.5 shadow-md backdrop-blur-md border border-base-content/10">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-1/2 z-0 rounded-full bg-base-100 px-8.5 py-6 transition-[transform,opacity] duration-300"
+          className="pointer-events-none absolute left-1/2 top-1/2 z-0 rounded-full bg-base-100 shadow-sm px-8.5 py-6 transition-[transform,opacity] duration-300 border border-base-content/10"
           style={{
             opacity: isViewingMoment ? 0 : 1,
             transform: `translate(${activeOffset[activeId]}, -50%) scale(${isViewingMoment ? 0.7 : 1})`,

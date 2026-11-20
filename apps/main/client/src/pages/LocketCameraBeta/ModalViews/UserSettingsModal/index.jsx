@@ -34,6 +34,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { getAvatarSource, handleAvatarError } from "@/utils/avatar";
 import { SonnerSuccess, SonnerError } from "@/components/ui/SonnerToast";
 import ThemeSelector from "@/components/Theme/ThemeSelector";
+import AppIconModal, { APP_ICONS } from "../AppIconModal";
 
 export default function UserSettingsModal({ isOpen, onClose }) {
   const navigate = useNavigate();
@@ -91,7 +92,10 @@ export default function UserSettingsModal({ isOpen, onClose }) {
 
   const [copiedUid, setCopiedUid] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
+  const [showAppIconModal, setShowAppIconModal] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
+  const savedIconId = localStorage.getItem("pwa_icon") || "3D-heart-gold";
+  const savedIconObj = APP_ICONS.find((i) => i.id === savedIconId) || APP_ICONS[0];
   const [customName, setCustomName] = useState(
     user?.displayName || `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || ""
   );
@@ -234,7 +238,7 @@ export default function UserSettingsModal({ isOpen, onClose }) {
           {/* Section 1: Giao diện */}
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 px-2 mb-2">
-              Giao diện
+              Giao diện & Biểu tượng
             </h3>
             <div className="rounded-2xl bg-white/[0.04] border border-white/5 divide-y divide-white/5 overflow-hidden">
               <button
@@ -261,6 +265,30 @@ export default function UserSettingsModal({ isOpen, onClose }) {
                   <ThemeSelector />
                 </div>
               )}
+
+              {/* Đổi biểu tượng ứng dụng */}
+              <button
+                type="button"
+                onClick={() => setShowAppIconModal(true)}
+                className="w-full flex items-center justify-between p-3.5 hover:bg-white/[0.05] transition text-left"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-9 h-9 rounded-xl overflow-hidden shadow-md ring-1 ring-white/10 shrink-0">
+                    <img
+                      src={`/pwa-icons/${savedIconObj.id}/android-chrome-192x192.png`}
+                      alt={savedIconObj.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-white">Đổi biểu tượng ứng dụng</p>
+                    <p className="text-xs text-gray-400 truncate">
+                      {savedIconObj.name} • Nhấn để đổi icon
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight size={17} className="text-gray-500 shrink-0" />
+              </button>
             </div>
           </div>
 
@@ -868,6 +896,12 @@ export default function UserSettingsModal({ isOpen, onClose }) {
           </div>
         </div>
       )}
+
+      {/* Modal Đổi Biểu Tượng Ứng Dụng */}
+      <AppIconModal
+        isOpen={showAppIconModal}
+        onClose={() => setShowAppIconModal(false)}
+      />
     </div>
   );
 }

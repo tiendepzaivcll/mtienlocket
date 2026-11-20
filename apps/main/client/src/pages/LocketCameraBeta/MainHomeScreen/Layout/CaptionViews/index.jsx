@@ -916,7 +916,7 @@ const DefaultOverlay = ({
         onChange={handleChange}
         placeholder={placeholder}
         rows={1}
-        className="font-semibold outline-none flex-1 resize-none overflow-hidden transition-all px-3 text-white"
+        className="font-semibold outline-none flex-1 resize-none overflow-hidden transition-all px-3"
         style={centeredTextareaStyle({
           whiteSpace: shouldWrap ? "pre-wrap" : "nowrap",
           minWidth: "0",
@@ -930,6 +930,30 @@ const DefaultOverlay = ({
   );
 };
 
+const getBackgroundLuminance = (colors) => {
+  if (!colors || colors.length === 0) return 0;
+  let totalLum = 0;
+  let count = 0;
+  for (const c of colors) {
+    if (typeof c !== "string") continue;
+    const hex = c.replace("#", "").trim();
+    if (hex.length === 6) {
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+      totalLum += (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      count++;
+    } else if (hex.length === 3) {
+      const r = parseInt(hex[0] + hex[0], 16);
+      const g = parseInt(hex[1] + hex[1], 16);
+      const b = parseInt(hex[2] + hex[2], 16);
+      totalLum += (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      count++;
+    }
+  }
+  return count > 0 ? totalLum / count : 0;
+};
+
 // Main Component
 const AutoResizeCaption = () => {
   const parentRef = useRef(null);
@@ -937,6 +961,13 @@ const AutoResizeCaption = () => {
   const { postOverlay, setPostOverlay, preview } = post;
   const backgroundColors = getExplicitOverlayColors(postOverlay);
   const hasBackground = backgroundColors.length >= 2;
+  const bgLuminance = hasBackground ? getBackgroundLuminance(backgroundColors) : 0;
+  const isLightBg = bgLuminance > 0.58;
+  const defaultBgTextColor = isLightBg ? "#18181b" : "#FFFFFF";
+  const bgTextShadow = isLightBg
+    ? "0 1px 2px rgba(255, 255, 255, 0.6)"
+    : "0 1px 3px rgba(0, 0, 0, 0.75)";
+
   const adaptiveContrast = useAdaptiveCaptionContrast(
     preview?.type === "image" ? preview.data : "",
     !hasBackground,
@@ -944,7 +975,8 @@ const AutoResizeCaption = () => {
   const adaptiveGlassStyle = hasBackground
     ? {
         background: getTransparentOrGradient(postOverlay),
-        color: postOverlay.text_color || "#FFFFFF",
+        color: postOverlay.text_color || defaultBgTextColor,
+        textShadow: bgTextShadow,
       }
     : getCaptionGlassStyle(adaptiveContrast);
   const placeholder = "Nhập tin nhắn...";

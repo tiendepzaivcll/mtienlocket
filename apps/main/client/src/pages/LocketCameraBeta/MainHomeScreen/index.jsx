@@ -68,6 +68,12 @@ const RestoreFlowBanner = () => {
 export default function MainHomeScreen() {
   const { navigation, post } = useApp();
 
+  const isPWA =
+    Boolean(navigation?.isPWA) ||
+    (typeof window !== "undefined" &&
+      (window.matchMedia("(display-mode: standalone)").matches ||
+        window.navigator.standalone === true));
+
   const {
     isHomeOpen,
     isProfileOpen,
@@ -118,7 +124,9 @@ export default function MainHomeScreen() {
           <BottomMenu setOptionModalOpen={setOptionModalOpen} />
         </div>
         <div
-          className={`w-full h-full flex flex-col transition-all duration-500 justify-between items-center pt-14 pb-20 ${
+          className={`w-full h-full flex flex-col transition-all duration-500 justify-between items-center ${
+            isPWA ? "pt-12 pb-6 px-3" : "pt-14 pb-20 px-3"
+          } ${
             isBottomOpen ? "fixed -translate-y-full" : "translate-x-0"
           }`}
         >

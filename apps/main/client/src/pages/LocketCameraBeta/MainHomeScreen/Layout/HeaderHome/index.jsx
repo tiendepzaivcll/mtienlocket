@@ -93,7 +93,7 @@ const HeaderHome = ({
           {/* Nút Rollcall góc trên bên trái */}
           <button
             onClick={handleOpenRollcall}
-            className="flex items-center justify-center w-11 h-11 bg-base-300/70 backdrop-blur-[6px] hover:bg-base-300 rounded-full active:scale-95 transition text-base-content shadow-sm"
+            className="flex items-center justify-center w-11 h-11 bg-base-300/80 backdrop-blur-[6px] hover:bg-base-300 rounded-full active:scale-95 transition text-base-content shadow-sm border border-base-content/10"
             aria-label="Mở Rollcall"
             title="Rollcall"
           >
@@ -103,8 +103,8 @@ const HeaderHome = ({
           {/* Bạn bè / Mọi người ở giữa */}
           <button
             className="absolute flex z-90 transition-all justify-center items-center flex-row gap-1 left-1/2 
-          transform -translate-x-1/2 text-lg font-semibold bg-base-300/70 backdrop-blur-[4px] 
-          hover:bg-base-300 active:scale-105 px-3 py-2 rounded-3xl select-none"
+          transform -translate-x-1/2 text-lg font-semibold bg-base-300/80 text-base-content backdrop-blur-[4px] 
+          hover:bg-base-300 active:scale-105 px-3 py-2 rounded-3xl select-none shadow-sm border border-base-content/10"
             onClick={toggleDropdown}
           >
             {isBottomOpen ? (

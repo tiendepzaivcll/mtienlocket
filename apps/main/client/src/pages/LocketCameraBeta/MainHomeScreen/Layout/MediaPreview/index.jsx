@@ -23,6 +23,11 @@ const MediaPreview = () => {
   } = post;
   const { isAiGenerating } = useloading;
   const { isBottomOpen, isHomeOpen, isProfileOpen } = navigation;
+  const isPWA =
+    Boolean(navigation?.isPWA) ||
+    (typeof window !== "undefined" &&
+      (window.matchMedia("(display-mode: standalone)").matches ||
+        window.navigator.standalone === true));
   const { setIsAiFilterOpen } = navigation;
   const {
     streamRef,
@@ -491,7 +496,11 @@ const MediaPreview = () => {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onTouchCancel={handleTouchEnd}
-        className={`relative w-[min(88vw,41vh,350px)] aspect-square bg-gray-800 rounded-[48px] overflow-hidden transition-transform duration-500 touch-none select-none shadow-2xl`}
+        className={`relative ${
+          isPWA
+            ? "w-full max-w-md aspect-square rounded-[65px]"
+            : "w-[min(88vw,41vh,350px)] aspect-square rounded-[48px]"
+        } bg-gray-800 overflow-hidden transition-all duration-300 touch-none select-none shadow-2xl`}
       >
         {!preview && !selectedFile && cameraActive && (
           <video
