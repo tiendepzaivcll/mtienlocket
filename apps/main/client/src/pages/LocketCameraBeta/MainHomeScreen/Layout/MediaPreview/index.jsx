@@ -4,7 +4,7 @@ const AutoResizeCaption = lazy(() => import("../CaptionViews"));
 import { useApp } from "@/context/AppContext";
 import { CONFIG } from "@/config";
 import BorderProgress from "../../Widgets/SquareProgress";
-import { SonnerInfo, SonnerSuccess } from "@/components/ui/SonnerToast";
+import { SonnerInfo, SonnerSuccess, SonnerWarning } from "@/components/ui/SonnerToast";
 import { useUIStore, usePhotoboothStore } from "@/stores";
 import { useCameraCaptureMode } from "@/hooks/useCameraCaptureMode";
 import { PHOTOBOOTH_FRAMES } from "@/data/photoboothFrames";
@@ -202,14 +202,38 @@ const MediaPreview = () => {
     return () => window.removeEventListener("camera-flash-burst", handleFlashBurst);
   }, []);
 
-  const toggleMic = () => {
-    const newVal = !isMicEnabled;
-    setIsMicEnabled(newVal);
-    localStorage.setItem("setting_camera_mic_enabled", String(newVal));
-    if (newVal) {
-      SonnerSuccess("Đã bật Mic 🎙️", "Video quay sẽ có âm thanh");
-    } else {
+  const toggleMic = async () => {
+    if (isMicEnabled) {
+      // Đang bật -> Tắt mic
+      setIsMicEnabled(false);
+      localStorage.setItem("setting_camera_mic_enabled", "false");
       SonnerInfo("Đã tắt Mic 🔇", "Video quay sẽ không có âm thanh");
+      return;
+    }
+
+    // Đang tắt -> Bật mic: Kích hoạt ngay yêu cầu quyền microphone của trình duyệt / iOS
+    if (navigator.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // Tắt ngay track sau khi xin quyền để không chiếm micro khi chưa bấm quay
+        stream.getTracks().forEach((track) => track.stop());
+
+        setIsMicEnabled(true);
+        localStorage.setItem("setting_camera_mic_enabled", "true");
+        SonnerSuccess("Đã bật Mic 🎙️", "Đã cấp quyền micro, video sẽ có âm thanh");
+      } catch (err) {
+        console.warn("Người dùng từ chối hoặc lỗi cấp quyền mic:", err);
+        setIsMicEnabled(false);
+        localStorage.setItem("setting_camera_mic_enabled", "false");
+        SonnerWarning(
+          "Chưa cấp quyền Micro",
+          "Vui lòng chọn 'Cho phép' khi thiết bị hỏi quyền Micro để quay video có tiếng."
+        );
+      }
+    } else {
+      setIsMicEnabled(true);
+      localStorage.setItem("setting_camera_mic_enabled", "true");
+      SonnerSuccess("Đã bật Mic 🎙️", "Video quay sẽ có âm thanh");
     }
   };
 

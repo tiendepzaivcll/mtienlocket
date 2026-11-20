@@ -124,8 +124,8 @@ const CameraButton = () => {
         try {
           micStream = await navigator.mediaDevices.getUserMedia({
             audio: {
-              echoCancellation: true,
-              noiseSuppression: true,
+              echoCancellation: false,
+              noiseSuppression: false,
               autoGainControl: true,
             },
           });
@@ -133,7 +133,13 @@ const CameraButton = () => {
           micStreamRef.current = micStream;
           console.log("🎙️ Đã kết nối Microphone vào luồng ghi hình");
         } catch (audioErr) {
-          console.warn("⚠️ Không thể truy cập mic, quay video im lặng:", audioErr);
+          try {
+            micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            micStream.getAudioTracks().forEach((track) => combinedStream.addTrack(track));
+            micStreamRef.current = micStream;
+          } catch (fallbackErr) {
+            console.warn("⚠️ Không thể truy cập mic, quay video im lặng:", fallbackErr);
+          }
         }
       }
 
