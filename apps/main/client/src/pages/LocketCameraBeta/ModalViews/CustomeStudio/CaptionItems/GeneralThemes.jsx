@@ -421,7 +421,7 @@ export default function GeneralThemes({ title }) {
   const buttons = [
     {
       id: "default",
-      icon: <span className="mr-1 font-semibold">Aa</span>,
+      icon: <span className="mr-1 font-semibold text-primary">Aa</span>,
       label: "Văn bản",
     },
     {

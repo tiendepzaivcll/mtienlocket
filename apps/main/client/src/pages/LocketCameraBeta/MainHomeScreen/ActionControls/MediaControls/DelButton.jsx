@@ -42,7 +42,7 @@ const DelButton = () => {
   return (
     <>
       <button
-        className="cursor-pointer active:scale-95"
+        className="cursor-pointer active:scale-95 text-base-content"
         onClick={handleDelete}
         disabled={sendLoading || uploadLoading}
       >

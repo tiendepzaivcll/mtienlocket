@@ -52,7 +52,7 @@ const OverlayButton = () => {
   return (
     <>
       <button
-        className="cursor-pointer active:scale-95 transition-transform flex items-center justify-center text-white"
+        className="cursor-pointer active:scale-95 transition-transform flex items-center justify-center text-primary"
         onClick={() => {
           setIsFilterOpen(true);
         }}
