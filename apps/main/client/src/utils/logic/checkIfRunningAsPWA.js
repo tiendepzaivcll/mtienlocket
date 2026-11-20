@@ -1,9 +1,17 @@
 export const checkIfRunningAsPWA = () => {
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.navigator.standalone === true || // iOS
-    document.referrer.includes("android-app://")
+  if (typeof window === "undefined") return false;
+  return Boolean(
+    window.matchMedia?.("(display-mode: standalone)").matches ||
+    window.navigator?.standalone === true || // iOS Safari Add to Home Screen
+    document.referrer?.includes("android-app://")
   );
+};
+
+export const syncPWAClass = () => {
+  if (typeof window === "undefined" || !document?.body) return false;
+  const isPWA = checkIfRunningAsPWA();
+  document.body.classList.toggle("is-pwa", isPWA);
+  return isPWA;
 };
 
 export const detectAppEnvironment = () => {

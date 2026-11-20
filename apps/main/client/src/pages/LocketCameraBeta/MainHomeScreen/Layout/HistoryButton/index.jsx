@@ -14,24 +14,24 @@ const HistoryArrow = ({ setIsBottomOpen }) => {
   };
 
   return (
-    <div className="flex flex-col items-center select-none">
+    <div className="flex flex-col items-center justify-center select-none w-full">
       <button
-        className="flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95"
+        className="inline-flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95 mx-auto"
         onClick={handleClick}
         aria-label="Xem lịch sử khoảnh khắc"
       >
         {isPWA ? (
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full hover:opacity-80 transition text-[var(--text-primary)]">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full hover:opacity-85 transition text-[var(--text-primary)] bg-[var(--surface-pill)] border border-[var(--border-subtle)] shadow-sm">
             <span
-              className="w-5.5 h-5.5 rounded-lg text-black text-xs font-black flex items-center justify-center shadow-sm"
+              className="min-w-5 h-5 px-1 rounded-md text-black text-xs font-black flex items-center justify-center shadow-xs shrink-0"
               style={{ background: "var(--accent-primary)" }}
             >
               {count}
             </span>
-            <span className="text-sm font-bold tracking-wide text-[var(--text-primary)]">
+            <span className="text-[13px] font-bold tracking-wide text-[var(--text-primary)] select-none">
               Lịch sử
             </span>
-            <ChevronDown size={16} strokeWidth={2.5} className="text-[var(--text-primary)] opacity-80" />
+            <ChevronDown size={15} strokeWidth={2.8} className="text-[var(--text-primary)] opacity-80 shrink-0" />
           </div>
         ) : (
           <div className="flex flex-col items-center text-[var(--text-primary)]">

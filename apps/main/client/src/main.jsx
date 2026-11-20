@@ -5,6 +5,10 @@ import App from "./App.jsx";
 import { registerSW } from "virtual:pwa-register";
 import ErrorBoundary from "./components/pages/ErrorBoundary";
 import { installChunkRecovery } from "./utils/pwaUtils/safeUpdate";
+import { syncPWAClass } from "./utils/logic/checkIfRunningAsPWA";
+
+// Đồng bộ class .is-pwa trên body ngay khi app khởi động
+syncPWAClass();
 
 // Draft support was retired. Remove any media blobs left by the previous local
 // build so they do not continue consuming browser storage.

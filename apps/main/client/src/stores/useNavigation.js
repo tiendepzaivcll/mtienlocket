@@ -19,23 +19,34 @@ export const useNavigation = () => {
     return saved === "true";
   });
   const [isPWA, setIsPWA] = useState(() => {
-    const saved = localStorage.getItem("isPWA");
-    return saved === "true";
+    return checkIfRunningAsPWA();
   });
 
-  // Lưu vào localStorage khi isFullview thay đổi
+  // Lưu vào localStorage khi isFullview thay đổi và đồng bộ class .is-pwa
   useEffect(() => {
     localStorage.setItem("isFullview", isFullview);
-    localStorage.setItem("isPWA", isPWA);
-  }, [isFullview, isPWA]);
-
-  // Tự động phát hiện nếu đang chạy dưới dạng PWA
-  useEffect(() => {
-    const isPWA = checkIfRunningAsPWA();
-    if (isPWA) {
-      setIsFullview(true);
-      setIsPWA(true);
+    const pwaActive = checkIfRunningAsPWA();
+    setIsPWA(pwaActive);
+    if (typeof document !== "undefined" && document.body) {
+      document.body.classList.toggle("is-pwa", pwaActive);
     }
+  }, [isFullview]);
+
+  // Tự động phát hiện nếu đang chạy dưới dạng PWA Standalone
+  useEffect(() => {
+    const handleCheckPWA = () => {
+      const active = checkIfRunningAsPWA();
+      setIsPWA(active);
+      if (typeof document !== "undefined" && document.body) {
+        document.body.classList.toggle("is-pwa", active);
+      }
+    };
+
+    handleCheckPWA();
+
+    const mediaQuery = window.matchMedia("(display-mode: standalone)");
+    mediaQuery.addEventListener?.("change", handleCheckPWA);
+    return () => mediaQuery.removeEventListener?.("change", handleCheckPWA);
   }, []);
 
   const [showFlyingEffect, setShowFlyingEffect] = useState(false);

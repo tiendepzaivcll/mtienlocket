@@ -126,7 +126,7 @@ export default function MainHomeScreen() {
         <div
           className={`w-full h-full flex flex-col transition-all duration-500 justify-between items-center ${
             isPWA
-              ? "pt-[max(3.8rem,calc(env(safe-area-inset-top)+3.2rem))] pb-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.8rem))] px-0"
+              ? "pt-[max(4.2rem,calc(env(safe-area-inset-top)+3.2rem))] pb-[max(5.8rem,calc(env(safe-area-inset-bottom)+5.2rem))] px-0"
               : "pt-12 pb-24 px-3"
           } ${
             isBottomOpen ? "fixed -translate-y-full" : "translate-x-0"
@@ -137,14 +137,14 @@ export default function MainHomeScreen() {
             <MediaSizeInfo />
           </div>
 
-          <div className="w-full flex flex-col items-center gap-3 shrink-0 px-4">
+          <div className="w-full flex flex-col items-center gap-3.5 shrink-0 px-4">
             <ActionControls />
             {/* Click để mở lịch sử */}
-            <div className="relative w-full">
+            <div className="relative w-full flex justify-center items-center">
               {/* SelectFriendsList */}
               <div
                 className={`
-                transition-all duration-300
+                transition-all duration-300 w-full
                 ${
                   selectedFile
                     ? "opacity-100 visible"
@@ -160,7 +160,7 @@ export default function MainHomeScreen() {
               {/* HistoryArrow */}
               <div
                 className={`
-                transition-all duration-300
+                transition-all duration-300 w-full flex justify-center items-center
                 ${
                   !selectedFile
                     ? "opacity-100 visible"

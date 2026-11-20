@@ -1,6 +1,6 @@
 .border-camera-custome {
   box-sizing: border-box;
-  border: 5px solid transparent;
+  border: 4px solid transparent;
   background: var(--shutter-gradient) border-box;
   -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;

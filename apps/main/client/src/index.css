@@ -257,3 +257,29 @@ html, body {
   animation: custom-shake 0.8s infinite;
   transform-origin: center;
 }
+
+/* ── PWA Standalone Mode adjustments matching real Locket ── */
+body.is-pwa .pwa-camera-frame {
+  width: 92vw;
+  max-width: min(92vw, calc(100dvh - 310px), 414px);
+  aspect-ratio: 1 / 1;
+  border-radius: 40px;
+}
+
+body.is-pwa .pwa-thumb-stack-back {
+  transform: rotate(-6deg);
+}
+
+@media (display-mode: standalone) {
+  .pwa-camera-frame {
+    width: 92vw;
+    max-width: min(92vw, calc(100dvh - 310px), 414px);
+    aspect-ratio: 1 / 1;
+    border-radius: 40px;
+  }
+  .pwa-thumb-stack-back {
+    transform: rotate(-6deg);
+  }
+}
+
+

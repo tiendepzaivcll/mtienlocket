@@ -82,7 +82,10 @@ const UploadFile = () => {
     setVideoCropArea,
   ]);
 
-  const isPWA = post?.isPWA || Boolean(window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone);
+  const isPWA = Boolean(
+    typeof window !== "undefined" &&
+    (window.matchMedia?.("(display-mode: standalone)").matches || window.navigator?.standalone === true)
+  );
   const latestMoment = useMomentsStoreV2((s) => s.momentsByUser["all"]?.items?.[0]);
   const latestThumb = latestMoment?.thumbnail_url || latestMoment?.image_url;
 
@@ -98,15 +101,32 @@ const UploadFile = () => {
       <label htmlFor="file-upload" className="cursor-pointer active:scale-95 block">
         {isPWA ? (
           latestThumb ? (
-            <div className="relative w-12 h-12">
-              <div className="absolute inset-0 rounded-2xl bg-[var(--surface-pill)] border border-[var(--border-subtle)] rotate-6 scale-95 opacity-50 shadow-sm pointer-events-none" />
-              <div className="relative w-12 h-12 rounded-2xl overflow-hidden border border-[var(--border-subtle)] shadow-md bg-[var(--surface-pill)]">
-                <img src={latestThumb} alt="Ảnh mới nhất" className="w-full h-full object-cover" />
+            <div className="relative w-12 h-12 flex items-center justify-center select-none">
+              {/* Lớp ảnh phía sau xoay nghiêng nhẹ -6deg */}
+              <div
+                className="pwa-thumb-stack-back absolute w-12 h-12 rounded-xl bg-[var(--surface-pill)] border border-[var(--border-subtle)] shadow-sm pointer-events-none transform -rotate-6"
+                style={{
+                  backgroundImage: `url(${latestThumb})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  opacity: 0.65,
+                }}
+              />
+              {/* Lớp ảnh chính phía trước bo góc rounded-xl */}
+              <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-white/20 shadow-md bg-[var(--surface-pill)] z-10">
+                <img
+                  src={latestThumb}
+                  alt="Ảnh mới nhất"
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           ) : (
-            <div className="w-12 h-12 rounded-2xl bg-[var(--surface-pill)] backdrop-blur-md border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)] shadow-md">
-              <ImageUp size={24} />
+            <div className="relative w-12 h-12 flex items-center justify-center">
+              <div className="pwa-thumb-stack-back absolute w-12 h-12 rounded-xl bg-[var(--surface-pill)] border border-[var(--border-subtle)] transform -rotate-6 opacity-35 pointer-events-none" />
+              <div className="relative w-12 h-12 rounded-xl bg-[var(--surface-pill)] backdrop-blur-md border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)] shadow-md z-10">
+                <ImageUp size={22} />
+              </div>
             </div>
           )
         ) : (

@@ -2,18 +2,29 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <title>LOCKET-PRO - Chia sẻ khoảnh khắc trên Locket</title>
     <!-- <meta name="robots" content="noindex, nofollow" /> -->
     <!-- PWA Manifest -->
     <!-- <link rel="manifest" href="./manifest.json" /> -->
-    <meta name="theme-color" content="#101614" />
+    <meta name="theme-color" content="#000000" />
     <meta name="description" content="LOCKET-PRO giúp bạn chia sẻ ảnh, video và khoảnh khắc trên Locket ngay từ trình duyệt. Website được quản trị bởi MTIEN." />
 
-    <!-- iOS Support -->
+    <!-- iOS PWA Standalone Support -->
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="LOCKET-PRO" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <script>
+      (function() {
+        if (window.matchMedia && (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true)) {
+          document.documentElement.classList.add('is-pwa');
+          document.addEventListener('DOMContentLoaded', function() {
+            document.body.classList.add('is-pwa');
+          });
+        }
+      })();
+    </script>
 
     <!-- Open Graph -->
     <meta property="og:title" content="LOCKET-PRO - Chia sẻ khoảnh khắc trên Locket" />

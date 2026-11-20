@@ -677,7 +677,7 @@ const CameraButton = () => {
           }
         }}
         onContextMenu={(e) => e.preventDefault()} // Prevent long press menu on iOS
-        className="relative flex items-center justify-center w-24 h-24 active:scale-97"
+        className="relative flex items-center justify-center w-24 h-24 active:scale-95 transition-transform duration-150"
         style={{
           touchAction: "manipulation", // Improve touch response on iOS
           userSelect: "none",
