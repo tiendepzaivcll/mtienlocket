@@ -1,6 +1,5 @@
 import React, { useCallback } from "react";
 import { useApp } from "@/context/AppContext";
-import { useMomentsStoreV2 } from "@/stores";
 import { ImageUp } from "lucide-react";
 import { SonnerInfo, SonnerError } from "@/components/ui/SonnerToast";
 import { classifyPhoneMedia, normalizePhoneImage } from "@/utils/imageUtils";
@@ -82,10 +81,6 @@ const UploadFile = () => {
     setVideoCropArea,
   ]);
 
-  const isPWA = post?.isPWA || Boolean(window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone);
-  const latestMoment = useMomentsStoreV2((s) => s.momentsByUser["all"]?.items?.[0]);
-  const latestThumb = latestMoment?.thumbnail_url || latestMoment?.image_url;
-
   return (
     <>
       <input
@@ -95,20 +90,8 @@ const UploadFile = () => {
         className="hidden"
         id="file-upload"
       />
-      <label htmlFor="file-upload" className="cursor-pointer active:scale-95 block">
-        {isPWA ? (
-          latestThumb ? (
-            <div className="w-11 h-11 rounded-2xl overflow-hidden ring-2 ring-white/20 shadow-md bg-black/40">
-              <img src={latestThumb} alt="Ảnh mới nhất" className="w-full h-full object-cover" />
-            </div>
-          ) : (
-            <div className="w-11 h-11 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-center text-white shadow-md">
-              <ImageUp size={22} />
-            </div>
-          )
-        ) : (
-          <ImageUp size={35} />
-        )}
+      <label htmlFor="file-upload" className="cursor-pointer active:scale-95">
+        <ImageUp size={35} />
       </label>
     </>
   );

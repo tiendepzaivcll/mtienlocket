@@ -124,18 +124,28 @@ export default function MainHomeScreen() {
           <BottomMenu setOptionModalOpen={setOptionModalOpen} />
         </div>
         <div
-          className={`w-full h-full flex flex-col transition-all duration-500 justify-between items-center ${
-            isPWA ? "pt-12 pb-6 px-3" : "pt-12 pb-24 px-3"
+          className={`w-full h-full flex flex-col transition-all duration-500 items-center ${
+            isPWA
+              ? "pt-14 pb-2 px-1.5 justify-start gap-2.5"
+              : "pt-12 pb-24 px-3 justify-between"
           } ${
             isBottomOpen ? "fixed -translate-y-full" : "translate-x-0"
           }`}
         >
-          <div className="flex-1 flex flex-col justify-center items-center w-full min-h-0 py-1">
+          <div
+            className={`w-full flex flex-col items-center ${
+              isPWA ? "shrink-0 pt-1" : "flex-1 justify-center min-h-0 py-1"
+            }`}
+          >
             <MediaPreview />
             <MediaSizeInfo />
           </div>
 
-          <div className="w-full flex flex-col items-center gap-1 shrink-0">
+          <div
+            className={`w-full flex flex-col items-center shrink-0 ${
+              isPWA ? "gap-2 -mt-0.5" : "gap-1"
+            }`}
+          >
             <ActionControls />
             {/* Click để mở lịch sử */}
             <div className="relative w-full">
