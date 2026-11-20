@@ -85,7 +85,7 @@ export default function MainHomeScreen() {
   return (
     <>
       <div
-        className={`relative transition-all duration-500 flex flex-col justify-center items-center w-full h-[100vh] text-base-content ${
+        className={`relative transition-all duration-500 flex flex-col justify-center items-center w-full h-[100dvh] max-h-[100dvh] overflow-hidden text-base-content ${
           isProfileOpen
             ? "translate-x-full"
             : isHomeOpen
@@ -118,44 +118,48 @@ export default function MainHomeScreen() {
           <BottomMenu setOptionModalOpen={setOptionModalOpen} />
         </div>
         <div
-          className={`w-full h-full flex flex-col transition-all duration-500 justify-evenly items-center ${
+          className={`w-full h-full flex flex-col transition-all duration-500 justify-between items-center pt-14 pb-20 ${
             isBottomOpen ? "fixed -translate-y-full" : "translate-x-0"
           }`}
         >
-          <div className="h-10" />
-          <MediaPreview />
-          <MediaSizeInfo />
-          <ActionControls />
-          {/* Click để mở lịch sử */}
-          <div className="relative w-full">
-            {/* SelectFriendsList */}
-            <div
-              className={`
-              transition-all duration-300
-              ${
-                selectedFile
-                  ? "opacity-100 visible"
-                  : "opacity-0 invisible hidden"
-              }
-            `}
-            >
-              <Suspense fallback={null}>
-                <SelectFriendsList />
-              </Suspense>
-            </div>
+          <div className="flex-1 flex flex-col justify-center items-center w-full min-h-0 py-1">
+            <MediaPreview />
+            <MediaSizeInfo />
+          </div>
 
-            {/* HistoryArrow */}
-            <div
-              className={`
-              pb-16 transition-all duration-300
-              ${
-                !selectedFile
-                  ? "opacity-100 visible"
-                  : "opacity-0 invisible hidden"
-              }
-            `}
-            >
-              <HistoryArrow setIsBottomOpen={setIsBottomOpen} />
+          <div className="w-full flex flex-col items-center gap-1 shrink-0">
+            <ActionControls />
+            {/* Click để mở lịch sử */}
+            <div className="relative w-full">
+              {/* SelectFriendsList */}
+              <div
+                className={`
+                transition-all duration-300
+                ${
+                  selectedFile
+                    ? "opacity-100 visible"
+                    : "opacity-0 invisible hidden"
+                }
+              `}
+              >
+                <Suspense fallback={null}>
+                  <SelectFriendsList />
+                </Suspense>
+              </div>
+
+              {/* HistoryArrow */}
+              <div
+                className={`
+                pb-1 transition-all duration-300
+                ${
+                  !selectedFile
+                    ? "opacity-100 visible"
+                    : "opacity-0 invisible hidden"
+                }
+              `}
+              >
+                <HistoryArrow setIsBottomOpen={setIsBottomOpen} />
+              </div>
             </div>
           </div>
         </div>

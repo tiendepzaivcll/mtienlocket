@@ -1,45 +1,38 @@
 import React from "react";
 
 const HistoryArrow = ({ setIsBottomOpen }) => {
-
   const handleClick = () => {
     setIsBottomOpen(true);
   };
 
   return (
-    <>
-      <div className={`flex flex-col items-center select-none`}>
-        <button
-          className="flex flex-col items-center cursor-pointer transition-transform hover:scale-105 active:scale-95"
-          onClick={handleClick}
+    <div className="flex flex-col items-center select-none">
+      <button
+        className="flex flex-col items-center cursor-pointer transition-transform hover:scale-105 active:scale-95 text-base-content/90 hover:text-base-content"
+        onClick={handleClick}
+        aria-label="Xem lịch sử khoảnh khắc"
+      >
+        <span className="text-sm font-semibold tracking-wide">
+          Lịch sử
+        </span>
+        <svg
+          width="22"
+          height="14"
+          viewBox="0 0 24 14"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="mt-0.5 opacity-80"
         >
-          <div className="flex items-center justify-center space-x-2 mb-1">
-            {/* <div className="bg-accent text-base-content font-semibold px-[9px] py-0.5 rounded-lg shadow-md">
-          {recentPosts.length}
-        </div> */}
-            <span className="text-xl font-semibold text-base-content">
-              Lịch sử
-            </span>
-          </div>
-          <svg
-            width="40"
-            height="40"
-            viewBox="0 0 40 40"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className=""
-          >
-            <path
-              d="M4 8l17 7l17-7"
-              stroke="currentColor"
-              strokeWidth="4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-      </div>
-    </>
+          <path
+            d="M3 3L12 11L21 3"
+            stroke="currentColor"
+            strokeWidth="3.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+    </div>
   );
 };
 

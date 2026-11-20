@@ -77,10 +77,10 @@ const FriendsContainer = () => {
 
       {/* Popup */}
       <div
-        className={`fixed inset-0 z-50 flex justify-center items-end transition-all duration-800 ease text-base-content ${
+        className={`fixed inset-0 z-50 flex justify-center items-end transition-all duration-500 ease text-base-content ${
           isFriendsTabOpen
-            ? "translate-y-0"
-            : "translate-y-full pointer-events-none"
+            ? "translate-y-0 opacity-100"
+            : "translate-y-[110%] opacity-0 pointer-events-none invisible"
         }`}
       >
         <div

@@ -491,7 +491,7 @@ const MediaPreview = () => {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onTouchCancel={handleTouchEnd}
-        className={`relative w-full max-w-md aspect-square bg-gray-800 rounded-[65px] overflow-hidden transition-transform duration-500 touch-none select-none`}
+        className={`relative w-[min(88vw,41vh,350px)] aspect-square bg-gray-800 rounded-[48px] overflow-hidden transition-transform duration-500 touch-none select-none shadow-2xl`}
       >
         {!preview && !selectedFile && cameraActive && (
           <video
@@ -808,14 +808,14 @@ const MediaPreview = () => {
           <div className="absolute inset-0 z-[100] bg-white pointer-events-none transition-opacity duration-200" />
         )}
 
-        {/* Frame overlay - always on top when selected */}
+        {/* Frame overlay - always on top when selected, perfectly fitted to rounded container */}
         {cameraFrame?.imageSrc && (
-          <div className="absolute inset-0 z-[60] pointer-events-none">
+          <div className="absolute inset-0 z-[60] pointer-events-none overflow-hidden rounded-[inherit]">
             <img
               src={cameraFrame.imageSrc}
               loading="lazy"
               alt="Khung viền camera"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain pointer-events-none select-none"
             />
           </div>
         )}
