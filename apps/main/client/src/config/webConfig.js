@@ -170,14 +170,14 @@ export const CONFIG = {
     },
   },
   ui: {
-    theme: "black", // Đen AMOLED mặc định chuẩn Locket
+    theme: "midnight-black", // Midnight Black mặc định chuẩn Locket
     themes: [
-      "black",
-      "bumblebee",
-      "dark",
-      "emerald",
-      "dracula",
-      "autumn",
+      "midnight-black",
+      "crimson-wine",
+      "royal-purple",
+      "ocean-blue",
+      "matcha-forest",
+      "soft-pastel-pink",
     ],
     maxToastVisible: 3,
     dateFormat: "DD/MM/YYYY",

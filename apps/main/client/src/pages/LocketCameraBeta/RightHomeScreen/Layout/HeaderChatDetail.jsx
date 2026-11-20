@@ -59,7 +59,14 @@ const ChatDetailHeader = ({ selectedChat, onBack }) => {
   };
 
   return (
-    <div className="flex items-center justify-between px-4 py-2.5 bg-[var(--bg-app)]/85 backdrop-blur-md border-b border-[var(--border-subtle)] text-[var(--text-primary)]">
+    <div
+      style={{
+        background: "var(--surface-dock)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+      }}
+      className="flex items-center justify-between px-4 py-2.5 border-b border-[var(--border-subtle)] text-[var(--text-primary)]"
+    >
       {/* Left */}
       <div className="flex items-center">
         <button
@@ -105,7 +112,8 @@ const ChatDetailHeader = ({ selectedChat, onBack }) => {
           <Ellipsis size={22} />
         </button>}
         {canAct && menuOpen && <div role="menu" aria-label="Tùy chọn bạn bè"
-          className="absolute right-0 top-full z-[90] mt-2 w-44 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-app)] p-2 shadow-xl text-[var(--text-primary)]">
+          style={{ background: "var(--surface-dock)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}
+          className="absolute right-0 top-full z-[90] mt-2 w-44 rounded-2xl border border-[var(--border-subtle)] p-2 shadow-xl text-[var(--text-primary)]">
           <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); setAction("remove"); }}
             className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm hover:bg-[var(--surface-pill)]"><UserMinus size={17} /> Xóa bạn</button>
           <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); setAction("block"); }}

@@ -685,7 +685,7 @@ const CameraButton = () => {
         }}
       >
         <div
-          className={`absolute w-20 h-20 rounded-full z-10 border-camera-custome text-[var(--accent-primary)] ${
+          className={`absolute w-20 h-20 rounded-full z-10 border-camera-custome pointer-events-none transition-transform duration-300 ${
             isHolding ? "animate-borderExpand" : ""
           }`}
         ></div>
@@ -693,7 +693,7 @@ const CameraButton = () => {
           className={`absolute rounded-full z-0 transition-all duration-300 shadow-md ${
             navigation?.isPWA
               ? `w-16 h-16 bg-white ${isHolding ? "scale-75 opacity-90" : "scale-100 opacity-100"}`
-              : `btn w-19 h-19 camera-inner-circle ${isHolding ? "scale-77 opacity-90" : "scale-100 opacity-100"}`
+              : `btn w-19 h-19 bg-white border-0 ${isHolding ? "scale-77 opacity-90" : "scale-100 opacity-100"}`
           }`}
         ></div>
       </button>

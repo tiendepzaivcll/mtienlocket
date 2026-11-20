@@ -273,9 +273,21 @@ const ChatMessageItem = ({
 
       <div
         ref={bubbleRef}
-        className={`chat-bubble relative max-w-xs select-none bg-base-200 font-medium text-base-content md:max-w-md ${
-          showMenu ? "z-[71] ring-2 ring-primary/30" : ""
+        className={`chat-bubble relative max-w-xs select-none font-medium md:max-w-md ${
+          showMenu ? "z-[71] ring-2 ring-[var(--accent-primary)]/40" : ""
         } ${groupedReactions.length ? "mt-4" : ""}`}
+        style={
+          isMe
+            ? {
+                background: "var(--shutter-gradient)",
+                color: "#FFFFFF",
+              }
+            : {
+                background: "var(--surface-pill)",
+                color: "var(--text-primary)",
+                border: "1px solid var(--border-subtle)",
+              }
+        }
         onContextMenu={(event) => {
           event.preventDefault();
           openMenu();
@@ -289,7 +301,7 @@ const ChatMessageItem = ({
         onTouchCancel={clearHold}
       >
         {msg.reply_moment && (
-          <div className="mb-1 text-xs italic opacity-70">↪ Đã trả lời Locket</div>
+          <div className="mb-1 text-xs italic opacity-80">↪ Đã trả lời Locket</div>
         )}
         {msg.thumbnail_url && (
           <img
@@ -302,9 +314,14 @@ const ChatMessageItem = ({
 
         {groupedReactions.length > 0 && (
           <div
-            className={`absolute -top-6 flex rounded-full bg-base-100 p-1 text-sm shadow ${
+            className={`absolute -top-6 flex rounded-full p-1 text-sm shadow-md backdrop-blur-md ${
               isMe ? "left-0" : "right-0"
             }`}
+            style={{
+              background: "var(--surface-dock)",
+              border: "1px solid var(--border-subtle)",
+              color: "var(--text-primary)",
+            }}
           >
             {groupedReactions.slice(0, 3).map(([emoji, count]) => (
               <span key={emoji} className="px-0.5">
@@ -317,21 +334,26 @@ const ChatMessageItem = ({
         {showMenu && (
           <div
             ref={menuRef}
-            className={`absolute z-[72] min-w-[230px] rounded-2xl border border-base-300 bg-base-100 p-2 shadow-xl ${
+            className={`absolute z-[72] min-w-[230px] rounded-2xl p-2 shadow-2xl backdrop-blur-xl ${
               isMe ? "right-0" : "left-0"
             } ${
               menuPlacement === "below" ? "top-full mt-2" : "bottom-full mb-2"
             }`}
+            style={{
+              background: "var(--surface-dock)",
+              border: "1px solid var(--border-subtle)",
+              color: "var(--text-primary)",
+            }}
           >
-            <div className="mb-2 flex items-center gap-1 border-b border-base-300 pb-2">
+            <div className="mb-2 flex items-center gap-1 border-b border-[var(--border-subtle)] pb-2">
               {quickReactions.map((emoji) => (
                 <button
                   type="button"
                   key={emoji}
                   disabled={busy}
                   onClick={() => handleReaction(emoji)}
-                  className={`flex h-8 w-8 items-center justify-center rounded-full text-lg ${
-                    myReaction === emoji ? "bg-primary/20" : "hover:bg-base-200"
+                  className={`flex h-8 w-8 items-center justify-center rounded-full text-lg transition hover:scale-125 hover:bg-[var(--surface-pill)] ${
+                    myReaction === emoji ? "ring-2 ring-[var(--accent-primary)] bg-[var(--surface-pill)]" : ""
                   }`}
                 >
                   {emoji}
@@ -346,7 +368,7 @@ const ChatMessageItem = ({
                   setShowMenu(false);
                   setShowEmojiPicker(true);
                 }}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-base hover:bg-base-200"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-base hover:bg-[var(--surface-pill)] text-[var(--text-primary)]"
               >
                 <Plus size={19} strokeWidth={2.5} />
               </button>
@@ -354,12 +376,12 @@ const ChatMessageItem = ({
             <button
               type="button"
               onClick={handleCopy}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm hover:bg-base-200"
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm hover:bg-[var(--surface-pill)] text-[var(--text-primary)]"
             >
               <Clipboard size={18} /> Sao chép
             </button>
             {!isMe && (
-              <div className="flex items-center gap-3 px-3 py-2 text-xs opacity-50">
+              <div className="flex items-center gap-3 px-3 py-2 text-xs text-[var(--text-secondary)]">
                 <SmilePlus size={18} /> Chạm lại emoji đang chọn để gỡ
               </div>
             )}
@@ -377,7 +399,7 @@ const ChatMessageItem = ({
         )}
       </div>
 
-      <div className="chat-footer text-xs opacity-50">
+      <div className="chat-footer text-xs text-[var(--text-secondary)]">
         {formatMessageTime(msg.create_time || msg.created_at)}
       </div>
       {showEmojiPicker && <ChatEmojiPicker busy={busy} selectedEmoji={myReaction}
@@ -430,11 +452,19 @@ const ChatDetail = ({
 
   return (
     <div
-      className={`fixed inset-0 z-60 flex flex-col bg-[var(--bg-app)] text-[var(--text-primary)] transition-transform duration-500 ${
+      style={{ background: "var(--bg-app)" }}
+      className={`fixed inset-0 z-60 flex flex-col text-[var(--text-primary)] transition-transform duration-500 ${
         selectedChat ? "translate-x-0" : "translate-x-full"
       }`}
     >
-      <div className="sticky top-0 z-10 bg-[var(--bg-app)]">
+      <div
+        className="sticky top-0 z-10"
+        style={{
+          background: "var(--surface-dock)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+        }}
+      >
         <ChatDetailHeader
           selectedChat={selectedChat}
           onBack={() => setSelectedChat(null)}

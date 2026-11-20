@@ -7,100 +7,102 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  /* ── LOCKET-PRO Theme Semantic Tokens ── */
-  --bg-app: var(--fallback-b1, oklch(var(--b1)/1));
-  --text-primary: #ffffff;
-  --text-secondary: #9CA3AF;
+  /* ── 1. Midnight Black (Default) ── */
+  --bg-app: #000000;
   --surface-pill: rgba(255, 255, 255, 0.12);
-  --surface-dock: rgba(28, 28, 30, 0.88);
-  --surface-card: #1F2937;
+  --surface-dock: rgba(255, 255, 255, 0.12);
+  --surface-card: #18181b;
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --shutter-gradient: linear-gradient(135deg, #FFB800, #FF7A00);
+  --accent-primary: #FFB800;
   --border-subtle: rgba(255, 255, 255, 0.15);
-  --accent-primary: var(--fallback-p, oklch(var(--p)/1));
 }
 
-/* Explicit Dark themes & Dark mode */
-[data-theme="dark"],
-[data-theme="black"],
-[data-theme="dracula"],
-[data-theme="luxury"],
-[data-theme="night"],
-[data-theme="dim"],
-[data-theme="sunset"],
-[data-theme="business"],
-[data-theme="halloween"],
-[data-theme="forest"],
-[data-theme="synthwave"],
-[data-theme="coffee"] {
-  --bg-app: var(--fallback-b1, oklch(var(--b1)/1));
-  --text-primary: #ffffff;
-  --text-secondary: #9CA3AF;
-  --surface-pill: rgba(255, 255, 255, 0.12);
-  --surface-dock: rgba(28, 28, 30, 0.88);
-  --surface-card: #1F2937;
-  --border-subtle: rgba(255, 255, 255, 0.15);
-  --accent-primary: var(--fallback-p, oklch(var(--p)/1));
-}
-
-/* Black theme specifically defaults to Locket gold/amber */
+/* 1. Midnight Black */
+[data-theme="midnight-black"],
 [data-theme="black"] {
   --bg-app: #000000;
-  --text-primary: #ffffff;
-  --text-secondary: #9CA3AF;
   --surface-pill: rgba(255, 255, 255, 0.12);
-  --surface-dock: rgba(24, 24, 27, 0.90);
+  --surface-dock: rgba(255, 255, 255, 0.12);
   --surface-card: #18181b;
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --shutter-gradient: linear-gradient(135deg, #FFB800, #FF7A00);
+  --accent-primary: #FFB800;
   --border-subtle: rgba(255, 255, 255, 0.15);
-  --accent-primary: #f59e0b;
 }
 
-/* Explicit Light themes & Light mode */
-[data-theme="light"],
-[data-theme="bumblebee"],
-[data-theme="emerald"],
-[data-theme="autumn"],
-[data-theme="cupcake"],
-[data-theme="retro"],
-[data-theme="cyberpunk"],
-[data-theme="valentine"],
-[data-theme="garden"],
-[data-theme="aqua"],
-[data-theme="lofi"],
-[data-theme="pastel"],
-[data-theme="fantasy"],
-[data-theme="wireframe"],
-[data-theme="cmyk"],
-[data-theme="acid"],
-[data-theme="lemonade"],
-[data-theme="winter"],
-[data-theme="nord"],
-[data-theme="corporate"],
-[data-theme="silk"] {
-  --bg-app: var(--fallback-b1, oklch(var(--b1)/1));
-  --text-primary: #111111;
-  --text-secondary: #6B7280;
+/* 2. Crimson Wine (Đỏ rượu vang) */
+[data-theme="crimson-wine"] {
+  --bg-app: linear-gradient(180deg, #4A1525 0%, #260A12 100%);
+  --surface-pill: rgba(255, 255, 255, 0.12);
+  --surface-dock: rgba(255, 255, 255, 0.12);
+  --surface-card: rgba(255, 255, 255, 0.08);
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --shutter-gradient: linear-gradient(135deg, #FF2E93, #FF5E3A);
+  --accent-primary: #FF2E93;
+  --border-subtle: rgba(255, 255, 255, 0.15);
+}
+
+/* 3. Royal Purple (Tím mộng mơ) */
+[data-theme="royal-purple"] {
+  --bg-app: linear-gradient(180deg, #2D1B4E 0%, #160D29 100%);
+  --surface-pill: rgba(255, 255, 255, 0.12);
+  --surface-dock: rgba(255, 255, 255, 0.12);
+  --surface-card: rgba(255, 255, 255, 0.08);
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --shutter-gradient: linear-gradient(135deg, #C084FC, #EC4899);
+  --accent-primary: #C084FC;
+  --border-subtle: rgba(255, 255, 255, 0.15);
+}
+
+/* 4. Ocean Blue (Xanh biển sâu) */
+[data-theme="ocean-blue"] {
+  --bg-app: linear-gradient(180deg, #0F2942 0%, #071524 100%);
+  --surface-pill: rgba(255, 255, 255, 0.12);
+  --surface-dock: rgba(255, 255, 255, 0.12);
+  --surface-card: rgba(255, 255, 255, 0.08);
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --shutter-gradient: linear-gradient(135deg, #38BDF8, #3B82F6);
+  --accent-primary: #38BDF8;
+  --border-subtle: rgba(255, 255, 255, 0.15);
+}
+
+/* 5. Matcha Forest (Xanh rêu trầm) */
+[data-theme="matcha-forest"] {
+  --bg-app: linear-gradient(180deg, #143326 0%, #0A1A13 100%);
+  --surface-pill: rgba(255, 255, 255, 0.12);
+  --surface-dock: rgba(255, 255, 255, 0.12);
+  --surface-card: rgba(255, 255, 255, 0.08);
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --shutter-gradient: linear-gradient(135deg, #4ADE80, #10B981);
+  --accent-primary: #4ADE80;
+  --border-subtle: rgba(255, 255, 255, 0.15);
+}
+
+/* 6. Soft Pastel Pink (Hồng phấn sáng) */
+[data-theme="soft-pastel-pink"],
+[data-theme="light"] {
+  --bg-app: linear-gradient(180deg, #FFF0F5 0%, #FCE7F3 100%);
   --surface-pill: rgba(0, 0, 0, 0.06);
   --surface-dock: rgba(255, 255, 255, 0.85);
-  --surface-card: #F3F4F6;
+  --surface-card: #FFFFFF;
+  --text-primary: #18181B;
+  --text-secondary: #52525B;
+  --shutter-gradient: linear-gradient(135deg, #F472B6, #FB7185);
+  --accent-primary: #F472B6;
   --border-subtle: rgba(0, 0, 0, 0.08);
-  --accent-primary: var(--fallback-p, oklch(var(--p)/1));
 }
 
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme]) {
-    --bg-app: #ffffff;
-    --text-primary: #111111;
-    --text-secondary: #6B7280;
-    --surface-pill: rgba(0, 0, 0, 0.06);
-    --surface-dock: rgba(255, 255, 255, 0.85);
-    --surface-card: #F3F4F6;
-    --border-subtle: rgba(0, 0, 0, 0.08);
-    --accent-primary: #f59e0b;
-  }
-}
-
-body {
+html, body {
   color: var(--text-primary);
-  background-color: var(--bg-app);
+  background: var(--bg-app);
+  background-attachment: fixed;
   min-height: 100vh;
 }
 .no-save {

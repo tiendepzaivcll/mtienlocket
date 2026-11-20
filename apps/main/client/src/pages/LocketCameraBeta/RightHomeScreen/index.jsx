@@ -303,7 +303,8 @@ const RightHomeScreen = ({ setIsHomeOpen }) => {
     <>
       {/* ================= Conversation list ================= */}
       <div
-        className={`fixed inset-0 flex flex-col transition-transform duration-500 bg-[var(--bg-app)] overflow-hidden
+        style={{ background: "var(--bg-app)" }}
+        className={`fixed inset-0 flex flex-col transition-transform duration-500 overflow-hidden
         ${
           isHomeOpen
             ? selectedChat
@@ -312,7 +313,14 @@ const RightHomeScreen = ({ setIsHomeOpen }) => {
             : "translate-x-full"
         }`}
       >
-        <div className="sticky top-0 z-20 flex items-center justify-between px-4 py-2.5 bg-[var(--bg-app)]/85 backdrop-blur-md border-b border-[var(--border-subtle)] text-[var(--text-primary)]">
+        <div
+          style={{
+            background: "var(--surface-dock)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+          }}
+          className="sticky top-0 z-20 flex items-center justify-between px-4 py-2.5 border-b border-[var(--border-subtle)] text-[var(--text-primary)]"
+        >
           <button
             onClick={() => {
               setIsHomeOpen(false);

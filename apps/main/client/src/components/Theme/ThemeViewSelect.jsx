@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useTheme } from "@/hooks/useTheme";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { EffectCoverflow } from "swiper/modules";
+import { LOCKET_THEMES_INFO } from "./ThemeSelector";
 
 const ThemeSelector = () => {
   const { theme, changeTheme } = useTheme();
@@ -21,7 +22,7 @@ const ThemeSelector = () => {
   return (
     <div className="w-full flex justify-center overflow-hidden">
       <div className="h-full max-w-md">
-        <h1 className="font-lovehouse text-base-content text-center text-3xl font-semibold">
+        <h1 className="font-lovehouse text-[var(--text-primary)] text-center text-3xl font-semibold">
           Setting Theme
         </h1>
 
@@ -30,7 +31,7 @@ const ThemeSelector = () => {
           modules={[EffectCoverflow]}
           effect={"coverflow"}
           onSwiper={setSwiper}
-          initialSlide={activeIndex}
+          initialSlide={activeIndex >= 0 ? activeIndex : 0}
           centeredSlides={true}
           coverflowEffect={{
             rotate: 50,
@@ -45,6 +46,12 @@ const ThemeSelector = () => {
         >
           {CONFIG.ui.themes.map((t) => {
             const isActive = theme === t;
+            const info = LOCKET_THEMES_INFO[t] || {
+              name: t,
+              primary: "#FFB800",
+              shutterGradient: "linear-gradient(135deg, #FFB800, #FF7A00)",
+              bg: "#000000",
+            };
 
             return (
               <SwiperSlide key={t}>
@@ -53,55 +60,58 @@ const ThemeSelector = () => {
                     changeTheme(t);
                   }}
                   data-theme={t}
+                  style={{ background: info.bg }}
                   className={`relative 
                     flex flex-col justify-between items-center
-                    aspect-[9/16] gap-3 space-y-3 w-full py-1
-                    rounded-3xl
-                    bg-base-100
-                    transition-all duration-300
+                    aspect-[9/16] gap-3 space-y-3 w-full py-1.5
+                    rounded-3xl cursor-pointer
+                    transition-all duration-300 border border-white/10
                     ${
                       isActive
-                        ? "outline-2 outline-primary scale-95 opacity-80"
-                        : "cursor-not-allowed"
+                        ? "ring-2 ring-[var(--accent-primary)] scale-100 shadow-xl opacity-100"
+                        : "opacity-75 hover:opacity-100 scale-95"
                     }
                   `}
                 >
                   {/* ===== TOP BAR ===== */}
                   <div className="w-full flex flex-row justify-between items-center p-2 relative">
-                    <div className="w-6 h-6 bg-base-300 rounded-full" />
-                    <div className="absolute mx-auto left-1/2 -translate-x-1/2 w-20 h-6 rounded-2xl bg-base-300" />
+                    <div className="w-6 h-6 rounded-full bg-white/15" />
+                    <div className="absolute mx-auto left-1/2 -translate-x-1/2 w-20 h-6 rounded-2xl bg-white/15" />
                     <div className="flex flex-row gap-1">
-                      <div className="w-6 h-6 bg-base-300 rounded-full" />
-                      <div className="w-6 h-6 bg-base-300 rounded-full" />
+                      <div className="w-6 h-6 rounded-full bg-white/15" />
+                      <div className="w-6 h-6 rounded-full bg-white/15" />
                     </div>
                   </div>
 
                   {/* ===== MAIN CONTENT ===== */}
-                  <div className="w-full aspect-square bg-base-200 rounded-4xl" />
+                  <div className="w-[85%] aspect-square bg-white/10 rounded-3xl border border-white/10" />
 
                   {/* ===== ACTION BAR ===== */}
                   <div className="w-full flex flex-row justify-between items-center px-6">
-                    <div className="w-6 h-6 bg-base-300 rounded-full" />
-                    <div className="w-9 h-9 rounded-full ring-2 text-primary flex items-center justify-center">
-                      <div className="w-8 h-8 rounded-full camera-inner-circle" />
+                    <div className="w-6 h-6 rounded-full bg-white/15" />
+                    <div
+                      className="w-9 h-9 rounded-full flex items-center justify-center p-[2px] shadow-sm"
+                      style={{ background: info.shutterGradient }}
+                    >
+                      <div className="w-full h-full rounded-full bg-white" />
                     </div>
-                    <div className="w-6 h-6 bg-base-300 rounded-full" />
+                    <div className="w-6 h-6 rounded-full bg-white/15" />
                   </div>
 
                   {/* ===== BOTTOM INFO ===== */}
                   <div className="flex flex-row gap-1 items-center justify-center p-1">
-                    <div className="w-4 h-4 rounded-2xl bg-base-300" />
-                    <div className="w-10 h-4 rounded-2xl bg-base-300" />
+                    <div className="w-4 h-4 rounded-2xl bg-white/15" />
+                    <div className="w-10 h-4 rounded-2xl bg-white/15" />
                   </div>
-                  <div className="h-[3px] bg-base-300 w-15 rounded-2xl"></div>
+                  <div className="h-[3px] bg-white/20 w-15 rounded-2xl"></div>
                 </div>
                 {/* ===== THEME NAME ===== */}
                 <div
                   className={`mt-2 text-center text-sm font-semibold ${
-                    isActive ? "text-primary" : "text-base-content/70"
+                    isActive ? "text-[var(--accent-primary)]" : "text-[var(--text-secondary)]"
                   }`}
                 >
-                  {t}
+                  {info.name}
                 </div>
               </SwiperSlide>
             );

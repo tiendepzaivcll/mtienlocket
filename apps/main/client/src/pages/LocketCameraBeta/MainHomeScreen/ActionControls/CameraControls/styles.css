@@ -1,19 +1,23 @@
 .border-camera-custome {
-  box-shadow: 0 0 0 5px currentColor;
+  box-sizing: border-box;
+  border: 5px solid transparent;
+  background: var(--shutter-gradient) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
 }
 
 @keyframes borderExpand {
   0%,
   100% {
-    box-shadow: 0 0 0 5px currentColor;
-    opacity: 0.8;
+    transform: scale(1);
+    opacity: 0.85;
   }
   50% {
-    box-shadow: 0 0 0 7px currentColor;
+    transform: scale(1.08);
     opacity: 1;
   }
 }
 .animate-borderExpand {
-  box-shadow: 0 0 0 5px currentColor;
   animation: borderExpand 1s infinite ease-in-out;
 }
