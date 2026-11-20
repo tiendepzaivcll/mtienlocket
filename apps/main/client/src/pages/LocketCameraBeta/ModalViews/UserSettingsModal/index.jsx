@@ -19,6 +19,7 @@ import {
   MessageCircle,
   ShieldCheck,
   ChevronRight,
+  ChevronLeft,
   Copy,
   Check,
   Crown,
@@ -36,9 +37,10 @@ import { useAuthStore, useUploadQueueStore } from "@/stores";
 import { useApp } from "@/context/AppContext";
 import { useTheme } from "@/hooks/useTheme";
 import { getAvatarSource, handleAvatarError } from "@/utils/avatar";
+import { setPWAIcon, updateFavicons } from "@/utils";
 import { SonnerSuccess, SonnerError } from "@/components/ui/SonnerToast";
 import ThemeSelector from "@/components/Theme/ThemeSelector";
-import AppIconModal, { APP_ICONS } from "../AppIconModal";
+import { APP_ICONS } from "../AppIconModal";
 import {
   getSavedAccounts,
   removeAccountFromPool,
@@ -105,21 +107,40 @@ export default function UserSettingsModal({ isOpen, onClose }) {
 
   const [copiedUid, setCopiedUid] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
-  const [showAppIconModal, setShowAppIconModal] = useState(false);
+  const [currentView, setCurrentView] = useState("main"); // "main" | "appIcon"
   const [showNameModal, setShowNameModal] = useState(false);
   const [currentAppIcon, setCurrentAppIcon] = useState(
     () => localStorage.getItem("pwa_icon") || "3D-heart-gold"
   );
   const currentIconObj = APP_ICONS.find((i) => i.id === currentAppIcon) || APP_ICONS[0];
 
+  const domain =
+    typeof window !== "undefined" && window.location?.host
+      ? window.location.host
+      : "locket-pro.online";
+
   const handleAppIconClick = (e) => {
-    e?.stopPropagation?.();
     e?.preventDefault?.();
-    setShowAppIconModal(true);
+    e?.stopPropagation?.();
+    setCurrentView("appIcon");
+  };
+
+  const handleSelectAppIcon = (iconId) => {
+    setCurrentAppIcon(iconId);
+    try {
+      localStorage.setItem("pwa_icon", iconId);
+      setPWAIcon(iconId);
+      updateFavicons(iconId);
+    } catch (err) {
+      console.warn("Could not update icon:", err);
+    }
+    const iconName = APP_ICONS.find((i) => i.id === iconId)?.name || iconId;
+    SonnerSuccess("Đã chọn biểu tượng!", `Đã áp dụng "${iconName}"`);
   };
 
   useEffect(() => {
     if (isOpen) {
+      setCurrentView("main");
       setCurrentAppIcon(localStorage.getItem("pwa_icon") || "3D-heart-gold");
       setSavedAccounts(getSavedAccounts());
       navigation?.setSettingTabOpen?.(true);
@@ -242,7 +263,37 @@ export default function UserSettingsModal({ isOpen, onClose }) {
         }}
       >
         {/* Header */}
-        {!isAuth || !user?.uid ? (
+        {currentView === "appIcon" ? (
+          <div
+            className="flex items-center justify-between px-5 pb-4 border-b border-white/10 shrink-0"
+            style={{ paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}
+          >
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setCurrentView("main");
+              }}
+              className="flex items-center gap-1.5 text-xs font-semibold text-amber-400 hover:text-amber-300 py-1.5 px-3 rounded-xl bg-white/[0.06] hover:bg-white/10 transition active:scale-95 cursor-pointer"
+            >
+              <ChevronLeft size={16} />
+              <span>Cài đặt</span>
+            </button>
+            <h2 className="text-base font-bold text-white tracking-wide">
+              Biểu tượng ứng dụng
+            </h2>
+            <button
+              onClick={onClose}
+              disabled={Boolean(sessionAction)}
+              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-gray-200 hover:text-white transition cursor-pointer shrink-0"
+              aria-label="Đóng Cài đặt"
+              title="Đóng"
+            >
+              <X size={20} strokeWidth={2.4} />
+            </button>
+          </div>
+        ) : !isAuth || !user?.uid ? (
           <div
             className="p-5 sm:p-6 border-b border-white/10 shrink-0 bg-white/[0.02]"
             style={{ paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}
@@ -315,7 +366,103 @@ export default function UserSettingsModal({ isOpen, onClose }) {
         )}
 
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5 pb-[max(5rem,calc(env(safe-area-inset-bottom)+3.5rem))]">
+        {currentView === "appIcon" ? (
+          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5 pb-[max(5rem,calc(env(safe-area-inset-bottom)+3.5rem))]">
+            {/* Active Icon Preview */}
+            <div className="flex flex-col items-center justify-center pt-2 pb-1 text-center">
+              <div className="w-20 h-20 rounded-2xl shadow-xl ring-2 ring-amber-400/40 overflow-hidden mb-2.5 bg-black/40">
+                <img
+                  src={`/pwa-icons/${currentIconObj.id}/android-chrome-192x192.png`}
+                  alt={currentIconObj.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <h3 className="text-base font-bold text-white">{currentIconObj.name}</h3>
+              <p className="text-xs text-amber-300/80 mt-0.5">
+                {currentIconObj.description}
+              </p>
+            </div>
+
+            {/* PWA Note for iOS */}
+            <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-3.5 text-xs text-amber-200/90 leading-relaxed space-y-1">
+              <p className="font-bold text-amber-300 flex items-center gap-1.5">
+                <span>💡 Lưu ý cho Màn hình chính (PWA):</span>
+              </p>
+              <p className="text-gray-300 text-[11.5px]">
+                Biểu tượng trên Màn hình chính do hệ điều hành iOS ghim cố định khi bấm "Thêm vào MH chính". Để cập nhật biểu tượng mới ra Màn hình chính iPhone: Hãy mở trang web trên Safari ➔ chọn biểu tượng bạn thích ➔ bấm Chia sẻ ➔ chọn "Thêm vào MH chính".
+              </p>
+            </div>
+
+            {/* 3-column Grid of Icons */}
+            <div>
+              <div className="flex items-center justify-between px-1 mb-2.5">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                  Chọn biểu tượng ({APP_ICONS.length})
+                </span>
+                <span className="text-[11px] text-amber-400 font-medium">
+                  Chạm để đổi ngay
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                {APP_ICONS.map((icon) => {
+                  const isSelected = currentAppIcon === icon.id;
+                  return (
+                    <button
+                      key={icon.id}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleSelectAppIcon(icon.id);
+                      }}
+                      className={`relative p-3 rounded-2xl border flex flex-col items-center gap-2 transition active:scale-95 cursor-pointer text-center ${
+                        isSelected
+                          ? "bg-amber-400/15 border-amber-400/60 shadow-lg shadow-amber-400/15 ring-1 ring-amber-400/50"
+                          : "bg-white/[0.04] border-white/10 hover:bg-white/[0.08] hover:border-white/20"
+                      }`}
+                    >
+                      {isSelected && (
+                        <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-amber-400 text-black flex items-center justify-center shadow-md">
+                          <Check size={12} strokeWidth={3} />
+                        </span>
+                      )}
+                      <div className="w-14 h-14 rounded-xl overflow-hidden shadow-md ring-1 ring-white/15 shrink-0 bg-black/30">
+                        <img
+                          src={`/pwa-icons/${icon.id}/android-chrome-192x192.png`}
+                          alt={icon.name}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                      <span className="text-xs font-semibold text-white/95 line-clamp-1">
+                        {icon.name}
+                      </span>
+                      <span className="text-[10px] text-gray-400 line-clamp-1">
+                        {icon.description}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Done button */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setCurrentView("main");
+                }}
+                className="w-full py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-bold text-sm transition active:scale-[0.98] shadow-lg shadow-amber-400/20 cursor-pointer"
+              >
+                Xong
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5 pb-[max(5rem,calc(env(safe-area-inset-bottom)+3.5rem))]">
           {/* Section: Chuyển đổi tài khoản (Account Switcher) */}
           <div>
             <div className="flex items-center justify-between px-2 mb-2">
@@ -1039,6 +1186,7 @@ export default function UserSettingsModal({ isOpen, onClose }) {
             </div>
           )}
         </div>
+      )}
       </div>
 
       {/* Modal Sửa Tên Nhanh */}
@@ -1079,15 +1227,6 @@ export default function UserSettingsModal({ isOpen, onClose }) {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Modal Đổi Biểu Tượng Ứng Dụng */}
-      {showAppIconModal && (
-        <AppIconModal
-          isOpen={showAppIconModal}
-          onClose={() => setShowAppIconModal(false)}
-          onIconChange={(iconId) => setCurrentAppIcon(iconId)}
-        />
       )}
     </div>,
     document.body
