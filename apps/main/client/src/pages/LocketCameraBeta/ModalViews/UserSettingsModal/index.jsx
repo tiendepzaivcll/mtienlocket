@@ -62,6 +62,11 @@ export default function UserSettingsModal({ isOpen, onClose }) {
     hasUsedTrial,
     refreshAccessRole,
   } = useAuthStore();
+  const isLifetimeVip = Boolean(
+    vipPlanId === "vip_lifetime" ||
+      !vipExpireAt ||
+      (typeof vipPlanName === "string" && /vĩnh viễn|trọn đời|lifetime|permanent/i.test(vipPlanName))
+  );
   const { camera, useloading, navigation } = useApp();
   const isPWA =
     Boolean(navigation?.isPWA) ||
@@ -948,18 +953,18 @@ export default function UserSettingsModal({ isOpen, onClose }) {
                             {vipPlanName || "VIP"}
                           </p>
                           <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                            {vipPlanId === "vip_lifetime" || !vipExpireAt ? "👑 Trọn đời" : "Đang hoạt động"}
+                            {isLifetimeVip ? "👑 Trọn đời" : "Đang hoạt động"}
                           </span>
                         </div>
                         <p className="text-xs text-amber-200/60 mt-0.5">
-                          {vipPlanId === "vip_lifetime" || !vipExpireAt
+                          {isLifetimeVip
                             ? "Đặc quyền VIP trọn đời không giới hạn"
                             : "Thành viên cao cấp"}
                         </p>
                       </div>
                     </div>
 
-                    {vipExpireAt ? (
+                    {!isLifetimeVip && vipExpireAt ? (
                       <>
                         <div className="h-px bg-amber-500/15" />
                         <div className="flex items-center gap-3">
@@ -994,6 +999,21 @@ export default function UserSettingsModal({ isOpen, onClose }) {
                             </p>
                           </div>
                         </div>
+
+                        {/* Nút Gia hạn gói VIP theo đúng quy tắc: full width, gradient hổ phách, icon vương miện */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onClose();
+                            navigation?.setSettingTabOpen?.(false);
+                            navigate("/pricing?tab=vip");
+                          }}
+                          className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 active:scale-[0.98] text-black shadow-md flex items-center justify-center gap-2 transition cursor-pointer"
+                          aria-label="Gia hạn gói VIP"
+                        >
+                          <Crown size={18} strokeWidth={2.4} className="shrink-0" />
+                          <span>👑 Gia hạn gói VIP</span>
+                        </button>
                       </>
                     ) : (
                       <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-2.5 text-xs text-amber-200 flex items-center gap-2">
