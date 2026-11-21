@@ -299,58 +299,32 @@ export default function UserSettingsModal({ isOpen, onClose }) {
           color: "#e6edf3",
         }}
       >
-        {/* Header */}
-        {currentView === "appIcon" ? (
-          <div
-            className="flex items-center justify-between px-5 pb-4 border-b border-white/10 shrink-0"
-            style={{ paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}
-          >
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setCurrentView("main");
-              }}
-              className="flex items-center gap-1.5 text-xs font-semibold text-amber-400 hover:text-amber-300 py-1.5 px-3 rounded-xl bg-white/[0.06] hover:bg-white/10 transition active:scale-95 cursor-pointer"
+        {/* Header: Giữ nguyên 100% bản PWA và thêm thanh tiêu đề cố định (sticky top-0 z-20) cho web thường */}
+        {isPWA ? (
+          /* Chế độ PWA (.is-pwa): Giữ nguyên 100% giao diện đã hoàn thiện */
+          currentView === "appIcon" ? (
+            <div
+              className="flex items-center justify-between px-5 pb-4 border-b border-white/10 shrink-0"
+              style={{ paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}
             >
-              <ChevronLeft size={16} />
-              <span>Cài đặt</span>
-            </button>
-            <h2 className="text-base font-bold text-white tracking-wide">
-              Biểu tượng ứng dụng
-            </h2>
-            <button
-              onClick={onClose}
-              disabled={Boolean(sessionAction)}
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-gray-200 hover:text-white transition cursor-pointer shrink-0"
-              aria-label="Đóng Cài đặt"
-              title="Đóng"
-            >
-              <X size={20} strokeWidth={2.4} />
-            </button>
-          </div>
-        ) : !isAuth || !user?.uid ? (
-          <div
-            className="p-5 sm:p-6 border-b border-white/10 shrink-0 bg-white/[0.02]"
-            style={{ paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center text-gray-300 border border-white/10 shadow-sm">
-                  <User size={22} />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-white leading-tight">
-                    Chưa đăng nhập
-                  </h2>
-                  <p className="text-xs text-gray-400">
-                    Đăng nhập để xem khoảnh khắc & bạn bè
-                  </p>
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setCurrentView("main");
+                }}
+                className="flex items-center gap-1.5 text-xs font-semibold text-amber-400 hover:text-amber-300 py-1.5 px-3 rounded-xl bg-white/[0.06] hover:bg-white/10 transition active:scale-95 cursor-pointer"
+              >
+                <ChevronLeft size={16} />
+                <span>Cài đặt</span>
+              </button>
+              <h2 className="text-base font-bold text-white tracking-wide">
+                Biểu tượng ứng dụng
+              </h2>
               <button
                 onClick={onClose}
+                disabled={Boolean(sessionAction)}
                 className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-gray-200 hover:text-white transition cursor-pointer shrink-0"
                 aria-label="Đóng Cài đặt"
                 title="Đóng"
@@ -358,48 +332,161 @@ export default function UserSettingsModal({ isOpen, onClose }) {
                 <X size={20} strokeWidth={2.4} />
               </button>
             </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                navigate("/login");
-              }}
-              className="w-full mt-3.5 py-3 px-4 rounded-2xl bg-amber-400 hover:bg-amber-300 active:scale-[0.98] text-black font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-400/20 transition cursor-pointer"
+          ) : !isAuth || !user?.uid ? (
+            <div
+              className="p-5 sm:p-6 border-b border-white/10 shrink-0 bg-white/[0.02]"
+              style={{ paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}
             >
-              <LogIn size={18} />
-              Đăng nhập tài khoản Locket
-            </button>
-          </div>
-        ) : (
-          <div
-            className="flex items-center justify-between px-6 pb-4 border-b border-white/10 shrink-0"
-            style={{ paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}
-          >
-            <div className="flex items-center gap-3">
-              <img
-                src={getAvatarSource(user)}
-                alt="avatar"
-                onError={handleAvatarError}
-                className="w-10 h-10 rounded-full object-cover border-2 border-primary/50 shadow-sm"
-              />
-              <div>
-                <h2 className="text-base font-bold text-white leading-tight">
-                  {displayName}
-                </h2>
-                <p className="text-xs text-gray-400">@{user?.username || "locket"}</p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center text-gray-300 border border-white/10 shadow-sm">
+                    <User size={22} />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-white leading-tight">
+                      Chưa đăng nhập
+                    </h2>
+                    <p className="text-xs text-gray-400">
+                      Đăng nhập để xem khoảnh khắc & bạn bè
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-gray-200 hover:text-white transition cursor-pointer shrink-0"
+                  aria-label="Đóng Cài đặt"
+                  title="Đóng"
+                >
+                  <X size={20} strokeWidth={2.4} />
+                </button>
               </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  navigate("/login");
+                }}
+                className="w-full mt-3.5 py-3 px-4 rounded-2xl bg-amber-400 hover:bg-amber-300 active:scale-[0.98] text-black font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-400/20 transition cursor-pointer"
+              >
+                <LogIn size={18} />
+                Đăng nhập tài khoản Locket
+              </button>
             </div>
-            <button
-              onClick={onClose}
-              disabled={Boolean(sessionAction)}
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-gray-200 hover:text-white transition cursor-pointer shrink-0"
-              aria-label="Đóng Cài đặt"
-              title="Đóng"
+          ) : (
+            <div
+              className="flex items-center justify-between px-6 pb-4 border-b border-white/10 shrink-0"
+              style={{ paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}
             >
-              <X size={20} strokeWidth={2.4} />
-            </button>
-          </div>
+              <div className="flex items-center gap-3">
+                <img
+                  src={getAvatarSource(user)}
+                  alt="avatar"
+                  onError={handleAvatarError}
+                  className="w-10 h-10 rounded-full object-cover border-2 border-primary/50 shadow-sm"
+                />
+                <div>
+                  <h2 className="text-base font-bold text-white leading-tight">
+                    {displayName}
+                  </h2>
+                  <p className="text-xs text-gray-400">@{user?.username || "locket"}</p>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                disabled={Boolean(sessionAction)}
+                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-gray-200 hover:text-white transition cursor-pointer shrink-0"
+                aria-label="Đóng Cài đặt"
+                title="Đóng"
+              >
+                <X size={20} strokeWidth={2.4} />
+              </button>
+            </div>
+          )
+        ) : (
+          /* Chế độ trình duyệt web thường: Thanh tiêu đề cố định ở trên cùng (sticky top-0 z-20) có nút X tròn rõ ràng */
+          <>
+            <div className="sticky top-0 z-20 flex items-center justify-between px-5 py-3 border-b border-white/10 bg-[#161b24]/95 backdrop-blur-md shrink-0 shadow-sm">
+              <div className="flex items-center gap-2.5">
+                {currentView === "appIcon" ? (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setCurrentView("main");
+                    }}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-amber-400 hover:text-amber-300 py-1.5 px-3 rounded-xl bg-white/[0.06] hover:bg-white/10 transition active:scale-95 cursor-pointer"
+                  >
+                    <ChevronLeft size={16} />
+                    <span>Cài đặt</span>
+                  </button>
+                ) : (
+                  <h2 className="text-base font-bold text-white tracking-wide">
+                    Cài đặt tài khoản
+                  </h2>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={Boolean(sessionAction)}
+                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-gray-200 hover:text-white transition cursor-pointer shrink-0 border border-white/15 shadow-sm"
+                aria-label="Thu/đóng Cài đặt"
+                title="Đóng Cài đặt"
+              >
+                <X size={20} strokeWidth={2.4} />
+              </button>
+            </div>
+
+            {currentView === "main" && (
+              !isAuth || !user?.uid ? (
+                <div className="p-4 sm:p-5 border-b border-white/10 shrink-0 bg-white/[0.02]">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-gray-300 border border-white/10 shadow-sm">
+                      <User size={20} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white leading-tight">
+                        Chưa đăng nhập
+                      </h3>
+                      <p className="text-xs text-gray-400">
+                        Đăng nhập để xem khoảnh khắc & bạn bè
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      navigate("/login");
+                    }}
+                    className="w-full mt-3 py-2.5 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-[0.98] text-black font-bold text-sm flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
+                  >
+                    <LogIn size={16} />
+                    Đăng nhập tài khoản Locket
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/10 shrink-0 bg-white/[0.02]">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={getAvatarSource(user)}
+                      alt="avatar"
+                      onError={handleAvatarError}
+                      className="w-10 h-10 rounded-full object-cover border-2 border-primary/50 shadow-sm"
+                    />
+                    <div>
+                      <h3 className="text-sm font-bold text-white leading-tight">
+                        {displayName}
+                      </h3>
+                      <p className="text-xs text-gray-400">@{user?.username || "locket"}</p>
+                    </div>
+                  </div>
+                </div>
+              )
+            )}
+          </>
         )}
 
         {/* Scrollable Body */}
