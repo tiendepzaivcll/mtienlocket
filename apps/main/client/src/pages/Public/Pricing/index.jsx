@@ -15,13 +15,17 @@ import {
   Loader2,
   Star,
   Zap,
-  ArrowLeft,
   User,
   AtSign,
   Wrench,
   Gift,
   AlertCircle,
+  Search,
+  ArrowRight,
+  Menu,
+  ShieldCheck,
   Clock,
+  ExternalLink,
 } from "lucide-react";
 import { instanceMain } from "@/libs/instanceMain";
 import {
@@ -30,17 +34,18 @@ import {
   SonnerError,
 } from "@/components/ui/SonnerToast";
 import { useAuthStore } from "@/stores/AuthStore";
+import "./pricing-gold.css";
 
 const DEFAULT_VIP_PLANS = [
-  { id: "vip_1month", name: "VIP 1 Tháng", price: 15000, days: 30, bonusAiCredits: 1, badge: null, category: "vip" },
-  { id: "vip_6months", name: "VIP 6 Tháng", price: 79000, days: 180, bonusAiCredits: 3, badge: "Phổ biến", category: "vip" },
-  { id: "vip_1year", name: "VIP 1 Năm", price: 139000, days: 365, bonusAiCredits: 8, badge: "Tiết kiệm", category: "vip" },
+  { id: "vip_1month", name: "VIP 1 Tháng", price: 15000, days: 30, bonusAiCredits: 1, badge: null, category: "vip", description: "Trải nghiệm đầy đủ tính năng VIP cơ bản cho 1 tháng" },
+  { id: "vip_6months", name: "VIP 6 Tháng", price: 79000, days: 180, bonusAiCredits: 3, badge: "Phổ biến", category: "vip", description: "Lựa chọn được ưa chuộng nhất, tiết kiệm chi phí dài hạn" },
+  { id: "vip_1year", name: "VIP 1 Năm", price: 139000, days: 365, bonusAiCredits: 8, badge: "Tiết kiệm", category: "vip", description: "Trọn vẹn 365 ngày VIP không giới hạn với ưu đãi tốt nhất" },
 ];
 
 const DEFAULT_AI_PLANS = [
-  { id: "ai_10k", name: "Gói 15 Ảnh", price: 10000, credits: 15, buttonText: "15 ảnh", description: "Gói trải nghiệm 15 lượt tạo ảnh AI", badge: null, category: "ai_filter" },
-  { id: "ai_20k", name: "Gói 35 Ảnh", price: 20000, credits: 35, buttonText: "30 + 5 ảnh", description: "Gói tiêu chuẩn 35 lượt tạo ảnh AI (30 + 5)", badge: "Phổ biến", category: "ai_filter" },
-  { id: "ai_40k", name: "Gói 70 Ảnh", price: 40000, credits: 70, buttonText: "60 + 10 ảnh", description: "Gói cao cấp 70 lượt tạo ảnh AI (60 + 10)", badge: "Tiết kiệm", category: "ai_filter" },
+  { id: "ai_10k", name: "Gói 15 Ảnh", price: 10000, credits: 15, buttonText: "15 ảnh", description: "Gói trải nghiệm 15 lượt tạo ảnh AI Filter nghệ thuật", badge: null, category: "ai_filter" },
+  { id: "ai_20k", name: "Gói 35 Ảnh", price: 20000, credits: 35, buttonText: "30 + 5 ảnh", description: "Gói tiêu chuẩn 35 lượt tạo ảnh AI (30 + 5 tặng kèm)", badge: "Phổ biến", category: "ai_filter" },
+  { id: "ai_40k", name: "Gói 70 Ảnh", price: 40000, credits: 70, buttonText: "60 + 10 ảnh", description: "Gói cao cấp 70 lượt tạo ảnh AI (60 + 10 tặng kèm)", badge: "Tiết kiệm", category: "ai_filter" },
 ];
 
 const FEATURE_ROWS = [
@@ -53,6 +58,29 @@ const FEATURE_ROWS = [
   { icon: Wrench, label: "Công cụ Locket", free: false, vip: true, isBoolean: true },
   { icon: Eye, label: "Trạng thái đã xem", free: false, vip: true, isBoolean: true },
   { icon: Wand2, label: "Bộ lọc AI (AI Filter)", free: "Khóa", vip: "Được mua & Dùng", isAddon: true },
+];
+
+const FAQ_LIST = [
+  {
+    q: "Avatar và thương hiệu MTIEN có bị thay đổi không?",
+    a: "Không. Website giữ nguyên logo, thương hiệu MTIEN và nhận diện gốc của hệ thống.",
+  },
+  {
+    q: "Tôi cần chuẩn bị gì để nâng cấp Locket VIP?",
+    a: "Bạn chỉ cần nhập đúng username Locket của mình. Hệ thống tuyệt đối không yêu cầu mật khẩu hay bất kỳ thông tin đăng nhập riêng tư nào.",
+  },
+  {
+    q: "Sau khi chuyển khoản qua PayOS, kích hoạt mất bao lâu?",
+    a: "Hệ thống kết nối trực tiếp với cổng PayOS. Đơn hàng được tự động xác nhận và kích hoạt tài khoản chỉ sau 3-5 giây kể từ khi chuyển khoản thành công.",
+  },
+  {
+    q: "Tôi đã có gói VIP, nếu mua thêm thì có bị mất ngày cũ không?",
+    a: "Không bao giờ mất! Thời hạn của gói mới sẽ được tự động CỘNG DỒN nối tiếp vào số ngày VIP hiện tại của bạn.",
+  },
+  {
+    q: "Lượt tạo ảnh AI Filter có thời hạn sử dụng không?",
+    a: "Lượt tạo ảnh AI Filter được lưu trữ vĩnh viễn trong tài khoản cho đến khi bạn sử dụng hết.",
+  },
 ];
 
 export default function PricingPage() {
@@ -68,7 +96,6 @@ export default function PricingPage() {
     vipExpireAt: storeVipExpireAt,
     refreshAccessRole,
   } = useAuthStore();
-  const aiSectionRef = useRef(null);
 
   const [plans, setPlans] = useState([]);
   const [aiPlans, setAiPlans] = useState([]);
@@ -78,10 +105,21 @@ export default function PricingPage() {
   const [username, setUsername] = useState("");
   const [remoteVipInfo, setRemoteVipInfo] = useState(null);
   const [pendingUpgradeModal, setPendingUpgradeModal] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [openFaqIndex, setOpenFaqIndex] = useState(0);
+
+  // Tra cứu đơn hàng
+  const [lookupQuery, setLookupQuery] = useState("");
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupResult, setLookupResult] = useState(null);
+
   const [activeTab, setActiveTab] = useState(() => {
     const params = new URLSearchParams(location.search);
     return params.get("tab") === "ai" ? "ai" : "vip";
   });
+
+  const usernameInputRef = useRef(null);
+  const lookupInputRef = useRef(null);
 
   // Đồng bộ thông tin VIP của username (ưu tiên thông tin từ AuthStore nếu là chính user đó)
   useEffect(() => {
@@ -171,10 +209,37 @@ export default function PricingPage() {
     }
   };
 
+  const scrollToSection = (id) => {
+    setMobileMenuOpen(false);
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const focusUsernameInput = () => {
+    scrollToSection("products");
+    setTimeout(() => {
+      if (usernameInputRef.current) {
+        usernameInputRef.current.focus();
+      }
+    }, 450);
+  };
+
+  const focusLookupInput = () => {
+    scrollToSection("lookup");
+    setTimeout(() => {
+      if (lookupInputRef.current) {
+        lookupInputRef.current.focus();
+      }
+    }, 450);
+  };
+
   const handleClaimTrial = async () => {
     const trimmed = username.trim().replace(/^@+/, "");
     if (!trimmed) {
       SonnerWarning("Vui lòng nhập username Locket của bạn");
+      focusUsernameInput();
       return;
     }
     setClaimingTrial(true);
@@ -200,6 +265,7 @@ export default function PricingPage() {
     const trimmed = username.trim().replace(/^@+/, "");
     if (!trimmed) {
       SonnerWarning("Vui lòng nhập tên người dùng Locket của bạn");
+      focusUsernameInput();
       return;
     }
     setCreating(planId);
@@ -221,18 +287,19 @@ export default function PricingPage() {
       SonnerWarning(msg);
     } finally {
       setCreating(null);
+      setPendingUpgradeModal(null);
     }
   };
 
   const onVipPlanClick = (plan) => {
     const trimmed = username.trim().replace(/^@+/, "");
     if (!trimmed) {
-      SonnerWarning("Vui lòng nhập tên người dùng Locket của bạn");
+      SonnerWarning("Vui lòng nhập tên người dùng Locket của bạn để tiếp tục");
+      focusUsernameInput();
       return;
     }
 
     if (isVip) {
-      // Khách hàng ĐÃ CÓ VIP -> Hiển thị popup hỏi xác nhận nâng cấp hoặc chuyển gói!
       const currentName = currentVip?.vipPlanName || "VIP";
       const isSamePlan =
         plan.id === currentVip?.vipPlanId ||
@@ -252,548 +319,883 @@ export default function PricingPage() {
       return;
     }
 
-    // Chưa có VIP -> Tạo đơn thanh toán trực tiếp
     handlePurchase(plan.id);
   };
 
-  const renderVipPlans = () => (
-    <div className="space-y-4">
-      {/* Banner thông báo nếu khách ĐÃ CÓ VIP */}
-      {isVip && (
-        <div className="rounded-2xl bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-amber-500/20 border border-purple-500/40 p-4 space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="p-1.5 rounded-lg bg-amber-400/20 text-amber-300">
-                <Crown size={16} />
-              </span>
-              <div>
-                <span className="text-xs text-purple-200/80">Gói hiện tại của bạn:</span>
-                <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-                  {currentVip?.vipPlanName || "VIP"}
-                  {isLifetimeVip && (
-                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-amber-400 text-black font-extrabold">
-                      Vĩnh viễn
-                    </span>
-                  )}
-                </h4>
-              </div>
-            </div>
-            <div className="text-right">
-              <span className="text-[11px] text-gray-400 block">Thời hạn còn</span>
-              <span className="text-xs font-bold text-amber-300">
-                {isLifetimeVip ? "Vô thời hạn" : `${remainingDays || 0} ngày`}
-              </span>
-            </div>
-          </div>
-          <p className="text-[11px] text-gray-300">
-            💡 Bạn có thể gia hạn thêm hoặc chuyển lên gói dài hạn hơn bất cứ lúc nào — thời gian VIP sẽ được <strong>cộng dồn tiếp tục</strong>!
-          </p>
-        </div>
-      )}
+  const handleLookupSubmit = async (e) => {
+    e.preventDefault();
+    const q = lookupQuery.trim().replace(/^@+/, "");
+    if (!q) {
+      SonnerWarning("Vui lòng nhập mã đơn hàng PayOS hoặc Username Locket");
+      return;
+    }
 
-      {/* Gói dùng thử 1 ngày (0đ) */}
-      <div className="relative rounded-2xl p-[2px] bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 transition-all">
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-          <span className="flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-bold bg-emerald-500 text-black shadow-md">
-            <Gift className="w-3 h-3" />
-            DÙNG THỬ 0Đ
-          </span>
-        </div>
-        <div className="rounded-2xl p-5 bg-gray-900">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h3 className="text-lg font-bold flex items-center gap-1.5 text-emerald-300">
-                <Crown className="w-4 h-4 text-emerald-400" />
-                VIP Dùng thử (1 Ngày)
-              </h3>
-              <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-2xl font-extrabold text-emerald-400">0đ</span>
-                <span className="text-xs text-gray-400">/ 24 giờ</span>
-              </div>
-              <p className="text-xs text-emerald-200/80 mt-1">
-                Mở full tính năng VIP + 🎁 <strong>Tặng 1 ảnh AI</strong>
-              </p>
-              <p className="text-[11px] text-gray-400 mt-0.5 italic">
-                * Mỗi tài khoản Locket chỉ được nhận 1 lần duy nhất
-              </p>
-            </div>
+    setLookupLoading(true);
+    setLookupResult(null);
 
-            <button
-              onClick={handleClaimTrial}
-              disabled={claimingTrial || hasUsedTrial}
-              className="px-4 py-2.5 rounded-xl font-bold text-xs transition-all shrink-0 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-black shadow-md disabled:opacity-50"
-            >
-              {claimingTrial ? (
-                <Loader2 className="w-4 h-4 animate-spin mx-auto" />
-              ) : hasUsedTrial ? (
-                "Đã nhận"
-              ) : (
-                "Nhận ngay"
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
+    try {
+      // 1. Thử tra cứu đơn hàng bằng orderCode
+      try {
+        const orderRes = await instanceMain.get(`/api/payment/order/${q}`);
+        if (orderRes.data?.success && orderRes.data?.data) {
+          setLookupResult({
+            type: "order",
+            data: orderRes.data.data,
+          });
+          SonnerSuccess("Đã tìm thấy thông tin đơn hàng!");
+          return;
+        }
+      } catch {
+        // Không phải orderCode hoặc không tìm thấy, thử tiếp kiểm tra user
+      }
 
-      {/* Các gói VIP trả phí */}
-      {plans.map((plan) => {
-        const isPopular = plan.badge === "Phổ biến";
-        const isBest = plan.badge === "Tiết kiệm";
-        const isHighlighted = isPopular || isBest;
+      // 2. Thử tra cứu thông tin VIP theo username
+      const userRes = await instanceMain.get(`/api/payment/check-user/${q}`);
+      if (userRes.data?.success && userRes.data?.data) {
+        setLookupResult({
+          type: "user",
+          username: q,
+          data: userRes.data.data,
+        });
+        SonnerSuccess(`Đã tìm thấy thông tin VIP của @${q}!`);
+        return;
+      }
 
-        const currentName = currentVip?.vipPlanName || "";
-        const isCurrentPlan = isVip && (
-          plan.id === currentVip?.vipPlanId ||
-          (plan.days === 30 && (currentVip?.vipPlanId === "vip_1month" || currentName.includes("1 Tháng"))) ||
-          (plan.days === 180 && (currentVip?.vipPlanId === "vip_6months" || currentName.includes("6 Tháng"))) ||
-          (plan.days === 365 && (currentVip?.vipPlanId === "vip_1year" || currentName.includes("1 Năm")))
-        );
-
-        return (
-          <div
-            key={plan.id}
-            className={`relative rounded-2xl p-[2px] transition-all ${
-              isCurrentPlan
-                ? "bg-gradient-to-r from-emerald-400 via-teal-500 to-cyan-500 ring-2 ring-emerald-400/50"
-                : isHighlighted
-                  ? "bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500"
-                  : "bg-white/10"
-            }`}
-          >
-            {isCurrentPlan ? (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                <span className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500 text-black shadow-md">
-                  <Check className="w-3 h-3" />
-                  Gói đang dùng
-                </span>
-              </div>
-            ) : plan.badge ? (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                <span
-                  className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
-                    isBest
-                      ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-black"
-                      : "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
-                  }`}
-                >
-                  {isBest ? <Star className="w-3 h-3" /> : <Zap className="w-3 h-3" />}
-                  {plan.badge}
-                </span>
-              </div>
-            ) : null}
-
-            <div className={`rounded-2xl p-5 ${isHighlighted || isCurrentPlan ? "bg-gray-900" : "bg-white/5"}`}>
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <h3 className="text-lg font-bold flex items-center gap-1.5">
-                    <Crown className="w-4 h-4 text-amber-400" />
-                    {plan.name}
-                  </h3>
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-                      {plan.price.toLocaleString("vi-VN")}đ
-                    </span>
-                    <span className="text-xs text-gray-400">/ {plan.days} ngày</span>
-                  </div>
-                  {plan.bonusAiCredits > 0 && (
-                    <p className="text-xs text-yellow-300 font-semibold mt-1 flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
-                      Tặng kèm {plan.bonusAiCredits} ảnh AI
-                    </p>
-                  )}
-                  <p className="text-xs text-gray-400 mt-0.5">{plan.description}</p>
-                </div>
-
-                <button
-                  onClick={() => onVipPlanClick(plan)}
-                  disabled={creating !== null}
-                  className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all shrink-0 ${
-                    isCurrentPlan
-                      ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-black shadow-lg shadow-emerald-500/20"
-                      : isVip
-                        ? "bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-black shadow-lg shadow-amber-500/20"
-                        : isHighlighted
-                          ? "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg shadow-purple-500/25"
-                          : "bg-white/10 hover:bg-white/20 text-white"
-                  } disabled:opacity-50`}
-                >
-                  {creating === plan.id ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : isCurrentPlan ? (
-                    "Gia hạn thêm"
-                  ) : isVip ? (
-                    "Chuyển gói"
-                  ) : (
-                    "Mua ngay"
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-
-  const renderAiPlans = () => (
-    <div className="space-y-4">
-      {/* Banner nếu chưa có VIP */}
-      {!isVip && (
-        <div className="rounded-2xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 p-4 space-y-2.5">
-          <div className="flex items-start gap-2.5">
-            <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-bold text-amber-200">
-                Chỉ dành riêng cho thành viên VIP
-              </p>
-              <p className="text-xs text-amber-200/80 mt-0.5">
-                Bạn cần nâng cấp gói VIP hoặc kích hoạt <strong>Gói Dùng Thử 1 Ngày (0đ)</strong> trước để có quyền mua và tạo ảnh AI Filter!
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setActiveTab("vip")}
-            className="w-full py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-yellow-400 to-orange-500 text-black hover:opacity-90 transition"
-          >
-            Chuyển sang tab VIP để kích hoạt ngay →
-          </button>
-        </div>
-      )}
-
-      {aiPlans.map((plan) => {
-        const isPopular = plan.badge === "Phổ biến";
-        const isBest = plan.badge === "Tiết kiệm" || plan.badge === "Hời nhất";
-        const isHighlighted = isPopular || isBest;
-
-        return (
-          <div
-            key={plan.id}
-            className={`relative rounded-2xl p-[2px] transition-all ${
-              isHighlighted
-                ? "bg-gradient-to-r from-cyan-400 via-fuchsia-500 to-purple-500"
-                : "bg-white/10"
-            }`}
-          >
-            {plan.badge && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                <span className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-cyan-500 to-fuchsia-500 text-white shadow-md">
-                  <Star className="w-3 h-3" />
-                  {plan.badge}
-                </span>
-              </div>
-            )}
-
-            <div className={`rounded-2xl p-5 ${isHighlighted ? "bg-gray-900" : "bg-white/5"}`}>
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <h3 className="text-lg font-bold flex items-center gap-1.5">
-                    <Wand2 className="w-4 h-4 text-cyan-400" />
-                    {plan.name}
-                  </h3>
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-fuchsia-400">
-                      {plan.price.toLocaleString("vi-VN")}đ
-                    </span>
-                    <span className="text-xs text-cyan-300/80 font-bold">
-                      = {plan.credits} lượt tạo ảnh
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-400 mt-1">{plan.description}</p>
-                </div>
-
-                <button
-                  onClick={() => handlePurchase(plan.id)}
-                  disabled={creating !== null || !isVip}
-                  className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all shrink-0 ${
-                    !isVip
-                      ? "bg-white/5 text-gray-500 cursor-not-allowed"
-                      : isHighlighted
-                        ? "bg-gradient-to-r from-cyan-500 to-fuchsia-500 hover:from-cyan-600 hover:to-fuchsia-600 text-white shadow-lg shadow-cyan-500/20"
-                        : "bg-white/10 hover:bg-white/20 text-white"
-                  } disabled:opacity-50`}
-                >
-                  {creating === plan.id ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : !isVip ? (
-                    "Cần VIP"
-                  ) : (
-                    plan.buttonText || "Nạp ngay"
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
+      SonnerWarning("Không tìm thấy đơn hàng hoặc tài khoản tương ứng.");
+    } catch (err) {
+      SonnerWarning("Lỗi tra cứu thông tin. Vui lòng thử lại sau.");
+    } finally {
+      setLookupLoading(false);
+    }
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+      <div className="pricing-gold-page" style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>
+        <div style={{ textAlign: "center" }}>
+          <Loader2 className="w-10 h-10 animate-spin" style={{ color: "#d39f19", margin: "0 auto 12px" }} />
+          <p style={{ fontWeight: 700, color: "#666e60" }}>Đang tải bảng giá Locket Gold...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white">
-      {/* Header */}
-      <div className="relative px-4 pt-6 pb-2">
-        <button
-          onClick={() => navigate(-1)}
-          className="absolute left-4 top-6 p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-      </div>
+    <div className="pricing-gold-page">
+      {/* SVG Symbol Definitions */}
+      <svg width="0" height="0" style={{ position: "absolute", width: 0, height: 0 }} xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 4.7a5.6 5.6 0 0 0-8 .1L12 5.7l-.8-.9a5.6 5.6 0 0 0-8-.1 5.8 5.8 0 0 0 0 8.2L12 21l8.8-8.1a5.8 5.8 0 0 0 0-8.2Z"/></symbol>
+          <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+          <symbol id="i-bag" viewBox="0 0 24 24"><path d="M4 9h16l-1 12H5L4 9ZM8 9V6a4 4 0 0 1 8 0v3"/></symbol>
+          <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2 3 6v6c0 5 3 8 9 10 6-2 9-5 9-10V6l-9-4Z"/><path d="m8 12 3 3 5-6"/></symbol>
+          <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></symbol>
+          <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/></symbol>
+          <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 1 2.5 8.5L23 12l-8.5 2.5L12 23l-2.5-8.5L1 12l8.5-2.5L12 1Z"/></symbol>
+          <symbol id="i-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+        </defs>
+      </svg>
 
-      <div className="px-4 pb-10 max-w-lg mx-auto">
-        {/* Title */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-bold px-4 py-1.5 rounded-full text-sm mb-4 shadow-lg shadow-yellow-500/20">
-            <Crown className="w-4 h-4" />
-            CỬA HÀNG DỊCH VỤ
-          </div>
-          <h1 className="text-2xl font-bold mb-2">Nâng cấp trải nghiệm</h1>
-          <p className="text-sm text-gray-400">
-            Gói Locket VIP cao cấp & Lượt tạo ảnh AI Filter
-          </p>
-        </div>
-
-        {/* Username input */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            <User className="w-4 h-4 inline mr-1.5 -mt-0.5" />
-            Tên người dùng Locket
-          </label>
-          <div className="relative">
-            <AtSign className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Nhập username Locket của bạn"
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/10 border border-white/10 focus:border-purple-500 focus:outline-none text-white placeholder-gray-500 text-sm transition"
-            />
-          </div>
-          <p className="text-xs text-gray-500 mt-1.5">
-            Nhập đúng username Locket để hệ thống tự kích hoạt ngay sau khi chuyển khoản
-          </p>
-        </div>
-
-        {/* Category Switcher */}
-        <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-white/5 border border-white/10 mb-6">
-          <button
-            type="button"
-            onClick={() => setActiveTab("vip")}
-            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold transition ${
-              activeTab === "vip"
-                ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-black shadow-md"
-                : "text-gray-300 hover:bg-white/5"
-            }`}
-          >
-            <Crown className="w-4 h-4" />
-            Gói VIP
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("ai")}
-            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold transition ${
-              activeTab === "ai"
-                ? "bg-gradient-to-r from-cyan-400 to-fuchsia-500 text-white shadow-md"
-                : "text-gray-300 hover:bg-white/5"
-            }`}
-          >
-            <Wand2 className="w-4 h-4" />
-            AI Filter (Theo lượt)
-          </button>
-        </div>
-
-        {activeTab === "vip" ? (
-          <div className="mb-8 space-y-4">
-            <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 px-4 py-2.5 text-xs text-amber-200/90">
-              👑 <strong>Gói Locket VIP:</strong> Mở khoá Video 15s (Siêu nét), Photobooth 4 ô, Khung Camera, Caption đầy đủ, Công cụ Locket & Khôi phục chuỗi.{" "}
-              <span className="font-semibold text-yellow-300">Đặc biệt: Tặng kèm lượt tạo ảnh AI Filter!</span>
+      {/* Sticky Navigation Bar */}
+      <header className="nav">
+        <div className="container navin">
+          <a href="#home" onClick={(e) => { e.preventDefault(); scrollToSection("home"); }} className="brand" aria-label="Locket-Pro trang chủ">
+            <div className="logo-slot loaded" id="logoSlot">
+              <img src="/locket-pro-icon-192x192.png" alt="Avatar Locket-Pro" onError={(e) => { e.target.src = "/favicon.ico"; }} />
             </div>
-            {renderVipPlans()}
-          </div>
-        ) : (
-          <div ref={aiSectionRef} className="mb-8 space-y-4">
-            <div className="rounded-xl bg-cyan-500/10 border border-cyan-400/25 px-4 py-2.5 text-xs text-cyan-200/90">
-              ✨ <strong>Lượt tạo ảnh AI Filter:</strong> Mở khoá toàn bộ hiệu ứng biến đổi ảnh AI. Nạp lượt dùng dần, không giới hạn thời gian.{" "}
-              <span className="text-cyan-300 font-semibold">(Yêu cầu tài khoản có gói VIP để sử dụng).</span>
+            <div>
+              <div className="brandtitle">Locket<span>-</span><i>Pro</i></div>
+              <div className="brand-sub">THE GOLD STORE</div>
             </div>
-            {renderAiPlans()}
+          </a>
+
+          <nav className={`links ${mobileMenuOpen ? "visible" : ""}`} id="links">
+            <a href="#home" onClick={(e) => { e.preventDefault(); scrollToSection("home"); }}>Trang chủ</a>
+            <a href="#products" onClick={(e) => { e.preventDefault(); scrollToSection("products"); }}>Sản phẩm</a>
+            <a href="#guide" onClick={(e) => { e.preventDefault(); scrollToSection("guide"); }}>Hướng dẫn</a>
+            <a href="#lookup" onClick={(e) => { e.preventDefault(); scrollToSection("lookup"); }}>Tra cứu đơn</a>
+            <a href="#faq" onClick={(e) => { e.preventDefault(); scrollToSection("faq"); }}>Hỗ trợ</a>
+          </nav>
+
+          <div className="right-actions">
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={focusLookupInput}
+            >
+              <svg><use href="#i-search"/></svg>
+              Tra cứu
+            </button>
+            <button
+              type="button"
+              className="btn btn-dark"
+              onClick={() => scrollToSection("products")}
+            >
+              Mua Locket Gold <svg><use href="#i-arrow"/></svg>
+            </button>
+            <button
+              type="button"
+              className="hamburger"
+              id="menuToggle"
+              aria-label="Mở menu"
+              aria-expanded={mobileMenuOpen}
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              <Menu size={20} />
+            </button>
           </div>
-        )}
+        </div>
+      </header>
 
-        {/* Feature comparison */}
-        <div className="bg-white/5 rounded-2xl p-5">
-          <h2 className="text-lg font-bold mb-4 text-center flex items-center justify-center gap-2">
-            <Sparkles className="w-5 h-5 text-yellow-400" />
-            So sánh tính năng
-          </h2>
+      <main>
+        {/* Hero Section */}
+        <div className="container heroarea" id="home">
+          <div className="hero">
+            <div className="herocopy">
+              <div className="eyebrow">LOCKET-PRO • GOLD MEMBERSHIP</div>
+              <h1>
+                Mọi khoảnh khắc.<br />
+                <span>Một trải nghiệm</span> xứng tầm.
+              </h1>
+              <p>
+                Không gian nâng cấp Locket VIP được tinh chỉnh toàn diện để bạn chọn gói dễ dàng hơn,
+                xem chi tiết minh bạch và tự động kích hoạt tức thì qua cổng PayOS.
+              </p>
+              <div className="hero-buttons">
+                <button
+                  type="button"
+                  className="btn btn-dark"
+                  onClick={() => scrollToSection("products")}
+                >
+                  Khám phá gói Gold <svg><use href="#i-arrow"/></svg>
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={() => scrollToSection("guide")}
+                >
+                  Xem cách mua
+                </button>
+              </div>
+              <div className="hero-bottom">
+                <span><b className="check">✓</b> Giá gốc & ưu đãi niêm yết</span>
+                <span><b className="check">✓</b> Tự động kích hoạt qua PayOS</span>
+                <span><b className="check">✓</b> Tối ưu 100% trên điện thoại</span>
+              </div>
+            </div>
 
-          <div className="grid grid-cols-3 text-xs font-bold text-center mb-3 pb-3 border-b border-white/10">
-            <div className="text-left">Tính năng</div>
-            <div className="text-gray-400">Miễn phí</div>
-            <div className="text-yellow-400">VIP ✨</div>
-          </div>
+            <div className="heroart" aria-hidden="true">
+              <div className="h-glow"></div>
+              <div className="h-ring"></div>
+              <div className="spark s1">✦</div>
+              <div className="spark s2">✦</div>
 
-          <div className="space-y-3">
-            {FEATURE_ROWS.map(({ icon: Icon, label, free, vip, isBoolean, isAddon }) => (
-              <div key={label} className="grid grid-cols-3 items-center text-xs">
-                <div className="flex items-center gap-2 text-gray-300">
-                  <Icon className="w-3.5 h-3.5 flex-shrink-0 text-gray-500" />
-                  <span>{label}</span>
+              {/* 3D App Card */}
+              <div className="app-card">
+                <div className="app-top">
+                  <span>locket<span style={{ fontWeight: 400 }}>.</span></span>
+                  <b>GOLD</b>
                 </div>
-                <div className="text-center text-gray-500">
-                  {isAddon ? (
-                    <span className="text-[11px] text-gray-400">{free}</span>
-                  ) : isBoolean ? (
-                    free ? (
-                      <Check className="w-4 h-4 text-green-500 mx-auto" />
-                    ) : (
-                      <X className="w-4 h-4 text-red-500/50 mx-auto" />
-                    )
-                  ) : (
-                    free
-                  )}
+                <div className="heart-box">
+                  <svg viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth=".1">
+                    <path d="M20.8 4.7a5.6 5.6 0 0 0-8 .1L12 5.7l-.8-.9a5.6 5.6 0 0 0-8-.1 5.8 5.8 0 0 0 0 8.2L12 21l8.8-8.1a5.8 5.8 0 0 0 0-8.2Z"/>
+                  </svg>
                 </div>
-                <div className="text-center text-green-400 font-medium">
-                  {isAddon ? (
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab("ai")}
-                      className="px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-[11px] font-semibold hover:bg-cyan-500/25 transition"
-                    >
-                      {vip}
-                    </button>
-                  ) : isBoolean ? (
-                    vip ? (
-                      <Check className="w-4 h-4 text-green-400 mx-auto" />
-                    ) : (
-                      <X className="w-4 h-4 text-red-500/50 mx-auto" />
-                    )
-                  ) : (
-                    vip
-                  )}
+                <div className="app-foot">
+                  <strong>GOLD.</strong>
+                  <small>YOUR MOMENTS, REIMAGINED</small>
                 </div>
               </div>
-            ))}
+
+              {/* Floating badges */}
+              <div className="float-card fc1">
+                <svg><use href="#i-spark"/></svg>
+                <div>
+                  <b>Thiết kế mới</b>
+                  <span>Trực quan • cao cấp</span>
+                </div>
+              </div>
+              <div className="float-card fc2">
+                <svg><use href="#i-shield"/></svg>
+                <div>
+                  <b>Bảo mật & Tự động</b>
+                  <span>Kích hoạt qua PayOS</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Footer note */}
-        <p className="text-center text-xs text-gray-500 mt-6">
-          Thanh toán an toàn qua PayOS • Tự động kích hoạt & tự rớt về Free khi hết hạn
-        </p>
-        <p className="text-center text-xs text-gray-500 mt-2 italic">
-          ✨ Các tính năng VIP mới sẽ được admin cập nhật thêm trong tương lai
-        </p>
-      </div>
+        {/* 3 Key Benefits */}
+        <div className="container three-benefits">
+          <article className="benefit">
+            <div className="benefit-icon"><svg><use href="#i-bag"/></svg></div>
+            <div>
+              <strong>Chọn gói dễ dàng</strong>
+              <p>Bố cục sản phẩm rõ ràng, dễ so sánh thời hạn và mức giá.</p>
+            </div>
+          </article>
+          <article className="benefit">
+            <div className="benefit-icon"><svg><use href="#i-shield"/></svg></div>
+            <div>
+              <strong>Kích hoạt tự động</strong>
+              <p>Cổng PayOS quét mã QR xác nhận tức thì trong 3-5 giây.</p>
+            </div>
+          </article>
+          <article className="benefit">
+            <div className="benefit-icon"><svg><use href="#i-clock"/></svg></div>
+            <div>
+              <strong>Theo dõi thuận tiện</strong>
+              <p>Tra cứu lại đơn hàng và kiểm tra hạn dùng bất cứ lúc nào.</p>
+            </div>
+          </article>
+        </div>
 
-      {/* Modal xác nhận nâng cấp / chuyển gói VIP khi đã có VIP */}
+        {/* Products Section */}
+        <section className="section container" id="products">
+          <div className="section-heading">
+            <div>
+              <div className="eyebrow">CHOOSE YOUR GOLD</div>
+              <h2>Bảng gói dịch vụ.<br />Rõ ràng và tinh tế.</h2>
+              <p>
+                Toàn bộ dữ liệu giá bán, thời hạn sử dụng và quà tặng AI Filter được kết nối trực tiếp
+                từ hệ thống. Nâng cấp tài khoản của bạn ngay hôm nay.
+              </p>
+            </div>
+            <aside className="aside-pill">
+              <strong>💡 Nguyên tắc tự động:</strong> Nhập chính xác Username Locket để hệ thống cộng dồn ngày VIP và kích hoạt ngay sau chuyển khoản.
+            </aside>
+          </div>
+
+          {/* Username Input Card */}
+          <div className="user-input-card">
+            <div className="user-input-row">
+              <div style={{ flex: "none" }}>
+                <span style={{ fontSize: "12px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px", color: "#8e9388", display: "block" }}>
+                  Tài khoản nhận VIP
+                </span>
+                <strong style={{ fontSize: "15px", color: "#171917" }}>Username Locket</strong>
+              </div>
+
+              <div className="user-input-field">
+                <AtSign />
+                <input
+                  ref={usernameInputRef}
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Nhập username Locket của bạn (ví dụ: mtien)"
+                  autoComplete="off"
+                />
+              </div>
+
+              {user?.username && username.trim().toLowerCase() !== user.username.replace(/^@+/, "").toLowerCase() && (
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  style={{ minHeight: "44px", padding: "0 14px", fontSize: "12px" }}
+                  onClick={() => setUsername(user.username.replace(/^@+/, ""))}
+                >
+                  Dùng @{user.username.replace(/^@+/, "")}
+                </button>
+              )}
+            </div>
+
+            {/* VIP Status banner if active */}
+            {isVip && (
+              <div className="vip-status-card">
+                <div>
+                  <div className="vip-status-badge">
+                    <Crown size={15} />
+                    Gói VIP hiện tại: <strong>{currentVip?.vipPlanName || "Locket VIP"}</strong>
+                    {isLifetimeVip && <span style={{ background: "#facc39", color: "#242013", padding: "2px 6px", borderRadius: "4px", fontSize: "10px", fontWeight: 800 }}>VĨNH VIỄN</span>}
+                  </div>
+                  <div style={{ fontSize: "12px", color: "#746328", marginTop: "3px" }}>
+                    Thời hạn còn lại: <strong>{isLifetimeVip ? "Vô thời hạn" : `${remainingDays || 0} ngày`}</strong>. Khi mua thêm gói mới, hệ thống sẽ <strong>tự động cộng dồn nối tiếp</strong> ngày sử dụng!
+                  </div>
+                </div>
+                <div style={{ flex: "none" }}>
+                  <span style={{ background: "#2e7b44", color: "#fff", padding: "4px 10px", borderRadius: "8px", fontSize: "11px", fontWeight: 800 }}>
+                    ĐANG HOẠT ĐỘNG
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Gói dùng thử 1 ngày (0đ) */}
+          <div className="trial-box">
+            <div>
+              <span className="trial-badge">
+                <Gift size={13} />
+                DÙNG THỬ 0Đ
+              </span>
+              <h4>VIP Dùng thử 1 Ngày (Miễn phí)</h4>
+              <p>
+                Trải nghiệm trọn vẹn toàn bộ tính năng Locket VIP trong 24 giờ + <strong>Tặng 1 lượt tạo ảnh AI Filter</strong>.
+                <br /><small style={{ color: "#6c8c74" }}>* Mỗi tài khoản Locket chỉ được nhận dùng thử 1 lần duy nhất.</small>
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleClaimTrial}
+              disabled={claimingTrial || hasUsedTrial}
+              className="btn btn-trial"
+            >
+              {claimingTrial ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : hasUsedTrial ? (
+                "Đã nhận dùng thử"
+              ) : (
+                "Nhận dùng thử ngay (0đ)"
+              )}
+            </button>
+          </div>
+
+          {/* Platform / Category Tabs */}
+          <div className="filterbar">
+            <div className="tabs" role="tablist">
+              <button
+                type="button"
+                className={activeTab === "vip" ? "active" : ""}
+                role="tab"
+                aria-selected={activeTab === "vip"}
+                onClick={() => setActiveTab("vip")}
+              >
+                <Crown size={15} />
+                Gói Locket VIP
+              </button>
+              <button
+                type="button"
+                className={activeTab === "ai" ? "active" : ""}
+                role="tab"
+                aria-selected={activeTab === "ai"}
+                onClick={() => setActiveTab("ai")}
+              >
+                <Wand2 size={15} />
+                Ảnh AI (AI Filter)
+              </button>
+            </div>
+            <span className="catalog-status">
+              Bảng giá niêm yết chính thức • Tự động thanh toán PayOS
+            </span>
+          </div>
+
+          {/* Category: VIP Plans */}
+          {activeTab === "vip" && (
+            <div className="plans" id="plans">
+              {plans.map((plan, idx) => {
+                const isPopular = plan.badge === "Phổ biến" || plan.id === "vip_6months";
+                const isBest = plan.badge === "Tiết kiệm" || plan.id === "vip_1year";
+
+                const currentName = currentVip?.vipPlanName || "";
+                const isCurrentPlan = isVip && (
+                  plan.id === currentVip?.vipPlanId ||
+                  (plan.days === 30 && (currentVip?.vipPlanId === "vip_1month" || currentName.includes("1 Tháng"))) ||
+                  (plan.days === 180 && (currentVip?.vipPlanId === "vip_6months" || currentName.includes("6 Tháng"))) ||
+                  (plan.days === 365 && (currentVip?.vipPlanId === "vip_1year" || currentName.includes("1 Năm")))
+                );
+
+                return (
+                  <article
+                    key={plan.id}
+                    className={`plan ${isPopular ? "featured" : ""} ${isCurrentPlan ? "current-user-plan" : ""}`}
+                  >
+                    <div className="plan-top">
+                      <span className="plan-num">GÓI 0{idx + 1}</span>
+                      {isCurrentPlan ? (
+                        <span className="flag flag-active">
+                          <Check size={11} /> ĐANG DÙNG
+                        </span>
+                      ) : plan.badge ? (
+                        <span className="flag">
+                          {isBest ? <Star size={11} /> : <Zap size={11} />}
+                          {plan.badge.toUpperCase()}
+                        </span>
+                      ) : (
+                        <span className="flag">TIÊU CHUẨN</span>
+                      )}
+                    </div>
+
+                    <div className="plan-icon">
+                      <Crown />
+                    </div>
+
+                    <h3>{plan.name}</h3>
+                    <div className="plan-desc">
+                      {plan.description || `Gói trải nghiệm Locket VIP đầy đủ trong vòng ${plan.days} ngày.`}
+                    </div>
+
+                    <span className="price-label">GIÁ NIÊM YẾT</span>
+                    <div className="price-slot">
+                      <strong>{plan.price.toLocaleString("vi-VN")}đ</strong>
+                      <span className="price-badge">/ {plan.days} ngày</span>
+                    </div>
+
+                    {plan.bonusAiCredits > 0 && (
+                      <div className="bonus-pill">
+                        <Sparkles size={13} />
+                        Tặng kèm {plan.bonusAiCredits} lượt ảnh AI
+                      </div>
+                    )}
+
+                    <div className="plan-rule"></div>
+
+                    <ul>
+                      <li>Thời hạn sử dụng: {plan.days} ngày đầy đủ</li>
+                      <li>Video 15s siêu nét Full HD (1080p - 2K)</li>
+                      <li>Khôi phục streak & công cụ Locket độc quyền</li>
+                      <li>Kích hoạt tức thì qua mã QR PayOS</li>
+                    </ul>
+
+                    <button
+                      type="button"
+                      className="btn"
+                      disabled={creating !== null}
+                      onClick={() => onVipPlanClick(plan)}
+                    >
+                      {creating === plan.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : isCurrentPlan ? (
+                        "Gia hạn thêm gói này"
+                      ) : isVip ? (
+                        <>Nâng cấp / Chuyển gói <svg><use href="#i-arrow"/></svg></>
+                      ) : (
+                        <>Chọn gói này <svg><use href="#i-arrow"/></svg></>
+                      )}
+                    </button>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Category: AI Plans */}
+          {activeTab === "ai" && (
+            <div>
+              {!isVip && (
+                <div style={{ background: "#fff9de", border: "1px solid #e7d286", borderRadius: "18px", padding: "18px 22px", marginBottom: "22px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <AlertCircle style={{ color: "#b78a1e", flex: "none" }} />
+                    <div style={{ fontSize: "13px", color: "#54461a" }}>
+                      <strong>Dành riêng cho thành viên VIP:</strong> Bạn cần sở hữu gói VIP hoặc kích hoạt Gói Dùng Thử (0đ) trước khi nạp thêm lượt tạo ảnh AI Filter!
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-gold"
+                    style={{ minHeight: "40px", padding: "0 16px", fontSize: "12px" }}
+                    onClick={() => setActiveTab("vip")}
+                  >
+                    Xem gói VIP ngay
+                  </button>
+                </div>
+              )}
+
+              <div className="plans">
+                {aiPlans.map((plan, idx) => {
+                  const isPopular = plan.badge === "Phổ biến";
+                  return (
+                    <article
+                      key={plan.id}
+                      className={`plan ${isPopular ? "featured" : ""}`}
+                    >
+                      <div className="plan-top">
+                        <span className="plan-num">AI GÓI 0{idx + 1}</span>
+                        {plan.badge && (
+                          <span className="flag">
+                            <Star size={11} /> {plan.badge.toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="plan-icon">
+                        <Wand2 />
+                      </div>
+
+                      <h3>{plan.name}</h3>
+                      <div className="plan-desc">
+                        {plan.description || `Nạp thêm ${plan.credits} lượt tạo ảnh AI Filter nghệ thuật.`}
+                      </div>
+
+                      <span className="price-label">GIÁ NIÊM YẾT</span>
+                      <div className="price-slot">
+                        <strong>{plan.price.toLocaleString("vi-VN")}đ</strong>
+                        <span className="price-badge">= {plan.credits} ảnh</span>
+                      </div>
+
+                      <div className="plan-rule"></div>
+
+                      <ul>
+                        <li>Số lượng: {plan.credits} lượt tạo ảnh AI</li>
+                        <li>Lưu trữ vĩnh viễn không hết hạn</li>
+                        <li>Áp dụng cho mọi preset AI Filter</li>
+                        <li>Kích hoạt tức thì vào tài khoản</li>
+                      </ul>
+
+                      <button
+                        type="button"
+                        className="btn"
+                        disabled={creating !== null || !isVip}
+                        onClick={() => handlePurchase(plan.id)}
+                      >
+                        {creating === plan.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : !isVip ? (
+                          "Cần kích hoạt VIP trước"
+                        ) : (
+                          <>Nạp ngay {plan.buttonText || ""} <svg><use href="#i-arrow"/></svg></>
+                        )}
+                      </button>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Feature Comparison Table */}
+          <div className="compare-box">
+            <div className="compare-title">
+              <div className="eyebrow">PRIVILEGES & FEATURES</div>
+              <h3>So sánh đặc quyền Locket</h3>
+              <p>Trải nghiệm vượt trội giữa phiên bản Miễn phí và Locket VIP Gold</p>
+            </div>
+
+            <div className="compare-table-wrap">
+              <table className="compare-table">
+                <thead>
+                  <tr>
+                    <th>Tính năng</th>
+                    <th style={{ width: "25%" }}>Miễn phí</th>
+                    <th style={{ width: "30%" }}>Locket VIP Gold</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {FEATURE_ROWS.map((row, i) => {
+                    const IconComp = row.icon;
+                    return (
+                      <tr key={i}>
+                        <td style={{ fontWeight: 600, color: "#222" }}>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                            <IconComp size={16} style={{ color: "#9c771a" }} />
+                            {row.label}
+                          </span>
+                        </td>
+                        <td>
+                          {row.isBoolean ? (
+                            row.free ? <Check size={16} style={{ color: "#2e7b44" }} /> : <X size={16} style={{ color: "#b91c1c" }} />
+                          ) : (
+                            row.free
+                          )}
+                        </td>
+                        <td>
+                          {row.isBoolean ? (
+                            <span className="compare-badge-vip">
+                              <Check size={14} style={{ display: "inline", verticalAlign: "-2px", marginRight: "4px" }} />
+                              Được mở
+                            </span>
+                          ) : (
+                            <span className="compare-badge-vip">{row.vip}</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        {/* Steps Guide Section */}
+        <section className="steps-wrap" id="guide">
+          <div className="container">
+            <div className="section-heading">
+              <div>
+                <div className="eyebrow">HOW TO ORDER</div>
+                <h2>Trải nghiệm mua hàng<br />đơn giản hơn.</h2>
+                <p>3 bước kích hoạt nhanh chóng, bảo mật và hoàn toàn tự động.</p>
+              </div>
+            </div>
+
+            <div className="steps">
+              <article className="step">
+                <div className="step-num">BƯỚC 01 <svg><use href="#i-arrow"/></svg></div>
+                <h3>Chọn gói & Username</h3>
+                <p>Xem danh sách gói VIP phù hợp và điền chính xác username Locket của bạn.</p>
+              </article>
+              <article className="step">
+                <div className="step-num">BƯỚC 02 <svg><use href="#i-arrow"/></svg></div>
+                <h3>Quét mã QR PayOS</h3>
+                <p>Hệ thống sinh mã thanh toán chuyển khoản chính xác tới từng đồng trong 5 phút.</p>
+              </article>
+              <article className="step">
+                <div className="step-num">BƯỚC 03 <svg><use href="#i-arrow"/></svg></div>
+                <h3>Tự động kích hoạt</h3>
+                <p>Tài khoản Locket được nâng cấp VIP ngay tức thì trong 3-5 giây mà không cần chờ duyệt.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        {/* Track / Lookup Section */}
+        <section className="container track" id="lookup">
+          <div>
+            <div className="eyebrow">YOUR ORDER • ONE PLACE</div>
+            <h2>Kiểm tra đơn hàng<br />thật dễ dàng.</h2>
+            <p>
+              Tra cứu trạng thái đơn hàng PayOS hoặc kiểm tra hạn dùng VIP của tài khoản Locket trực tiếp từ hệ thống.
+            </p>
+            <p className="fineprint">
+              Hệ thống kết nối trực tiếp với API thanh toán của website.
+            </p>
+          </div>
+
+          <form className="track-side" id="lookupForm" onSubmit={handleLookupSubmit}>
+            <label htmlFor="orderId">Mã đơn hàng PayOS hoặc Username Locket</label>
+            <input
+              ref={lookupInputRef}
+              id="orderId"
+              value={lookupQuery}
+              onChange={(e) => setLookupQuery(e.target.value)}
+              placeholder="Nhập mã đơn hàng hoặc @username"
+              required
+              autoComplete="off"
+            />
+
+            <button type="submit" className="btn btn-dark" disabled={lookupLoading}>
+              {lookupLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <svg><use href="#i-search"/></svg>
+                  Tra cứu ngay
+                </>
+              )}
+            </button>
+
+            {/* Hiển thị kết quả tra cứu */}
+            {lookupResult && (
+              <div className="lookup-result-card">
+                {lookupResult.type === "order" ? (
+                  <div>
+                    <div className="lookup-result-header">
+                      <div>
+                        <span style={{ fontSize: "11px", color: "#8e9388", display: "block" }}>Mã đơn hàng</span>
+                        <strong style={{ fontSize: "15px" }}>#{lookupResult.data.orderCode}</strong>
+                      </div>
+                      <span className={`lookup-status-pill ${
+                        lookupResult.data.status === "PAID"
+                          ? "status-paid"
+                          : lookupResult.data.status === "PENDING"
+                            ? "status-pending"
+                            : "status-cancelled"
+                      }`}>
+                        {lookupResult.data.status === "PAID"
+                          ? "✓ ĐÃ THANH TOÁN"
+                          : lookupResult.data.status === "PENDING"
+                            ? "⏳ CHỜ THANH TOÁN"
+                            : "ĐÃ HỦY / HẾT HẠN"}
+                      </span>
+                    </div>
+
+                    <div style={{ fontSize: "13px", lineHeight: "1.7", color: "#474e43" }}>
+                      <div>Tài khoản nhận: <strong>@{lookupResult.data.username}</strong></div>
+                      <div>Gói dịch vụ: <strong>{lookupResult.data.planName || lookupResult.data.planId}</strong></div>
+                      <div>Số tiền: <strong style={{ color: "#bd9220" }}>{(lookupResult.data.amount || 0).toLocaleString("vi-VN")}đ</strong></div>
+                    </div>
+
+                    {lookupResult.data.status === "PENDING" && (
+                      <button
+                        type="button"
+                        className="btn btn-gold"
+                        style={{ width: "100%", marginTop: "14px", minHeight: "42px" }}
+                        onClick={() => navigate(`/pay?orderCode=${lookupResult.data.orderCode}`)}
+                      >
+                        Tiếp tục thanh toán <ExternalLink size={14} />
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    <div className="lookup-result-header">
+                      <div>
+                        <span style={{ fontSize: "11px", color: "#8e9388", display: "block" }}>Tài khoản Locket</span>
+                        <strong style={{ fontSize: "15px" }}>@{lookupResult.username}</strong>
+                      </div>
+                      <span className={`lookup-status-pill ${lookupResult.data.isVip ? "status-paid" : "status-pending"}`}>
+                        {lookupResult.data.isVip ? "✓ ĐANG LÀ VIP" : "TÀI KHOẢN FREE"}
+                      </span>
+                    </div>
+
+                    <div style={{ fontSize: "13px", lineHeight: "1.7", color: "#474e43" }}>
+                      {lookupResult.data.isVip ? (
+                        <>
+                          <div>Gói đang dùng: <strong>{lookupResult.data.vipPlanName || "VIP"}</strong></div>
+                          <div>Thời hạn: <strong>{lookupResult.data.vipExpireAt ? new Date(lookupResult.data.vipExpireAt).toLocaleDateString("vi-VN") : "Vĩnh viễn"}</strong></div>
+                        </>
+                      ) : (
+                        <p style={{ margin: 0 }}>Tài khoản chưa nâng cấp gói VIP hoặc gói đã hết hạn.</p>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      className="btn btn-gold"
+                      style={{ width: "100%", marginTop: "14px", minHeight: "42px" }}
+                      onClick={() => {
+                        setUsername(lookupResult.username);
+                        scrollToSection("products");
+                      }}
+                    >
+                      Nâng cấp VIP ngay cho @{lookupResult.username}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="fineprint">
+              Hỗ trợ tra cứu mã đơn hàng PayOS hoặc tài khoản Locket.
+            </div>
+          </form>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="container faq" id="faq">
+          <div className="faqs">
+            <div>
+              <div className="eyebrow">FREQUENTLY ASKED</div>
+              <h2>Bạn có thắc mắc?</h2>
+              <p style={{ lineHeight: 1.9, color: "#888f84", fontSize: "13px", maxWidth: "320px" }}>
+                Giải đáp nhanh các câu hỏi thường gặp khi nâng cấp Locket VIP và sử dụng dịch vụ.
+              </p>
+            </div>
+
+            <div>
+              {FAQ_LIST.map((item, idx) => {
+                const isOpen = openFaqIndex === idx;
+                return (
+                  <div key={idx} className={`faqitem ${isOpen ? "open" : ""}`}>
+                    <button
+                      type="button"
+                      onClick={() => setOpenFaqIndex(isOpen ? -1 : idx)}
+                      aria-expanded={isOpen}
+                    >
+                      {item.q}
+                      <span>{isOpen ? "−" : "+"}</span>
+                    </button>
+                    <div className="faqbody">
+                      {item.a}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* Last CTA Section */}
+        <div className="container">
+          <div className="lastcta">
+            <div>
+              <h2>Sẵn sàng chọn gói Locket Gold?</h2>
+              <p>Nâng tầm trải nghiệm chia sẻ khoảnh khắc với chất lượng cao nhất.</p>
+            </div>
+            <button
+              type="button"
+              className="btn btn-gold"
+              onClick={() => scrollToSection("products")}
+            >
+              Xem gói dịch vụ <svg><use href="#i-arrow"/></svg>
+            </button>
+          </div>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="footer">
+        <div className="container footerin">
+          <div>
+            <div className="brandtitle">Locket<span>-</span><i>Pro</i></div>
+            <p>© {new Date().getFullYear()} MTIEN · Camera & Moments · Locket VIP Gold Store</p>
+          </div>
+          <div className="footerlinks">
+            <a href="#home" onClick={(e) => { e.preventDefault(); scrollToSection("home"); }}>Trang chủ</a>
+            <a href="#products" onClick={(e) => { e.preventDefault(); scrollToSection("products"); }}>Sản phẩm</a>
+            <a href="#lookup" onClick={(e) => { e.preventDefault(); scrollToSection("lookup"); }}>Tra cứu</a>
+            <a href="#faq" onClick={(e) => { e.preventDefault(); scrollToSection("faq"); }}>Hỗ trợ</a>
+            <a href="https://zalo.me" target="_blank" rel="noopener noreferrer">Zalo hỗ trợ</a>
+          </div>
+        </div>
+      </footer>
+
+      {/* Pending Upgrade Modal */}
       {pendingUpgradeModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
+          className="modal open"
+          role="dialog"
+          aria-modal="true"
           onClick={(e) => {
             if (e.target === e.currentTarget) setPendingUpgradeModal(null);
           }}
         >
-          <div className="bg-gradient-to-b from-gray-900 via-gray-900 to-purple-950/95 border border-purple-500/40 rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4 text-white">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-amber-400 font-bold text-base">
-                <Crown className="w-5 h-5 text-amber-400 animate-bounce" />
-                {pendingUpgradeModal.isSamePlan ? "Gia hạn gói VIP" : "Nâng cấp / Chuyển gói VIP"}
-              </div>
-              <button
-                type="button"
-                onClick={() => setPendingUpgradeModal(null)}
-                className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-gray-400 hover:text-white transition"
-              >
-                <X className="w-4 h-4" />
-              </button>
+          <div className="modalcard">
+            <button
+              type="button"
+              className="close"
+              aria-label="Đóng"
+              onClick={() => setPendingUpgradeModal(null)}
+            >
+              ✕
+            </button>
+
+            <div className="eyebrow">XÁC NHẬN NÂNG CẤP</div>
+            <h2>
+              {pendingUpgradeModal.isSamePlan ? "Gia hạn gói VIP" : "Nâng cấp / Chuyển gói VIP"}
+            </h2>
+
+            <div style={{ background: "#fbfbf7", border: "1px solid #ebece4", borderRadius: "16px", padding: "16px", margin: "14px 0", fontSize: "13px", lineHeight: "1.7" }}>
+              <div>Tài khoản: <strong>@{username.trim().replace(/^@+/, "")}</strong></div>
+              <div>Gói hiện tại: <strong style={{ color: "#9c771a" }}>{pendingUpgradeModal.currentPlan.name}</strong></div>
+              <div>Thời hạn còn lại: <strong>{pendingUpgradeModal.currentPlan.daysLeft}</strong></div>
             </div>
 
-            {/* Thông tin gói hiện tại */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 space-y-2 text-xs">
-              <div className="flex items-center justify-between text-gray-300">
-                <span>Tài khoản:</span>
-                <span className="font-bold text-white">@{username.trim().replace(/^@+/, "")}</span>
+            <div style={{ background: "#fff9de", border: "1px solid #e7d286", borderRadius: "16px", padding: "16px", margin: "14px 0", fontSize: "13px", lineHeight: "1.7", color: "#54461a" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                <strong style={{ fontSize: "15px" }}>{pendingUpgradeModal.targetPlan.name}</strong>
+                <strong style={{ fontSize: "16px", color: "#b78a1e" }}>{pendingUpgradeModal.targetPlan.price.toLocaleString("vi-VN")}đ</strong>
               </div>
-              <div className="flex items-center justify-between text-gray-300">
-                <span>Gói hiện tại:</span>
-                <span className="font-bold text-amber-300">{pendingUpgradeModal.currentPlan.name}</span>
-              </div>
-              <div className="flex items-center justify-between text-gray-300">
-                <span>Thời hạn còn lại:</span>
-                <span className="font-bold text-emerald-400">{pendingUpgradeModal.currentPlan.daysLeft}</span>
-              </div>
-            </div>
-
-            {/* Thông báo gói muốn chuyển lên */}
-            <div className="rounded-2xl bg-purple-500/15 border border-purple-500/30 p-4 space-y-2.5">
-              <p className="text-xs text-purple-200">
-                {pendingUpgradeModal.isSamePlan
-                  ? `Bạn đang muốn gia hạn thêm gói hiện tại:`
-                  : `Bạn đã có gói ${pendingUpgradeModal.currentPlan.name}. Bạn có muốn chuyển lên gói mới này không?`}
-              </p>
-              <div className="flex items-center justify-between">
-                <span className="text-base font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-400">
-                  {pendingUpgradeModal.targetPlan.name}
-                </span>
-                <span className="text-sm font-bold text-white">
-                  {pendingUpgradeModal.targetPlan.price.toLocaleString("vi-VN")}đ
-                </span>
-              </div>
-              <div className="text-[11px] text-gray-300 space-y-1.5 pt-2 border-t border-purple-500/20">
-                <p className="flex items-center gap-1.5 text-emerald-300 font-medium">
-                  <Check className="w-3.5 h-3.5 shrink-0" />
-                  Cộng nối tiếp <strong>+{pendingUpgradeModal.targetPlan.days} ngày</strong> vào hạn dùng
-                </p>
+              <p style={{ margin: "4px 0 0", fontSize: "12px" }}>
+                ✓ Hệ thống sẽ <strong>cộng dồn tiếp +{pendingUpgradeModal.targetPlan.days} ngày</strong> vào thời hạn dùng hiện tại của bạn.
                 {pendingUpgradeModal.targetPlan.bonusAiCredits > 0 && (
-                  <p className="flex items-center gap-1.5 text-yellow-300 font-medium">
-                    <Sparkles className="w-3.5 h-3.5 shrink-0" />
-                    Tặng thêm <strong>+{pendingUpgradeModal.targetPlan.bonusAiCredits} lượt ảnh AI Filter</strong>
-                  </p>
+                  <span> Tặng thêm +{pendingUpgradeModal.targetPlan.bonusAiCredits} lượt ảnh AI Filter.</span>
                 )}
-              </div>
+              </p>
             </div>
 
-            {/* Nút hành động */}
-            <div className="space-y-2 pt-1">
+            <div className="modal-actions">
               <button
                 type="button"
-                onClick={() => {
-                  const planId = pendingUpgradeModal.targetPlan.id;
-                  setPendingUpgradeModal(null);
-                  handlePurchase(planId);
-                }}
-                disabled={creating !== null}
-                className="w-full py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg shadow-purple-500/25 transition active:scale-95 flex items-center justify-center gap-2"
+                className="btn btn-outline"
+                onClick={() => setPendingUpgradeModal(null)}
               >
-                {creating === pendingUpgradeModal.targetPlan.id ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : pendingUpgradeModal.isSamePlan ? (
-                  `Xác nhận gia hạn (+${pendingUpgradeModal.targetPlan.days} ngày)`
-                ) : (
-                  `Xác nhận chuyển lên ${pendingUpgradeModal.targetPlan.name}`
-                )}
+                Đóng
               </button>
               <button
                 type="button"
-                onClick={() => setPendingUpgradeModal(null)}
-                className="w-full py-2.5 rounded-xl font-medium text-xs bg-white/10 hover:bg-white/20 text-gray-300 transition"
+                className="btn btn-gold"
+                disabled={creating !== null}
+                onClick={() => handlePurchase(pendingUpgradeModal.targetPlan.id)}
               >
-                Chọn gói khác / Đóng
+                {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : "Xác nhận chuyển khoản"}
               </button>
             </div>
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }
