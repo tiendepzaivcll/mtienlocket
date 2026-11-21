@@ -30,6 +30,7 @@ import {
   User,
   LogIn,
   UserPlus,
+  Globe,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { instanceMain } from "@/libs/instanceMain";
@@ -62,7 +63,13 @@ export default function UserSettingsModal({ isOpen, onClose }) {
     refreshAccessRole,
   } = useAuthStore();
   const { camera, useloading, navigation } = useApp();
-  const isPWA = navigation?.isPWA;
+  const isPWA =
+    Boolean(navigation?.isPWA) ||
+    (typeof window !== "undefined" &&
+      (window.matchMedia?.("(display-mode: standalone)").matches ||
+        window.navigator?.standalone === true ||
+        document.body.classList.contains("is-pwa")));
+  const [copiedLink, setCopiedLink] = useState(false);
   const queueBusy = useUploadQueueStore((state) => state.isQueueRunning ||
     state.uploadItems.some((item) => item.status === "queued" || item.status === "uploading"));
   const operationsBusy = Boolean(queueBusy || camera.isHolding || useloading.sendLoading ||
@@ -125,6 +132,29 @@ export default function UserSettingsModal({ isOpen, onClose }) {
     setCurrentView("appIcon");
   };
 
+  const handleCopyLink = (e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+    const urlToCopy = "https://locket-pro.online";
+    try {
+      if (navigator?.clipboard?.writeText) {
+        navigator.clipboard.writeText(urlToCopy);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = urlToCopy;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+      setCopiedLink(true);
+      SonnerSuccess("Đã sao chép link!", "Dán vào Safari hoặc Chrome để cài lại biểu tượng.");
+      setTimeout(() => setCopiedLink(false), 2500);
+    } catch (err) {
+      console.warn("Could not copy link:", err);
+    }
+  };
+
   const handleSelectAppIcon = (iconId) => {
     setCurrentAppIcon(iconId);
     try {
@@ -135,7 +165,14 @@ export default function UserSettingsModal({ isOpen, onClose }) {
       console.warn("Could not update icon:", err);
     }
     const iconName = APP_ICONS.find((i) => i.id === iconId)?.name || iconId;
-    SonnerSuccess("Đã chọn biểu tượng!", `Đã áp dụng "${iconName}"`);
+    if (isPWA) {
+      SonnerSuccess("Xem trước biểu tượng!", `Đang xem trước "${iconName}". Mở trình duyệt để cài đặt.`);
+    } else {
+      SonnerSuccess(
+        `Đã chọn biểu tượng ${iconName}!`,
+        "Hãy bấm Chia sẻ → Thêm vào MH chính (iPhone) hoặc Menu 3 chấm → Cài đặt ứng dụng (Android) để lưu biểu tượng này."
+      );
+    }
   };
 
   useEffect(() => {
@@ -379,19 +416,79 @@ export default function UserSettingsModal({ isOpen, onClose }) {
               </div>
               <h3 className="text-base font-bold text-white">{currentIconObj.name}</h3>
               <p className="text-xs text-amber-300/80 mt-0.5">
-                {currentIconObj.description}
+                {isPWA ? "Chế độ xem trước biểu tượng" : "Biểu tượng WebApp đã chọn"}
               </p>
             </div>
 
-            {/* PWA Note for iOS */}
-            <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-3.5 text-xs text-amber-200/90 leading-relaxed space-y-1">
-              <p className="font-bold text-amber-300 flex items-center gap-1.5">
-                <span>💡 Lưu ý cho Màn hình chính (PWA):</span>
-              </p>
-              <p className="text-gray-300 text-[11.5px]">
-                Biểu tượng trên Màn hình chính do hệ điều hành iOS ghim cố định khi bấm "Thêm vào MH chính". Để cập nhật biểu tượng mới ra Màn hình chính iPhone: Hãy mở trang web trên Safari ➔ chọn biểu tượng bạn thích ➔ bấm Chia sẻ ➔ chọn "Thêm vào MH chính".
-              </p>
-            </div>
+            {/* Khung hướng dẫn theo 2 trạng thái PWA vs Trình duyệt thường */}
+            {isPWA ? (
+              <div className="rounded-2xl bg-amber-500/10 border border-amber-500/25 p-4 text-xs text-amber-200/90 shadow-md space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">💡</span>
+                  <h4 className="font-bold text-amber-300 text-sm">
+                    Cách đổi biểu tượng ngoài Màn hình chính
+                  </h4>
+                </div>
+
+                <div className="rounded-xl bg-amber-500/15 border border-amber-400/20 p-2.5 text-[11.5px] text-amber-200 leading-relaxed font-medium">
+                  ⚠️ Lưu ý: Hãy sao chép đường dẫn locket-pro.online bên dưới TRƯỚC KHI xóa ứng dụng để không bị mất trang web.
+                </div>
+
+                <div className="space-y-1.5 text-gray-200 text-[12px] leading-relaxed pl-0.5">
+                  <p>1. Bấm sao chép link hoặc mở trang web trên trình duyệt (Safari / Chrome).</p>
+                  <p>2. Xóa ứng dụng cũ ngoài Màn hình chính.</p>
+                  <p>3. Chọn lại biểu tượng bạn thích trên trình duyệt rồi cài đặt lại ra Màn hình chính.</p>
+                </div>
+
+                {/* 2 nút bấm ngang hàng */}
+                <div className="grid grid-cols-2 gap-2.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleCopyLink}
+                    className={`py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 shadow cursor-pointer text-center ${
+                      copiedLink
+                        ? "bg-emerald-500 text-white"
+                        : "bg-amber-400 hover:bg-amber-300 text-black"
+                    }`}
+                  >
+                    {copiedLink ? (
+                      <>
+                        <Check size={14} strokeWidth={2.8} />
+                        <span>✅ Đã sao chép!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={14} />
+                        <span className="truncate">📋 Sao chép link (locket-pro.online)</span>
+                      </>
+                    )}
+                  </button>
+
+                  <a
+                    href="https://locket-pro.online"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 border border-white/15 shadow cursor-pointer text-center"
+                  >
+                    <Globe size={14} />
+                    <span className="truncate">🌐 Mở trên trình duyệt</span>
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-2xl bg-emerald-500/15 border border-emerald-500/30 p-3.5 text-xs text-emerald-200/95 leading-relaxed shadow-md">
+                <div className="flex items-start gap-2">
+                  <span className="text-base shrink-0">✅</span>
+                  <p className="text-[12px] leading-relaxed">
+                    <span className="font-bold text-emerald-300">
+                      Đã chọn biểu tượng {currentIconObj.name}!
+                    </span>{" "}
+                    Hãy bấm <strong>Chia sẻ → Thêm vào MH chính</strong> (iPhone) hoặc{" "}
+                    <strong>Menu 3 chấm → Cài đặt ứng dụng</strong> (Android) ngay bây giờ để lưu biểu tượng này.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* 3-column Grid of Icons */}
             <div>
@@ -399,8 +496,8 @@ export default function UserSettingsModal({ isOpen, onClose }) {
                 <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
                   Chọn biểu tượng ({APP_ICONS.length})
                 </span>
-                <span className="text-[11px] text-amber-400 font-medium">
-                  Chạm để đổi ngay
+                <span className={`text-[11px] font-medium ${isPWA ? "text-amber-400" : "text-emerald-400"}`}>
+                  {isPWA ? "Xem trước biểu tượng" : "Chạm để chọn biểu tượng cài đặt"}
                 </span>
               </div>
               <div className="grid grid-cols-3 gap-3">
