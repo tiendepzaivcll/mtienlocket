@@ -114,7 +114,7 @@ const Login = () => {
 
       SonnerSuccess(
         isAddAccount ? "Đã thêm tài khoản thành công!" : "Đăng nhập thành công!",
-        `Xin chào ${authUser?.displayName || authUser?.username || "người dùng"}! LOCKET-PRO · Admin MTIEN.`
+        `Xin chào ${authUser?.displayName || authUser?.username || "người dùng"}! Chào mừng bạn đến với LOCKET-PRO.`
       );
 
       const currentAccessRole = useAuthStore.getState().accessRole || accessRole;
@@ -209,7 +209,7 @@ const Login = () => {
           <MomentStory compact />
         </section>
         <section className="mtien-login-form-section" aria-labelledby="mtien-login-title">
-          <div className="mtien-login-welcome"><img src="/locket-pro-icon-192x192.png" width="42" height="42" alt="" /><div className="locket-pro-login-brand"><strong>LOCKET-PRO</strong><span>Quản trị bởi <b>MTIEN</b></span></div></div>
+          <div className="mtien-login-welcome"><img src="/locket-pro-icon-192x192.png" width="42" height="42" alt="LOCKET-PRO" /><div className="locket-pro-login-brand"><strong>LOCKET-PRO</strong><span>Camera & Moments</span></div></div>
           <h1 id="mtien-login-title">
             {isAddAccount ? "Thêm tài khoản mới." : "Chào bạn trở lại."}
           </h1>
@@ -263,7 +263,7 @@ const Login = () => {
             </button>
             <div className="mtien-server-status"><StatusServer /></div>
           </form>
-          <div className="mtien-login-note"><LockKeyhole size={15} /><p>Đăng nhập bằng tài khoản bạn đang dùng trên ứng dụng Locket. Website được quản trị bởi <strong>MTIEN</strong>.</p></div>
+          <div className="mtien-login-note"><LockKeyhole size={15} /><p>Đăng nhập bằng tài khoản bạn đang dùng trên ứng dụng Locket.</p></div>
           <div className="mtien-login-links"><Link to="/">Về trang chủ</Link><span>·</span><Link to="/privacy">Quyền riêng tư</Link></div>
         </section>
       </div>

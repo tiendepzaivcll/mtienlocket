@@ -22,7 +22,7 @@ const LoadingPageMain = ({ isLoading }) => {
         />
       </div>
       <h1 className="text-xl font-semibold">LOCKET-PRO</h1>
-      <p className="text-sm font-medium">Quản trị bởi MTIEN</p>
+      <p className="text-sm font-medium text-amber-400/90">Camera & Moments</p>
       <p className="text-sm opacity-70 animate-pulse">
         Chuẩn bị những khoảnh khắc của bạn…
       </p>

@@ -4,7 +4,7 @@ export function setPWAIcon(iconName = "default", path = "pwa-icons") {
   const manifest = {
     name: "LOCKET-PRO",
     short_name: "LOCKET-PRO",
-    description: "LOCKET-PRO - Chia sẻ khoảnh khắc trên Locket. Admin: MTIEN.",
+    description: "LOCKET-PRO - Chia sẻ khoảnh khắc trên Locket.",
     display: "standalone",
     background_color: "#101614",
     theme_color: "#101614",

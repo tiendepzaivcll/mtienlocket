@@ -9,9 +9,9 @@ export default function Contact() {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-14 md:py-20 min-h-[65vh]">
-      <p className="text-xs tracking-[0.18em] font-semibold text-primary mb-5">LOCKET-PRO / ADMIN MTIEN</p>
-      <h1 className="text-3xl md:text-5xl font-semibold tracking-tight text-base-content">Liên hệ admin.</h1>
-      <p className="text-base-content/70 mt-5 max-w-lg leading-relaxed">Bạn cần hỗ trợ tài khoản hoặc gặp vấn đề khi sử dụng LOCKET-PRO? Admin <strong>MTIEN</strong> hỗ trợ qua email và Zalo bên dưới nhé.</p>
+      <p className="text-xs tracking-[0.18em] font-semibold text-primary mb-5">LOCKET-PRO SUPPORT</p>
+      <h1 className="text-3xl md:text-5xl font-semibold tracking-tight text-base-content">Liên hệ hỗ trợ.</h1>
+      <p className="text-base-content/70 mt-5 max-w-lg leading-relaxed">Bạn cần hỗ trợ tài khoản hoặc gặp vấn đề khi sử dụng LOCKET-PRO? Chúng tôi luôn sẵn sàng hỗ trợ qua email và Zalo bên dưới nhé.</p>
       <div className="grid sm:grid-cols-2 gap-5 mt-10">
         {contacts.map(({ label, value, href, icon: Icon, action, external }) => (
           <a key={label} href={href} target={external ? "_blank" : undefined} rel={external ? "noopener noreferrer" : undefined} className="group flex flex-col gap-5 p-7 rounded-xl border border-base-300 bg-base-100 text-base-content transition-colors hover:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">

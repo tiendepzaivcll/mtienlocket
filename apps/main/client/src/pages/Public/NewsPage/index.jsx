@@ -117,7 +117,7 @@ export default function NewsPage() {
     <div className="min-h-screen">
       <div className="max-w-6xl mx-auto py-7 px-5 sm:px-6 relative">
         <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-          <div><h1 className="text-4xl font-semibold tracking-tight text-base-content">Bảng tin</h1><p className="text-base-content/70 mt-3 max-w-xl text-sm leading-relaxed">Cập nhật về LOCKET-PRO và những thông báo mới nhất từ admin MTIEN.</p></div>
+          <div><h1 className="text-4xl font-semibold tracking-tight text-base-content">Bảng tin</h1><p className="text-base-content/70 mt-3 max-w-xl text-sm leading-relaxed">Cập nhật về LOCKET-PRO và những thông báo mới nhất.</p></div>
           <button type="button" className="btn btn-outline btn-sm" disabled={loading || refreshing} onClick={() => load({ force: true })}><RefreshCw size={15} aria-hidden="true" />{refreshing ? "Đang cập nhật…" : "Tải lại bảng tin"}</button>
         </div>
         <div className="relative mb-5">
@@ -137,7 +137,7 @@ export default function NewsPage() {
               return <article key={`${article.source || "article"}:${article.id || article.slug}`} className="group bg-base-100 rounded-2xl overflow-hidden border border-base-300 flex flex-col min-w-0">
                 {!notice && <div className="relative h-60 bg-base-200 overflow-hidden">{article.thumbnail ? <img src={article.thumbnail} alt={article.title} className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full flex items-center justify-center"><Sparkles className="w-10 h-10 text-primary/50" /></div>}</div>}
                 <div className="p-5 flex flex-col flex-1">
-                  {notice && <div className="flex items-center justify-between gap-3 mb-4"><span className="inline-flex items-center gap-2 text-xs text-primary"><Megaphone size={17} aria-hidden="true" />Admin MTIEN</span>{article.pinned === true && <span className="inline-flex items-center gap-1 text-xs text-primary"><Pin size={13} aria-hidden="true" />Đã ghim</span>}</div>}
+                  {notice && <div className="flex items-center justify-between gap-3 mb-4"><span className="inline-flex items-center gap-2 text-xs text-primary"><Megaphone size={17} aria-hidden="true" />Ban quản trị</span>{article.pinned === true && <span className="inline-flex items-center gap-1 text-xs text-primary"><Pin size={13} aria-hidden="true" />Đã ghim</span>}</div>}
                   {published && <div className="flex items-center gap-1.5 text-xs text-base-content/55 mb-2"><Calendar size={13} aria-hidden="true" /><time>{published}</time></div>}
                   <h2 className="text-lg font-semibold text-base-content mb-3 break-words">{article.title}</h2>
                   {Array.isArray(article.tags) && article.tags.length > 0 && <div className="flex flex-wrap gap-1.5 mb-3">{article.tags.slice(0, 3).map((tag) => <span key={tag} className="bg-base-200 text-base-content/70 text-xs px-2 py-1 rounded-lg">#{tag}</span>)}</div>}

@@ -362,7 +362,7 @@ const FloatingNotification = () => {
                             clipRule="evenodd"
                           />
                         </svg>
-                        <span>Admin {item.author || "MTIEN"} · {item.time}</span>
+                        <span>Admin {item.author || "LOCKET-PRO"} · {item.time}</span>
                       </div>
                     </div>
                   ))}

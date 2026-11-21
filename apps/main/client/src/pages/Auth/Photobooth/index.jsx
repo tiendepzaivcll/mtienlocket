@@ -365,7 +365,7 @@ export default function Photobooth({ embedded = false, active = true, frameId, o
   return (
     <div className={`photobooth-page${embedded ? " photobooth-embedded" : ""}`} data-active={active} aria-label={embedded ? "Photobooth 4 ô trong camera" : undefined}>
       <div className="photobooth-container">
-        {!embedded && <><Link to="/locket-beta" className="photobooth-back"><ArrowLeft size={16} />Về Locket</Link><div className="photobooth-heading"><div><p>LOCKET-PRO / ADMIN MTIEN</p><h1>Photobooth <span>4 ô.</span></h1></div><p>Bốn khoảnh khắc.<br />Một khung hình của bạn.</p></div></>}
+        {!embedded && <><Link to="/locket-beta" className="photobooth-back"><ArrowLeft size={16} />Về Locket</Link><div className="photobooth-heading"><div><p>LOCKET-PRO</p><h1>Photobooth <span>4 ô.</span></h1></div><p>Bốn khoảnh khắc.<br />Một khung hình của bạn.</p></div></>}
 
         <div className="photobooth-layout">
           <section className="photobooth-stage" aria-label="Khung Photobooth chia bốn ô">

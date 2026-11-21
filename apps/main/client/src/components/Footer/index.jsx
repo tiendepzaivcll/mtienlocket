@@ -13,7 +13,7 @@ const Footer = () => {
             <span>LOCKET<span className="mtien-wordmark-dot">-PRO</span></span>
           </Link>
           <span>Những khoảnh khắc, gần nhau hơn.</span>
-          <span className="mtien-admin-credit">Quản trị bởi <strong>MTIEN</strong></span>
+          <span className="mtien-admin-credit">LOCKET-PRO · Camera & Moments</span>
         </div>
         <nav aria-label="Thông tin và hỗ trợ">
           <Link to="/download">Hướng dẫn</Link>

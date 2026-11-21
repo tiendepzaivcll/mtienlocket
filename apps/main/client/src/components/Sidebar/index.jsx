@@ -180,7 +180,7 @@ const Sidebar = () => {
             <img src="/locket-pro-icon-192x192.png" alt="" width="30" height="30" />
             <span className="mtien-menu-brand-copy">
               <span>LOCKET-PRO</span>
-              <span className="mtien-menu-admin">Quản trị bởi <strong>MTIEN</strong></span>
+              <span className="mtien-menu-admin">Camera & Moments</span>
             </span>
           </Link>
           <button
