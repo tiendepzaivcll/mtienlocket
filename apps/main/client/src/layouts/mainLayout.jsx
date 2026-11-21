@@ -6,6 +6,7 @@ import "@/styles/mtien-shell.css";
 
 const FloatingActions = lazy(() => import("@/components/ui/FloatingWidget"));
 const CropImageStudio = lazy(() => import("@/features/EditorStudio/CropImageStudio"));
+import { NotificationModal } from "@/components/ui/NotificationModal";
 
 const DefaultLayout = ({ children }) => {
   const location = useLocation();
@@ -28,6 +29,7 @@ const DefaultLayout = ({ children }) => {
       <Suspense fallback={null}>
         {shouldShowCrop && <CropImageStudio />}
         {shouldShowFloating && <FloatingActions />}
+        <NotificationModal />
       </Suspense>
     </div>
   );

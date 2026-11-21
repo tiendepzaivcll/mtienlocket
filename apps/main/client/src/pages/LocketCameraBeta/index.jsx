@@ -18,6 +18,7 @@ const ScreenCustomeStudio = lazy(() => import("./ModalViews/CustomeStudio"));
 const AiFilterStudio = lazy(() => import("./ModalViews/AiFilterStudio"));
 const CropImageStudio = lazy(() => import("@/features/EditorStudio/CropImageStudio"));
 const OptionMoment = lazy(() => import("./ModalViews/OptionMoment"));
+import { NotificationModal } from "@/components/ui/NotificationModal";
 
 export default function LocketCameraBeta() {
   const { navigation, camera, post } = useApp();
@@ -90,6 +91,7 @@ export default function LocketCameraBeta() {
           setOptionModalOpen={setOptionModalOpen}
           isOptionModalOpen={isOptionModalOpen}
         />
+        <NotificationModal />
       </Suspense>
 
       {/* Canvas for capturing image/video */}

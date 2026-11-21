@@ -5,6 +5,7 @@ import UserSettingsModal from "@/pages/LocketCameraBeta/ModalViews/UserSettingsM
 import { useAuthStore, useFriendList } from "@/stores";
 import { useApp } from "@/context/AppContext";
 import { getAvatarSource, handleAvatarError } from "@/utils/avatar";
+import { NotificationBellCamera } from "@/components/ui/NotificationModal";
 
 const HeaderHome = ({
   setIsProfileOpen,
@@ -94,26 +95,31 @@ const HeaderHome = ({
           className="fixed top-0 left-0 w-full px-4 flex items-center justify-between z-50 pointer-events-none"
           style={{ paddingTop: "max(0.25rem, calc(env(safe-area-inset-top) + 2px))" }}
         >
-          {/* Khi mở Nhật ký: Nút đóng X rõ ràng để quay lại camera; Khi ở Camera: Nút Rollcall */}
-          {isBottomOpen ? (
-            <button
-              onClick={() => navigation?.setIsBottomOpen?.(false)}
-              className="w-[38px] h-[38px] flex items-center justify-center bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:opacity-90 rounded-full active:scale-95 transition shadow-sm cursor-pointer pointer-events-auto"
-              aria-label="Đóng Nhật ký"
-              title="Đóng Nhật ký"
-            >
-              <X size={19} strokeWidth={2.4} />
-            </button>
-          ) : (
-            <button
-              onClick={handleOpenRollcall}
-              className="w-[38px] h-[38px] flex items-center justify-center bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:opacity-90 rounded-full active:scale-95 transition shadow-sm cursor-pointer pointer-events-auto"
-              aria-label="Mở Rollcall"
-              title="Rollcall"
-            >
-              <Megaphone size={18} strokeWidth={2.2} />
-            </button>
-          )}
+          {/* Bên trái: Nút đóng/Rollcall và Chuông thông báo (vị trí khoanh đỏ) */}
+          <div className="flex items-center gap-2 pointer-events-auto">
+            {isBottomOpen ? (
+              <button
+                onClick={() => navigation?.setIsBottomOpen?.(false)}
+                className="w-[38px] h-[38px] flex items-center justify-center bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:opacity-90 rounded-full active:scale-95 transition shadow-sm cursor-pointer pointer-events-auto shrink-0"
+                aria-label="Đóng Nhật ký"
+                title="Đóng Nhật ký"
+              >
+                <X size={19} strokeWidth={2.4} />
+              </button>
+            ) : (
+              <button
+                onClick={handleOpenRollcall}
+                className="w-[38px] h-[38px] flex items-center justify-center bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:opacity-90 rounded-full active:scale-95 transition shadow-sm cursor-pointer pointer-events-auto shrink-0"
+                aria-label="Mở Rollcall"
+                title="Rollcall"
+              >
+                <Megaphone size={18} strokeWidth={2.2} />
+              </button>
+            )}
+
+            {/* Chuông thông báo đặt cạnh Rollcall (đúng vị trí khoanh đỏ) */}
+            <NotificationBellCamera />
+          </div>
 
           {/* Bạn bè / Mọi người ở giữa */}
           <button

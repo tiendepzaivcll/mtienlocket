@@ -3,6 +3,7 @@ import { ArrowUpRight, Crown, Menu } from "lucide-react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
 import { useAuthStore } from "@/stores";
+import { NotificationBellHeader } from "@/components/ui/NotificationModal";
 
 const Header = () => {
   const location = useLocation();
@@ -33,6 +34,7 @@ const Header = () => {
           <NavLink to="/download">Hướng dẫn</NavLink>
         </nav>
         <div className="mtien-header-actions">
+          <NotificationBellHeader />
           <Link to={destination} className="mtien-header-cta">
             {user ? "Mở Locket" : "Đăng nhập"}
             <ArrowUpRight size={17} aria-hidden="true" />
