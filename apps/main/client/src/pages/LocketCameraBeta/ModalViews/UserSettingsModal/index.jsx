@@ -179,19 +179,20 @@ export default function UserSettingsModal({ isOpen, onClose }) {
     }
   };
 
+  const setSettingTabOpen = navigation?.setSettingTabOpen;
   useEffect(() => {
     if (isOpen) {
       setCurrentView("main");
       setCurrentAppIcon(localStorage.getItem("pwa_icon") || "3D-heart-gold");
       setSavedAccounts(getSavedAccounts());
-      navigation?.setSettingTabOpen?.(true);
+      setSettingTabOpen?.(true);
       document.body.style.overflow = "hidden";
       return () => {
-        navigation?.setSettingTabOpen?.(false);
+        setSettingTabOpen?.(false);
         document.body.style.overflow = "";
       };
     }
-  }, [isOpen, navigation]);
+  }, [isOpen, setSettingTabOpen]);
   const [customName, setCustomName] = useState(
     user?.displayName || `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || ""
   );

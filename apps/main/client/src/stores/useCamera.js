@@ -25,17 +25,23 @@ export const useCamera = () => {
     return saved === "true";
   });
 
-  // ✅ Lấy từ localStorage hoặc mặc định frame đầu tiên
+  // ✅ Lấy từ localStorage nếu có
   const [selectedFrame, setSelectedFrame] = useState(() => {
-    const saved = localStorage.getItem("selectedFrame");
-    return saved ? JSON.parse(saved) : frames[0];
+    try {
+      const saved = localStorage.getItem("selectedFrame");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
 
   // ✅ Lưu vào localStorage khi thay đổi
   useEffect(() => {
-    if (selectedFrame) {
-      localStorage.setItem("selectedFrame", JSON.stringify(selectedFrame));
-    }
+    try {
+      if (selectedFrame) {
+        localStorage.setItem("selectedFrame", JSON.stringify(selectedFrame));
+      }
+    } catch {}
   }, [selectedFrame]);
 
   return {

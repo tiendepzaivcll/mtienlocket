@@ -422,11 +422,16 @@ const MediaPreview = () => {
     };
   }, [cameraActive, cameraMode, preview, selectedFile, isCameraScreenActive]);
 
+  // Khi người dùng xóa hoặc hủy xem trước (preview/selectedFile), kích hoạt lại camera
+  // Tuyệt đối không phụ thuộc vào `cameraActive` trong dependency để tránh vòng lặp vô tận khi camera lỗi/bị từ chối quyền trên iOS PWA
+  const prevMediaRef = useRef(false);
   useEffect(() => {
-    if (isCameraScreenActive && !preview && !selectedFile && !cameraActive) {
+    const hasMedia = Boolean(preview || selectedFile);
+    if (prevMediaRef.current && !hasMedia && isCameraScreenActive) {
       setCameraActive(true);
     }
-  }, [preview, selectedFile, cameraActive, isCameraScreenActive]);
+    prevMediaRef.current = hasMedia;
+  }, [preview, selectedFile, isCameraScreenActive, setCameraActive]);
 
   const handleCycleZoomCamera = async () => {
     const cameras = await getAvailableCameras();

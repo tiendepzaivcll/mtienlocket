@@ -4,8 +4,6 @@ import Home from "../pages/Public/Home";
 import Login from "../pages/Public/Login";
 import { CONFIG } from "@/config";
 import ToolsLocket from "../pages/Auth/LocketDioTools";
-// import LocketCameraBeta from "@/pages/LocketCameraBeta";
-const LocketCameraBeta = React.lazy(() => import("../pages/LocketCameraBeta"));
 // import CameraCapture from "@/pages/UILocket";
 // const WhitePage = React.lazy(() => import("@/pages/Public/WhitePage"));
 const NewsPage = React.lazy(() => import("@/pages/Public/NewsPage"));
@@ -36,7 +34,6 @@ export const publicRoutes = [
   
   { path: "/download", component: AddToHomeScreenGuide, title: `Thêm ứng dụng vào màn hình chính | ${APP_NAME}` },
   { path: "/preset", component: CaptionPresetManager, title: `Quản lý Caption Preset | ${APP_NAME}` },
-  { path: "/locket-beta", component: LocketCameraBeta, title: `Locket Camera Beta | ${APP_NAME}` },
 
   { path: "/privacy", component: PrivacyPolicy, title: `Chính sách riêng tư | ${APP_NAME}` },
   { path: "/pricing", component: PricingPage, title: `Nâng cấp VIP | ${APP_NAME}` },

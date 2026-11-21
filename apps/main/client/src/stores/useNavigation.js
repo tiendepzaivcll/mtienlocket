@@ -22,31 +22,45 @@ export const useNavigation = () => {
     return checkIfRunningAsPWA();
   });
 
-  // Lưu vào localStorage khi isFullview thay đổi và đồng bộ class .is-pwa
+  // Lưu vào localStorage khi isFullview thay đổi
   useEffect(() => {
-    localStorage.setItem("isFullview", isFullview);
-    const pwaActive = checkIfRunningAsPWA();
-    setIsPWA(pwaActive);
-    if (typeof document !== "undefined" && document.body) {
-      document.body.classList.toggle("is-pwa", pwaActive);
-    }
+    try {
+      localStorage.setItem("isFullview", String(isFullview));
+    } catch {}
   }, [isFullview]);
 
-  // Tự động phát hiện nếu đang chạy dưới dạng PWA Standalone
+  // Tự động phát hiện nếu đang chạy dưới dạng PWA Standalone (iOS Safari & Chrome)
   useEffect(() => {
     const handleCheckPWA = () => {
       const active = checkIfRunningAsPWA();
-      setIsPWA(active);
+      setIsPWA((prev) => (prev !== active ? active : prev));
       if (typeof document !== "undefined" && document.body) {
         document.body.classList.toggle("is-pwa", active);
       }
     };
 
-    handleCheckPWA();
+    const mediaQuery =
+      typeof window !== "undefined" && window.matchMedia
+        ? window.matchMedia("(display-mode: standalone)")
+        : null;
 
-    const mediaQuery = window.matchMedia("(display-mode: standalone)");
-    mediaQuery.addEventListener?.("change", handleCheckPWA);
-    return () => mediaQuery.removeEventListener?.("change", handleCheckPWA);
+    if (mediaQuery) {
+      if (mediaQuery.addEventListener) {
+        mediaQuery.addEventListener("change", handleCheckPWA);
+      } else if (mediaQuery.addListener) {
+        mediaQuery.addListener(handleCheckPWA);
+      }
+    }
+
+    return () => {
+      if (mediaQuery) {
+        if (mediaQuery.removeEventListener) {
+          mediaQuery.removeEventListener("change", handleCheckPWA);
+        } else if (mediaQuery.removeListener) {
+          mediaQuery.removeListener(handleCheckPWA);
+        }
+      }
+    };
   }, []);
 
   const [showFlyingEffect, setShowFlyingEffect] = useState(false);

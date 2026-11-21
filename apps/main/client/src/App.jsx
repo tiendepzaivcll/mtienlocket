@@ -283,6 +283,7 @@ function AppContent() {
               .filter(
                 ({ path }) =>
                   !sharedPublicPaths.includes(path) &&
+                  !privateRoutes.some((pr) => pr.path === path) &&
                   !(path === "/login" && location.search.includes("mode=add_account")),
               )
               .map(({ path }) => (
