@@ -30,7 +30,6 @@ import {
   User,
   LogIn,
   UserPlus,
-  Globe,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { instanceMain } from "@/libs/instanceMain";
@@ -527,17 +526,17 @@ export default function UserSettingsModal({ isOpen, onClose }) {
                 </div>
 
                 <div className="space-y-1.5 text-gray-200 text-[12px] leading-relaxed pl-0.5">
-                  <p>1. Bấm sao chép link hoặc mở trang web trên trình duyệt (Safari / Chrome).</p>
+                  <p>1. Bấm sao chép link bên dưới rồi mở trên trình duyệt (Safari / Chrome).</p>
                   <p>2. Xóa ứng dụng cũ ngoài Màn hình chính.</p>
                   <p>3. Chọn lại biểu tượng bạn thích trên trình duyệt rồi cài đặt lại ra Màn hình chính.</p>
                 </div>
 
-                {/* 2 nút bấm ngang hàng */}
-                <div className="grid grid-cols-2 gap-2.5 pt-1">
+                {/* Nút Sao chép link full width */}
+                <div className="pt-1">
                   <button
                     type="button"
                     onClick={handleCopyLink}
-                    className={`py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 shadow cursor-pointer text-center ${
+                    className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-95 shadow cursor-pointer text-center ${
                       copiedLink
                         ? "bg-emerald-500 text-white"
                         : "bg-amber-400 hover:bg-amber-300 text-black"
@@ -545,26 +544,16 @@ export default function UserSettingsModal({ isOpen, onClose }) {
                   >
                     {copiedLink ? (
                       <>
-                        <Check size={14} strokeWidth={2.8} />
-                        <span>✅ Đã sao chép!</span>
+                        <Check size={15} strokeWidth={2.8} />
+                        <span>✅ Đã sao chép link!</span>
                       </>
                     ) : (
                       <>
-                        <Copy size={14} />
-                        <span className="truncate">📋 Sao chép link (locket-pro.online)</span>
+                        <Copy size={15} />
+                        <span>📋 Sao chép link (locket-pro.online)</span>
                       </>
                     )}
                   </button>
-
-                  <a
-                    href="https://locket-pro.online"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 border border-white/15 shadow cursor-pointer text-center"
-                  >
-                    <Globe size={14} />
-                    <span className="truncate">🌐 Mở trên trình duyệt</span>
-                  </a>
                 </div>
               </div>
             ) : (
