@@ -540,7 +540,7 @@ export const useMomentsStoreV2 = create((set, get) => ({
   resetVisible: (selectedFriendUid = null) => {
     const key = selectedFriendUid ?? "all";
     const bucket = get().momentsByUser[key];
-    if (!bucket) return;
+    if (!bucket || bucket.visibleCount === initialVisible) return;
 
     set((state) => ({
       momentsByUser: {

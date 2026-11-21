@@ -149,17 +149,19 @@ function AppContent() {
     }
   }, [accessDenied, location.pathname, navigate]);
 
+  const currentUserId = user?.uid || user?.localId;
+
   useEffect(() => {
-    if (user && (accessRole === "vip" || accessRole === "free")) {
+    if (currentUserId && (accessRole === "vip" || accessRole === "free")) {
       // loadFriendsV2();
       loadFriendsV3();
       syncStreak();
       hydrateUploadQueue();
     }
-  }, [accessRole, hydrateUploadQueue, loadFriendsV3, syncStreak, user]);
+  }, [accessRole, currentUserId, hydrateUploadQueue, loadFriendsV3, syncStreak]);
 
   useEffect(() => {
-    if (!user || (accessRole !== "vip" && accessRole !== "free")) return undefined;
+    if (!currentUserId || (accessRole !== "vip" && accessRole !== "free")) return undefined;
 
     let lastRecoverySyncAt = 0;
     const recover = () => {
@@ -192,6 +194,7 @@ function AppContent() {
     };
   }, [
     accessRole,
+    currentUserId,
     fetchConversations,
     fetchGroups,
     loadFriendsV3,
@@ -199,7 +202,6 @@ function AppContent() {
     refreshRecentMessageThreads,
     resumeRecoverableUploads,
     syncStreak,
-    user,
   ]);
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useApp } from "@/context/AppContext";
 import HeaderOne from "./Layout/HeaderOne";
 import InfoUser from "./Layout/InfoUser";
@@ -7,25 +7,41 @@ import RollcallsPost from "./Views/RollcallsPage";
 import StreakLocket from "./Views/CalenderStreak";
 import { useAuthStore, useMomentsStoreV2, useUploadQueueStore } from "@/stores";
 
+const EMPTY_ITEMS = [];
+
 const LeftHomeScreen = ({ setIsProfileOpen }) => {
   const { user } = useAuthStore();
   const { navigation } = useApp();
   const { isProfileOpen, profileSection, setProfileSection } = navigation;
   const [posts, setPosts] = useState([]);
 
-  const postedMoments = useUploadQueueStore((s) => s.postedMoments);
+  const postedMoments = useUploadQueueStore((s) => s.postedMoments || EMPTY_ITEMS);
   const userUid = user?.uid || user?.localId;
-  const myMoments = useMomentsStoreV2((s) => (userUid ? s.momentsByUser[userUid]?.items : null));
-  const allMoments = useMomentsStoreV2((s) => s.momentsByUser["all"]?.items || []);
+  const myMoments = useMomentsStoreV2((s) => (userUid ? s.momentsByUser[userUid]?.items : null) || EMPTY_ITEMS);
+  const allMoments = useMomentsStoreV2((s) => s.momentsByUser["all"]?.items || EMPTY_ITEMS);
+  const isBucketLoading = useMomentsStoreV2((s) => Boolean(userUid && s.momentsByUser[userUid]?.loading));
   const fetchMoments = useMomentsStoreV2((s) => s.fetchMoments);
 
+  const hasFetchedProfileRef = useRef(false);
   useEffect(() => {
-    if (isProfileOpen && profileSection === "lockets" && user && userUid) {
-      if (!myMoments || myMoments.length === 0) {
+    hasFetchedProfileRef.current = false;
+  }, [userUid]);
+
+  useEffect(() => {
+    if (
+      isProfileOpen &&
+      profileSection === "lockets" &&
+      user &&
+      userUid &&
+      !isBucketLoading &&
+      !hasFetchedProfileRef.current
+    ) {
+      if (myMoments.length === 0) {
+        hasFetchedProfileRef.current = true;
         fetchMoments(user, userUid);
       }
     }
-  }, [isProfileOpen, profileSection, user, userUid, myMoments, fetchMoments]);
+  }, [isProfileOpen, profileSection, user, userUid, myMoments.length, isBucketLoading, fetchMoments]);
   // handle toggle bằng true/false
   return (
     <div

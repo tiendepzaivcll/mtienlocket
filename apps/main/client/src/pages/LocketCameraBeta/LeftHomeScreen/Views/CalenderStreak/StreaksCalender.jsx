@@ -689,13 +689,15 @@ const MonthCalendar = ({
   );
 };
 
+const EMPTY_ITEMS = [];
+
 /* =========================================================================
  * StreaksCalender: Thành phần lịch chuỗi & ảnh kỷ niệm chính
  * ========================================================================= */
 const StreaksCalender = ({
-  recentPosts = [],
-  myMoments = [],
-  allMoments = [],
+  recentPosts = EMPTY_ITEMS,
+  myMoments = EMPTY_ITEMS,
+  allMoments = EMPTY_ITEMS,
 }) => {
   const { navigation, camera, post } = useApp();
   const { user } = useAuthStore();
@@ -707,18 +709,25 @@ const StreaksCalender = ({
   );
   const setRestoreStreak = usePostStore((state) => state.setRestoreStreak);
 
-  // Moments từ store theo user hoặc "all"
+  // Moments từ store theo user hoặc "all" - Dùng EMPTY_ITEMS hằng số để không tạo mảng mới mỗi render gây lặp re-render
   const userStoreItems = useMomentsStoreV2(
-    (state) => (currentUserId ? state.momentsByUser[currentUserId]?.items : null) || [],
+    (state) => (currentUserId ? state.momentsByUser[currentUserId]?.items : null) || EMPTY_ITEMS,
   );
   const allStoreItems = useMomentsStoreV2(
-    (state) => state.momentsByUser["all"]?.items || [],
+    (state) => state.momentsByUser["all"]?.items || EMPTY_ITEMS,
+  );
+  const isBucketLoading = useMomentsStoreV2(
+    (state) =>
+      Boolean(
+        (currentUserId ? state.momentsByUser[currentUserId]?.loading : null) ||
+        state.momentsByUser["all"]?.loading
+      ),
   );
   const fetchMoments = useMomentsStoreV2((state) => state.fetchMoments);
   const ensureMomentVisible = useMomentsStoreV2(
     (state) => state.ensureMomentVisible,
   );
-  const postedMoments = useUploadQueueStore((state) => state.postedMoments || []);
+  const postedMoments = useUploadQueueStore((state) => state.postedMoments || EMPTY_ITEMS);
 
   const [cachedMoments, setCachedMoments] = useState([]);
   const [activeDayModal, setActiveDayModal] = useState(null);
@@ -825,14 +834,23 @@ const StreaksCalender = ({
     });
   }, [allCombinedPosts, currentUserId]);
 
-  // Tự động fetch moments nếu danh sách đang rỗng
+  // Tự động fetch moments một lần khi danh sách đang rỗng (dùng ref chặn lặp vô hạn)
+  const hasFetchedMomentsRef = useRef(false);
   useEffect(() => {
-    if (user && currentUserId && myCombinedPosts.length === 0) {
+    hasFetchedMomentsRef.current = false;
+  }, [currentUserId]);
+
+  useEffect(() => {
+    if (!user || hasFetchedMomentsRef.current || isBucketLoading) return;
+
+    if (currentUserId && myCombinedPosts.length === 0) {
+      hasFetchedMomentsRef.current = true;
       fetchMoments(user, currentUserId);
-    } else if (user && !currentUserId && allCombinedPosts.length === 0) {
+    } else if (!currentUserId && allCombinedPosts.length === 0) {
+      hasFetchedMomentsRef.current = true;
       fetchMoments(user, null);
     }
-  }, [user, currentUserId, myCombinedPosts.length, allCombinedPosts.length, fetchMoments]);
+  }, [user, currentUserId, myCombinedPosts.length, allCombinedPosts.length, isBucketLoading, fetchMoments]);
 
   // Nhóm theo từng tháng YYYY-MM CHỈ DỰA TRÊN ẢNH CỦA USER
   const postsByMonth = useMemo(() => {

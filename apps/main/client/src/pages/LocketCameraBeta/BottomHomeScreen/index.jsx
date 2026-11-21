@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useApp } from "@/context/AppContext";
 import UploadingQueue from "./MomentsView/UploadingQueue";
 import MomentsGrid from "./MomentsView/MomentsGrid";
@@ -12,6 +12,8 @@ import { useSocket } from "@/context/SocketContext";
 import { useAuthStore, useMomentsStoreV2, useViewedMomentsStore } from "@/stores";
 import { getToken } from "@/utils";
 import { isPhotoUnseen } from "@/utils/moment/unseenMoments";
+
+const EMPTY_ITEMS = [];
 
 const BottomHomeScreen = () => {
   const { navigation, post } = useApp();
@@ -47,12 +49,10 @@ const BottomHomeScreen = () => {
 
   const bucket = useMomentsStoreV2((s) => s.momentsByUser[selectedKey]);
 
-  const {
-    items: moments = [],
-    loading = false,
-    hasMore = true,
-    visibleCount = 0,
-  } = bucket || {};
+  const moments = bucket?.items || EMPTY_ITEMS;
+  const loading = bucket?.loading || false;
+  const hasMore = bucket?.hasMore ?? true;
+  const visibleCount = bucket?.visibleCount || 0;
 
   const {
     fetchMoments,
@@ -69,6 +69,9 @@ const BottomHomeScreen = () => {
   // hãy cập nhật ngay trạng thái đã xem lên Firebase:
   // - Thêm currentUser.uid vào seenBy của các ảnh hiển thị trên màn hình
   // - Cập nhật lastSeenHistoryAt = serverTimestamp() / Date.now()
+  const markedMomentsRef = useRef(new Set());
+  const hasUpdatedInitialLastSeenRef = useRef(false);
+
   useEffect(() => {
     if (!isBottomOpen || !currentUserId || !moments.length) return;
 
@@ -77,18 +80,22 @@ const BottomHomeScreen = () => {
     const displayedMoments = moments.slice(0, displayedCount);
 
     // Lọc ra các ảnh do người khác gửi mà user chưa xem
-    const unseenDisplayed = displayedMoments.filter((m) =>
-      isPhotoUnseen(m, currentUserId, viewedIds, user?.lastSeenHistoryAt),
+    const unseenDisplayed = displayedMoments.filter(
+      (m) =>
+        !markedMomentsRef.current.has(m.id) &&
+        isPhotoUnseen(m, currentUserId, viewedIds, user?.lastSeenHistoryAt),
     );
 
     if (unseenDisplayed.length > 0) {
+      unseenDisplayed.forEach((m) => markedMomentsRef.current.add(m.id));
       markAllViewed(unseenDisplayed);
       markMomentsAsSeen?.(
         unseenDisplayed.map((m) => m.id),
         currentUserId,
       );
       updateLastSeenHistoryAt?.(Date.now());
-    } else if (!user?.lastSeenHistoryAt) {
+    } else if (!user?.lastSeenHistoryAt && !hasUpdatedInitialLastSeenRef.current) {
+      hasUpdatedInitialLastSeenRef.current = true;
       updateLastSeenHistoryAt?.(Date.now());
     }
   }, [
@@ -107,10 +114,17 @@ const BottomHomeScreen = () => {
     resetVisible(selectedFriendUid);
   }, [isBottomOpen, isHomeOpen, isProfileOpen, selectedFriendUid]);
 
-  // Fetch initial moments
+  // Fetch initial moments - Dùng ref và currentUserId để không bị re-fetch lặp vô tận khi user object thay đổi tham chiếu
+  const hasFetchedBottomMomentsRef = useRef(false);
   useEffect(() => {
+    hasFetchedBottomMomentsRef.current = false;
+  }, [currentUserId, selectedFriendUid]);
+
+  useEffect(() => {
+    if (!user || !currentUserId || hasFetchedBottomMomentsRef.current) return;
+    hasFetchedBottomMomentsRef.current = true;
     fetchMoments(user, selectedFriendUid);
-  }, [user, selectedFriendUid]);
+  }, [user, currentUserId, selectedFriendUid, fetchMoments]);
 
   useEffect(() => {
     if (!swiperRef) return;
