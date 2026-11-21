@@ -91,38 +91,33 @@ const HeaderHome = ({
 
       {!selectedFile && (
         <div
-          className="fixed top-0 left-0 w-full px-3 flex items-center justify-between z-50 pointer-events-none"
-          style={{ paddingTop: "max(0.5rem, env(safe-area-inset-top))" }}
+          className="fixed top-0 left-0 w-full px-4 flex items-center justify-between z-50 pointer-events-none"
+          style={{ paddingTop: "max(0.25rem, calc(env(safe-area-inset-top) + 2px))" }}
         >
           {/* Khi mở Nhật ký: Nút đóng X rõ ràng để quay lại camera; Khi ở Camera: Nút Rollcall */}
           {isBottomOpen ? (
             <button
               onClick={() => navigation?.setIsBottomOpen?.(false)}
-              className="w-11 h-11 flex items-center justify-center bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:opacity-90 rounded-full active:scale-95 transition shadow-sm cursor-pointer pointer-events-auto"
+              className="w-[38px] h-[38px] flex items-center justify-center bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:opacity-90 rounded-full active:scale-95 transition shadow-sm cursor-pointer pointer-events-auto"
               aria-label="Đóng Nhật ký"
               title="Đóng Nhật ký"
             >
-              <X size={20} strokeWidth={2.4} />
+              <X size={19} strokeWidth={2.4} />
             </button>
           ) : (
             <button
               onClick={handleOpenRollcall}
-              className="w-11 h-11 flex items-center justify-center bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:opacity-90 rounded-full active:scale-95 transition shadow-sm cursor-pointer pointer-events-auto"
+              className="w-[38px] h-[38px] flex items-center justify-center bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:opacity-90 rounded-full active:scale-95 transition shadow-sm cursor-pointer pointer-events-auto"
               aria-label="Mở Rollcall"
               title="Rollcall"
             >
-              <Megaphone size={19} strokeWidth={2.2} />
+              <Megaphone size={18} strokeWidth={2.2} />
             </button>
           )}
 
           {/* Bạn bè / Mọi người ở giữa */}
           <button
-            className={`absolute flex z-90 transition-all justify-center items-center flex-row gap-1.5 left-1/2 
-          transform -translate-x-1/2 ${
-            navigation?.isPWA
-              ? "h-10 px-5 rounded-full font-bold text-sm"
-              : "text-base font-semibold px-4 py-2 rounded-3xl"
-          } bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:opacity-90 active:scale-105 select-none shadow-sm cursor-pointer pointer-events-auto`}
+            className="absolute flex z-90 transition-all justify-center items-center flex-row gap-1.5 left-1/2 transform -translate-x-1/2 h-[38px] px-4 rounded-full font-bold text-sm bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:opacity-90 active:scale-105 select-none shadow-sm cursor-pointer pointer-events-auto"
             onClick={toggleDropdown}
           >
             {isBottomOpen ? (
@@ -164,12 +159,12 @@ const HeaderHome = ({
                 setIsSettingsModalOpen(true);
                 navigation?.setSettingTabOpen?.(true);
               }}
-              className="relative flex items-center justify-center w-11 h-11 cursor-pointer active:scale-105 pointer-events-auto"
+              className="relative flex items-center justify-center w-[38px] h-[38px] cursor-pointer active:scale-105 pointer-events-auto"
               aria-label="Cài đặt & Tài khoản"
               title="Cài đặt & Tài khoản"
             >
               {/* Nền nút */}
-              <div className="bg-[var(--surface-pill)] border border-[var(--border-subtle)] w-11.5 h-11.5 rounded-full absolute" />
+              <div className="bg-[var(--surface-pill)] border border-[var(--border-subtle)] w-[38px] h-[38px] rounded-full absolute" />
 
               {/* Hiển thị vòng loading khi ảnh chưa load */}
               {!isImageLoaded && (
@@ -181,9 +176,7 @@ const HeaderHome = ({
                 alt="avatar"
                 onLoad={() => setIsImageLoaded(true)}
                 onError={handleAvatarError}
-                className={`rounded-full ${
-                  navigation?.isPWA ? "h-10.5 w-10.5" : "h-9.5 w-9.5"
-                } relative object-cover transition-opacity duration-300 ${
+                className={`rounded-full h-[36px] w-[36px] relative object-cover transition-opacity duration-300 ${
                   isImageLoaded ? "opacity-100" : "opacity-0 bg-[var(--surface-pill)]"
                 }`}
               />

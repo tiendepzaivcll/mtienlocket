@@ -145,8 +145,8 @@ export default function MainHomeScreen() {
           style={{
             display: "flex",
             flexDirection: "column",
-            paddingTop: "calc(env(safe-area-inset-top) + 52px)",
-            paddingBottom: "calc(52px + max(1rem, env(safe-area-inset-bottom)))",
+            paddingTop: "calc(env(safe-area-inset-top) + 42px)",
+            paddingBottom: "calc(48px + max(1rem, env(safe-area-inset-bottom)))",
             height: "100%",
             maxHeight: "100dvh",
             overflow: "hidden",
@@ -155,19 +155,25 @@ export default function MainHomeScreen() {
         >
           <div
             className="w-full shrink-0 flex flex-col items-center"
-            style={{ marginTop: "12px" }}
+            style={{ marginTop: "10px" }}
           >
             <MediaPreview />
             <MediaSizeInfo />
           </div>
 
-          <div className="flex-1 flex flex-col justify-evenly items-center w-full min-h-0 px-4">
-            <div className="w-full flex justify-center items-center shrink-0">
+          <div className="w-full flex flex-col items-center shrink-0 px-4">
+            <div
+              className="w-full flex justify-center items-center shrink-0"
+              style={{ marginTop: "46px" }}
+            >
               <ActionControls />
             </div>
 
             {/* Click để mở lịch sử */}
-            <div className="relative w-full flex justify-center items-center shrink-0">
+            <div
+              className="relative w-full flex justify-center items-center shrink-0"
+              style={{ marginTop: "28px" }}
+            >
               {/* SelectFriendsList */}
               <div
                 className={`

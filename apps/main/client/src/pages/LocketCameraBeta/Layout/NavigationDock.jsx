@@ -34,9 +34,9 @@ const items = [
 ];
 
 const activeOffset = {
-  calendar: "calc(-50% - 61px)",
+  calendar: "calc(-50% - 62px)",
   home: "-50%",
-  messages: "calc(-50% + 61px)",
+  messages: "calc(-50% + 62px)",
 };
 
 export default function NavigationDock({ hidden = false }) {
@@ -137,17 +137,17 @@ export default function NavigationDock({ hidden = false }) {
           background: "var(--surface-dock)",
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
-          width: "192px",
-          height: "52px",
+          width: "188px",
+          height: "48px",
           borderRadius: "999px",
         }}
         className="pointer-events-auto relative flex items-center justify-between shadow-xl text-[var(--text-primary)] px-2 border border-[var(--border-subtle)]"
       >
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[44px] rounded-full shadow-sm transition-[transform,opacity,width] duration-300 bg-[var(--surface-pill)] border border-[var(--border-subtle)]"
+          className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[40px] rounded-full shadow-sm transition-[transform,opacity,width] duration-300 bg-[var(--surface-pill)] border border-[var(--border-subtle)]"
           style={{
-            width: activeId === "home" ? "44px" : "54px",
+            width: activeId === "home" ? "56px" : "48px",
             opacity: isViewingMoment ? 0 : 1,
             transform: `translate(${activeOffset[activeId]}, -50%) scale(${isViewingMoment ? 0.7 : 1})`,
           }}
@@ -164,7 +164,7 @@ export default function NavigationDock({ hidden = false }) {
                 aria-label={isViewingMoment ? "Trở về camera" : label}
                 aria-current={active ? "page" : undefined}
                 onClick={() => select(id)}
-                className="relative z-10 flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full transition-transform duration-300 ease-out active:scale-95"
+                className="relative z-10 flex h-[40px] w-[56px] shrink-0 items-center justify-center rounded-full transition-transform duration-300 ease-out active:scale-95"
               >
                 <span
                   aria-hidden="true"
@@ -182,7 +182,7 @@ export default function NavigationDock({ hidden = false }) {
                 </span>
                 <span
                   aria-hidden="true"
-                  className="pointer-events-none absolute flex h-9 w-9 items-center justify-center rounded-full ring-4 ring-[var(--accent-primary)] bg-[var(--surface-pill)] shadow-sm transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                  className="pointer-events-none absolute flex h-8 w-8 items-center justify-center rounded-full ring-3 ring-[var(--accent-primary)] bg-[var(--surface-pill)] shadow-sm transition-[opacity,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
                   style={{
                     opacity: isViewingMoment ? 1 : 0,
                     transform: isViewingMoment
@@ -190,7 +190,7 @@ export default function NavigationDock({ hidden = false }) {
                       : "scale(0.35) rotate(-90deg)",
                   }}
                 >
-                  <span className="h-8 w-8 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-dock)] transition-transform duration-300" />
+                  <span className="h-7 w-7 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-dock)] transition-transform duration-300" />
                 </span>
               </button>
             );
@@ -203,7 +203,7 @@ export default function NavigationDock({ hidden = false }) {
               aria-label={label}
               aria-current={active ? "page" : undefined}
               onClick={() => select(id)}
-              className={`relative z-10 flex w-[54px] h-[44px] items-center justify-center rounded-full transition-colors duration-300 ease-out active:scale-95 ${
+              className={`relative z-10 flex w-[48px] h-[40px] items-center justify-center rounded-full transition-colors duration-300 ease-out active:scale-95 ${
                 active ? "text-[var(--accent-primary)]" : "text-[var(--text-secondary)] hover:opacity-80"
               }`}
             >

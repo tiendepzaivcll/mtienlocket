@@ -296,11 +296,11 @@ html, body, #root {
 
 /* ── PWA Standalone Mode adjustments matching real Locket ── */
 body.is-pwa .pwa-camera-frame {
-  width: calc(100% - 12px) !important;
+  width: 97vw !important;
   max-width: none !important;
   margin: 0 auto !important;
   aspect-ratio: 1 / 1 !important;
-  border-radius: 50px !important;
+  border-radius: 62px !important;
 }
 
 body.is-pwa .pwa-thumb-stack-back {
@@ -310,11 +310,11 @@ body.is-pwa .pwa-thumb-stack-back {
 
 @media (display-mode: standalone) {
   .pwa-camera-frame {
-    width: calc(100% - 12px) !important;
+    width: 97vw !important;
     max-width: none !important;
     margin: 0 auto !important;
     aspect-ratio: 1 / 1 !important;
-    border-radius: 50px !important;
+    border-radius: 62px !important;
   }
   .pwa-thumb-stack-back {
     transform-origin: bottom center !important;
