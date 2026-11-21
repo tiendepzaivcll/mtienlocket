@@ -489,8 +489,8 @@ const MediaPreview = () => {
         onTouchCancel={handleTouchEnd}
         className={`relative ${
           isPWA
-            ? "pwa-camera-frame w-[92vw] max-w-[min(92vw,calc(100dvh-310px),414px)] aspect-square rounded-[42px]"
-            : "w-[min(calc(100vw-24px),calc(100dvh-290px),400px)] aspect-square rounded-[48px]"
+            ? "pwa-camera-frame w-[calc(100%-12px)] aspect-square rounded-[50px] mx-auto"
+            : "w-[calc(100%-12px)] max-w-[min(calc(100vw-12px),calc(100dvh-290px),430px)] aspect-square rounded-[50px] mx-auto"
         } bg-gray-900 overflow-hidden transition-all duration-300 touch-none select-none shadow-2xl`}
       >
         {!preview && !selectedFile && cameraActive && (

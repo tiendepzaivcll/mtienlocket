@@ -34,9 +34,9 @@ const items = [
 ];
 
 const activeOffset = {
-  calendar: "calc(-50% - 62px)",
+  calendar: "calc(-50% - 61px)",
   home: "-50%",
-  messages: "calc(-50% + 62px)",
+  messages: "calc(-50% + 61px)",
 };
 
 export default function NavigationDock({ hidden = false }) {
@@ -137,13 +137,17 @@ export default function NavigationDock({ hidden = false }) {
           background: "var(--surface-dock)",
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
+          width: "192px",
+          height: "52px",
+          borderRadius: "999px",
         }}
-        className="pointer-events-auto relative flex w-fit items-center gap-1 rounded-full shadow-xl text-[var(--text-primary)] p-1 border border-[var(--border-subtle)]"
+        className="pointer-events-auto relative flex items-center justify-between shadow-xl text-[var(--text-primary)] px-2 border border-[var(--border-subtle)]"
       >
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-1/2 z-0 rounded-full shadow-sm px-8.5 py-6 transition-[transform,opacity] duration-300 bg-[var(--surface-pill)] border border-[var(--border-subtle)]"
+          className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[44px] rounded-full shadow-sm transition-[transform,opacity,width] duration-300 bg-[var(--surface-pill)] border border-[var(--border-subtle)]"
           style={{
+            width: activeId === "home" ? "44px" : "54px",
             opacity: isViewingMoment ? 0 : 1,
             transform: `translate(${activeOffset[activeId]}, -50%) scale(${isViewingMoment ? 0.7 : 1})`,
           }}
@@ -160,7 +164,7 @@ export default function NavigationDock({ hidden = false }) {
                 aria-label={isViewingMoment ? "Trở về camera" : label}
                 aria-current={active ? "page" : undefined}
                 onClick={() => select(id)}
-                className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-transform duration-300 ease-out active:scale-95"
+                className="relative z-10 flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full transition-transform duration-300 ease-out active:scale-95"
               >
                 <span
                   aria-hidden="true"
@@ -199,7 +203,7 @@ export default function NavigationDock({ hidden = false }) {
               aria-label={label}
               aria-current={active ? "page" : undefined}
               onClick={() => select(id)}
-              className={`relative z-10 flex items-center justify-center rounded-full px-6 py-3.5 transition-colors duration-300 ease-out active:scale-95 ${
+              className={`relative z-10 flex w-[54px] h-[44px] items-center justify-center rounded-full transition-colors duration-300 ease-out active:scale-95 ${
                 active ? "text-[var(--accent-primary)]" : "text-[var(--text-secondary)] hover:opacity-80"
               }`}
             >

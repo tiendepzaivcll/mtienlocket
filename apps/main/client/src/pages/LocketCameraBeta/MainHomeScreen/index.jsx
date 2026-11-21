@@ -139,30 +139,35 @@ export default function MainHomeScreen() {
           <BottomMenu setOptionModalOpen={setOptionModalOpen} />
         </div>
         <div
-          className={`w-full h-full flex flex-col transition-all duration-500 justify-between items-center ${
+          className={`w-full h-full flex flex-col transition-all duration-500 items-center ${
             isBottomOpen ? "fixed -translate-y-full" : "translate-x-0"
           }`}
           style={{
             display: "flex",
             flexDirection: "column",
-            justifyContent: "space-between",
-            paddingTop: "max(3.2rem, calc(env(safe-area-inset-top) + 3rem))",
-            paddingBottom: "max(4.8rem, calc(env(safe-area-inset-bottom) + 4.5rem))",
+            paddingTop: "calc(env(safe-area-inset-top) + 52px)",
+            paddingBottom: "calc(52px + max(1rem, env(safe-area-inset-bottom)))",
             height: "100%",
             maxHeight: "100dvh",
             overflow: "hidden",
             overscrollBehavior: "none",
           }}
         >
-          <div className="flex-1 flex flex-col justify-center items-center w-full min-h-0">
+          <div
+            className="w-full shrink-0 flex flex-col items-center"
+            style={{ marginTop: "12px" }}
+          >
             <MediaPreview />
             <MediaSizeInfo />
           </div>
 
-          <div className="w-full flex flex-col items-center gap-3.5 shrink-0 px-4">
-            <ActionControls />
+          <div className="flex-1 flex flex-col justify-evenly items-center w-full min-h-0 px-4">
+            <div className="w-full flex justify-center items-center shrink-0">
+              <ActionControls />
+            </div>
+
             {/* Click để mở lịch sử */}
-            <div className="relative w-full flex justify-center items-center">
+            <div className="relative w-full flex justify-center items-center shrink-0">
               {/* SelectFriendsList */}
               <div
                 className={`

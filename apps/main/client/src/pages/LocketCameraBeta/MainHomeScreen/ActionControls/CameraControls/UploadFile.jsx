@@ -101,38 +101,64 @@ const UploadFile = () => {
         id="file-upload"
       />
       <label htmlFor="file-upload" className="cursor-pointer active:scale-95 block">
-        {isPWA ? (
-          latestThumb ? (
-            <div className="relative w-12 h-12 flex items-center justify-center select-none">
-              {/* Lớp ảnh phía sau xoay nghiêng -7deg */}
-              <div
-                className="pwa-thumb-stack-back absolute w-12 h-12 rounded-xl bg-[var(--surface-pill)] border border-[var(--border-subtle)] shadow-sm pointer-events-none transform -rotate-[7deg]"
-                style={{
-                  backgroundImage: `url(${latestThumb})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  opacity: 0.65,
-                }}
+        {latestThumb ? (
+          <div className="relative w-[44px] h-[44px] flex items-center justify-center select-none">
+            {/* Lớp 1 (sau cùng): xoay -6deg */}
+            <div
+              className="absolute w-[44px] h-[44px] rounded-[10px] overflow-hidden border border-[var(--border-subtle)] shadow-xs pointer-events-none z-0"
+              style={{
+                transformOrigin: "bottom center",
+                transform: "rotate(-6deg)",
+                backgroundImage: `url(${latestThumb})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                opacity: 0.5,
+              }}
+            />
+            {/* Lớp 2 (ở giữa): xoay +5deg */}
+            <div
+              className="absolute w-[44px] h-[44px] rounded-[10px] overflow-hidden border border-[var(--border-subtle)] shadow-xs pointer-events-none z-5"
+              style={{
+                transformOrigin: "bottom center",
+                transform: "rotate(5deg)",
+                backgroundImage: `url(${latestThumb})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                opacity: 0.7,
+              }}
+            />
+            {/* Lớp 3 (trên cùng): ảnh chính thẳng 0deg */}
+            <div className="relative w-[44px] h-[44px] rounded-[10px] overflow-hidden border border-white/20 shadow-md bg-[var(--surface-pill)] z-10">
+              <img
+                src={latestThumb}
+                alt="Ảnh mới nhất"
+                className="w-full h-full object-cover"
               />
-              {/* Lớp ảnh chính phía trước bo góc rounded-xl */}
-              <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-white/20 shadow-md bg-[var(--surface-pill)] z-10">
-                <img
-                  src={latestThumb}
-                  alt="Ảnh mới nhất"
-                  className="w-full h-full object-cover"
-                />
-              </div>
             </div>
-          ) : (
-            <div className="relative w-12 h-12 flex items-center justify-center">
-              <div className="pwa-thumb-stack-back absolute w-12 h-12 rounded-xl bg-[var(--surface-pill)] border border-[var(--border-subtle)] transform -rotate-[7deg] opacity-35 pointer-events-none" />
-              <div className="relative w-12 h-12 rounded-xl bg-[var(--surface-pill)] backdrop-blur-md border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)] shadow-md z-10">
-                <ImageUp size={22} />
-              </div>
-            </div>
-          )
+          </div>
         ) : (
-          <ImageUp size={35} className="text-[var(--text-primary)]" />
+          <div className="relative w-[44px] h-[44px] flex items-center justify-center select-none">
+            {/* Lớp 1 (sau cùng): xoay -6deg */}
+            <div
+              className="absolute w-[44px] h-[44px] rounded-[10px] bg-[var(--surface-pill)] border border-[var(--border-subtle)] opacity-30 pointer-events-none z-0"
+              style={{
+                transformOrigin: "bottom center",
+                transform: "rotate(-6deg)",
+              }}
+            />
+            {/* Lớp 2 (ở giữa): xoay +5deg */}
+            <div
+              className="absolute w-[44px] h-[44px] rounded-[10px] bg-[var(--surface-pill)] border border-[var(--border-subtle)] opacity-50 pointer-events-none z-5"
+              style={{
+                transformOrigin: "bottom center",
+                transform: "rotate(5deg)",
+              }}
+            />
+            {/* Lớp 3 (trên cùng): icon tải ảnh */}
+            <div className="relative w-[44px] h-[44px] rounded-[10px] bg-[var(--surface-pill)] backdrop-blur-md border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)] shadow-md z-10">
+              <ImageUp size={20} />
+            </div>
+          </div>
         )}
       </label>
     </>

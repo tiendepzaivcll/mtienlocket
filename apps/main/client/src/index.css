@@ -296,25 +296,29 @@ html, body, #root {
 
 /* ── PWA Standalone Mode adjustments matching real Locket ── */
 body.is-pwa .pwa-camera-frame {
-  width: 92vw;
-  max-width: min(92vw, calc(100dvh - 310px), 414px);
-  aspect-ratio: 1 / 1;
-  border-radius: 42px;
+  width: calc(100% - 12px) !important;
+  max-width: none !important;
+  margin: 0 auto !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 50px !important;
 }
 
 body.is-pwa .pwa-thumb-stack-back {
-  transform: rotate(-7deg);
+  transform-origin: bottom center !important;
+  transform: rotate(-6deg) !important;
 }
 
 @media (display-mode: standalone) {
   .pwa-camera-frame {
-    width: 92vw;
-    max-width: min(92vw, calc(100dvh - 310px), 414px);
-    aspect-ratio: 1 / 1;
-    border-radius: 42px;
+    width: calc(100% - 12px) !important;
+    max-width: none !important;
+    margin: 0 auto !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 50px !important;
   }
   .pwa-thumb-stack-back {
-    transform: rotate(-7deg);
+    transform-origin: bottom center !important;
+    transform: rotate(-6deg) !important;
   }
 }
 

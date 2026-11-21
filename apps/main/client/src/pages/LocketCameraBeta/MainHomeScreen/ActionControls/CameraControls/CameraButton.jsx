@@ -683,7 +683,7 @@ const CameraButton = () => {
           }
         }}
         onContextMenu={(e) => e.preventDefault()} // Prevent long press menu on iOS
-        className="relative flex items-center justify-center w-24 h-24 active:scale-95 transition-transform duration-150"
+        className="relative flex items-center justify-center w-[86px] h-[86px] active:scale-95 transition-transform duration-150"
         style={{
           touchAction: "manipulation", // Improve touch response on iOS
           userSelect: "none",
@@ -691,15 +691,14 @@ const CameraButton = () => {
         }}
       >
         <div
-          className={`absolute ${isPWA ? "w-[82px] h-[82px]" : "w-20 h-20"} rounded-full z-10 border-camera-custome pointer-events-none transition-transform duration-300 ${
+          className={`absolute w-[86px] h-[86px] rounded-full z-10 border-camera-custome pointer-events-none transition-transform duration-300 ${
             isHolding ? "animate-borderExpand" : ""
           }`}
+          style={{ padding: "3px" }}
         ></div>
         <div
-          className={`absolute rounded-full z-0 transition-all duration-300 shadow-md ${
-            isPWA
-              ? `w-[65px] h-[65px] bg-white ${isHolding ? "scale-75 opacity-90" : "scale-100 opacity-100"}`
-              : `btn w-19 h-19 bg-white border-0 ${isHolding ? "scale-77 opacity-90" : "scale-100 opacity-100"}`
+          className={`absolute rounded-full z-0 transition-all duration-300 shadow-md w-[73px] h-[73px] bg-white ${
+            isHolding ? "scale-75 opacity-90" : "scale-100 opacity-100"
           }`}
         ></div>
       </button>
