@@ -213,6 +213,7 @@ export default defineConfig(({ mode }) => {
     "healthcheck.railway.app",
     "mtienlocket-production.up.railway.app",
     "locket-pro.online",
+    ".trycloudflare.com",
     process.env.RAILWAY_PUBLIC_DOMAIN,
   ].filter(Boolean);
   const storageTarget = (env.VITE_STORAGE_API_URL || "http://localhost:5003")
