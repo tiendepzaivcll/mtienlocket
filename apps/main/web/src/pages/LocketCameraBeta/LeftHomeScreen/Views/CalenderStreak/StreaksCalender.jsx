@@ -20,7 +20,8 @@ import {
   useStreakStore,
   useUploadQueueStore,
 } from "@/stores";
-import { getAllMoments } from "@/cache/momentDB";
+import { getAllMoments, getMomentsByUser } from "@/cache/momentDB";
+import { getPhotoSenderId } from "@/utils/moment/unseenMoments";
 import {
   formatRestoreDate,
   getMonthKeysBetween,
@@ -691,9 +692,14 @@ const MonthCalendar = ({
 /* =========================================================================
  * StreaksCalender: Thành phần lịch chuỗi & ảnh kỷ niệm chính
  * ========================================================================= */
-const StreaksCalender = ({ recentPosts = [], allMoments = [] }) => {
+const StreaksCalender = ({
+  recentPosts = [],
+  myMoments = [],
+  allMoments = [],
+}) => {
   const { navigation, camera, post } = useApp();
   const { user } = useAuthStore();
+  const currentUserId = user?.uid || user?.localId || null;
   const streak = useStreakStore((state) => state.streak);
   const restoreFlow = usePostStore((state) => state.restoreFlow);
   const selectRestoreFlowDate = usePostStore(
@@ -701,7 +707,11 @@ const StreaksCalender = ({ recentPosts = [], allMoments = [] }) => {
   );
   const setRestoreStreak = usePostStore((state) => state.setRestoreStreak);
 
-  const momentsStoreItems = useMomentsStoreV2(
+  // Moments từ store theo user hoặc "all"
+  const userStoreItems = useMomentsStoreV2(
+    (state) => (currentUserId ? state.momentsByUser[currentUserId]?.items : null) || [],
+  );
+  const allStoreItems = useMomentsStoreV2(
     (state) => state.momentsByUser["all"]?.items || [],
   );
   const fetchMoments = useMomentsStoreV2((state) => state.fetchMoments);
@@ -721,39 +731,55 @@ const StreaksCalender = ({ recentPosts = [], allMoments = [] }) => {
     today,
   });
 
-  // Load moments từ IndexedDB cache để lịch hiển thị tức thì
+  // Load moments của chính user từ IndexedDB cache để hiển thị tức thì
   useEffect(() => {
     let isMounted = true;
-    getAllMoments()
-      .then((items) => {
-        if (isMounted && Array.isArray(items) && items.length > 0) {
-          setCachedMoments(items);
-        }
-      })
-      .catch(() => {});
+    if (currentUserId) {
+      getMomentsByUser(currentUserId)
+        .then((items) => {
+          if (isMounted && Array.isArray(items) && items.length > 0) {
+            setCachedMoments(items);
+          }
+        })
+        .catch(() => {});
+    } else {
+      getAllMoments()
+        .then((items) => {
+          if (isMounted && Array.isArray(items) && items.length > 0) {
+            setCachedMoments(items);
+          }
+        })
+        .catch(() => {});
+    }
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [currentUserId]);
 
   // Tổng hợp toàn bộ bài viết từ Store, Dexie Cache và Upload Queue
   const allCombinedPosts = useMemo(() => {
     const map = new Map();
 
-    // 1. Moments từ store ("all")
-    const storeList = allMoments.length > 0 ? allMoments : momentsStoreItems;
-    storeList.forEach((item) => {
+    // 1. Moments của chính user từ store (nếu có)
+    const primaryList = myMoments.length > 0 ? myMoments : userStoreItems;
+    primaryList.forEach((item) => {
       if (item && item.id) map.set(item.id, item);
     });
 
-    // 2. Moments từ IndexedDB cache
+    // 2. Moments từ store ("all")
+    const fallbackList = allMoments.length > 0 ? allMoments : allStoreItems;
+    fallbackList.forEach((item) => {
+      if (item && item.id && !map.has(item.id)) map.set(item.id, item);
+    });
+
+    // 3. Moments từ IndexedDB cache
     cachedMoments.forEach((item) => {
       if (item && item.id && !map.has(item.id)) {
         map.set(item.id, item);
       }
     });
 
-    // 3. Moments từ upload queue (vừa upload)
+    // 4. Moments từ upload queue (vừa upload)
     postedMoments.forEach((item) => {
       if (item && (item.id || item.postId)) {
         const id = item.id || item.postId;
@@ -761,7 +787,7 @@ const StreaksCalender = ({ recentPosts = [], allMoments = [] }) => {
       }
     });
 
-    // 4. Props recentPosts nếu có bài khác
+    // 5. Props recentPosts nếu có bài khác
     recentPosts.forEach((item) => {
       if (item && (item.id || item.postId)) {
         const id = item.id || item.postId;
@@ -770,19 +796,48 @@ const StreaksCalender = ({ recentPosts = [], allMoments = [] }) => {
     });
 
     return Array.from(map.values());
-  }, [allMoments, momentsStoreItems, cachedMoments, postedMoments, recentPosts]);
+  }, [
+    myMoments,
+    userStoreItems,
+    allMoments,
+    allStoreItems,
+    cachedMoments,
+    postedMoments,
+    recentPosts,
+  ]);
+
+  // Lọc CHỈ LẤY ẢNH CỦA CHÍNH USER HIỆN TẠI (Tuyệt đối không lấy ảnh bạn bè)
+  const myCombinedPosts = useMemo(() => {
+    if (!currentUserId) return allCombinedPosts;
+
+    return allCombinedPosts.filter((item) => {
+      // Ảnh từ upload queue chắc chắn là của user
+      if (item?.clientUploadId || item?.postId) return true;
+
+      // Trích xuất sender ID
+      const senderId =
+        getPhotoSenderId(item) ||
+        (typeof item?.user === "string" ? item.user : null) ||
+        (typeof item?.userUid === "string" ? item.userUid : null) ||
+        (typeof item?.owner === "string" ? item.owner : null);
+
+      return senderId === currentUserId;
+    });
+  }, [allCombinedPosts, currentUserId]);
 
   // Tự động fetch moments nếu danh sách đang rỗng
   useEffect(() => {
-    if (user && allCombinedPosts.length === 0) {
+    if (user && currentUserId && myCombinedPosts.length === 0) {
+      fetchMoments(user, currentUserId);
+    } else if (user && !currentUserId && allCombinedPosts.length === 0) {
       fetchMoments(user, null);
     }
-  }, [user, allCombinedPosts.length, fetchMoments]);
+  }, [user, currentUserId, myCombinedPosts.length, allCombinedPosts.length, fetchMoments]);
 
-  // Nhóm theo từng tháng YYYY-MM
+  // Nhóm theo từng tháng YYYY-MM CHỈ DỰA TRÊN ẢNH CỦA USER
   const postsByMonth = useMemo(() => {
     const map = {};
-    allCombinedPosts.forEach((p) => {
+    myCombinedPosts.forEach((p) => {
       const d = getMomentDate(p);
       if (!d) return;
       const monthKey = `${d.getFullYear()}-${(d.getMonth() + 1)
@@ -808,9 +863,13 @@ const StreaksCalender = ({ recentPosts = [], allMoments = [] }) => {
     }
 
     return map;
-  }, [allCombinedPosts, restoreAnchorDate, today]);
+  }, [myCombinedPosts, restoreAnchorDate, today]);
 
-  const bucket = useMomentsStoreV2((state) => state.momentsByUser["all"]);
+  const bucket = useMomentsStoreV2(
+    (state) =>
+      (currentUserId ? state.momentsByUser[currentUserId] : null) ||
+      state.momentsByUser["all"],
+  );
   const loadMoreOlder = useMomentsStoreV2((state) => state.loadMoreOlder);
   const hasMore = bucket?.hasMore ?? true;
   const isLoadingMore = bucket?.isLoadingMore ?? false;
@@ -823,7 +882,7 @@ const StreaksCalender = ({ recentPosts = [], allMoments = [] }) => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
-          loadMoreOlder(null);
+          loadMoreOlder(currentUserId || null);
         }
       },
       {
@@ -834,7 +893,7 @@ const StreaksCalender = ({ recentPosts = [], allMoments = [] }) => {
 
     observer.observe(topSentinelRef.current);
     return () => observer.disconnect();
-  }, [hasMore, isLoadingMore, loadMoreOlder]);
+  }, [hasMore, isLoadingMore, loadMoreOlder, currentUserId]);
 
   const monthsSorted = useMemo(() => {
     const preferredMonthKey = nextRestoreDate

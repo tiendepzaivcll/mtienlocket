@@ -14,14 +14,18 @@ const LeftHomeScreen = ({ setIsProfileOpen }) => {
   const [posts, setPosts] = useState([]);
 
   const postedMoments = useUploadQueueStore((s) => s.postedMoments);
+  const userUid = user?.uid || user?.localId;
+  const myMoments = useMomentsStoreV2((s) => (userUid ? s.momentsByUser[userUid]?.items : null));
   const allMoments = useMomentsStoreV2((s) => s.momentsByUser["all"]?.items || []);
   const fetchMoments = useMomentsStoreV2((s) => s.fetchMoments);
 
   useEffect(() => {
-    if (isProfileOpen && profileSection === "lockets" && user && (!allMoments || allMoments.length === 0)) {
-      fetchMoments(user, null);
+    if (isProfileOpen && profileSection === "lockets" && user && userUid) {
+      if (!myMoments || myMoments.length === 0) {
+        fetchMoments(user, userUid);
+      }
     }
-  }, [isProfileOpen, profileSection, user, allMoments, fetchMoments]);
+  }, [isProfileOpen, profileSection, user, userUid, myMoments, fetchMoments]);
   // handle toggle bằng true/false
   return (
     <div
@@ -54,7 +58,11 @@ const LeftHomeScreen = ({ setIsProfileOpen }) => {
           />
         )}
         {profileSection === "lockets" && (
-          <StreakLocket recentPosts={postedMoments} allMoments={allMoments} />
+          <StreakLocket
+            recentPosts={postedMoments}
+            myMoments={myMoments || []}
+            allMoments={allMoments}
+          />
         )}
       </div>
       {/* ==== Bottom Segmented Toggle ==== */}

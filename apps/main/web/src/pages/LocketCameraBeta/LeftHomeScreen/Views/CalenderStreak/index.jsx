@@ -2,7 +2,7 @@ import React, { lazy } from "react";
 const StreaksCalender = lazy(() => import("./StreaksCalender"));
 import BottomStreak from "./BottomStreak";
 
-function StreakLocket({ recentPosts = [], allMoments = [] }) {
+function StreakLocket({ recentPosts = [], myMoments = [], allMoments = [] }) {
   return (
     <>
       <div className="p-4 pb-28 w-full flex flex-col gap-4">
@@ -22,7 +22,11 @@ function StreakLocket({ recentPosts = [], allMoments = [] }) {
           Số Locket là số bài đăng trên web khác với thực tế.
         </p>
 
-        <StreaksCalender recentPosts={recentPosts} allMoments={allMoments} />
+        <StreaksCalender
+          recentPosts={recentPosts}
+          myMoments={myMoments}
+          allMoments={allMoments}
+        />
         <BottomStreak recentPosts={recentPosts} />
       </div>
     </>
