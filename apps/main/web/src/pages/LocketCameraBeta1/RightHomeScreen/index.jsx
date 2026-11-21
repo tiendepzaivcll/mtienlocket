@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import ChatDetail from "./View/ChatDetail";
-import SocketStatus from "./View/SocketStatus";
 import { ConversationItem } from "./View/Conversation/ConversationItem";
 import { markReadMessage } from "@/services";
 import { ConversationSkeleton } from "./View/Conversation/ConversationSkeleton";
@@ -18,7 +17,7 @@ const RightHomeScreen = ({ setIsHomeOpen }) => {
   const { navigation } = useApp();
   const { isHomeOpen } = navigation;
 
-  const { socket, isConnected } = useSocket();
+  const { socket } = useSocket();
   const [selectedChat, setSelectedChat] = useState(null); // conversation đang mở
   const [displayCount, setDisplayCount] = useState(INITIAL_DISPLAY_COUNT);
 
@@ -158,7 +157,8 @@ const RightHomeScreen = ({ setIsHomeOpen }) => {
           >
             <ChevronLeft size={30} />
           </button>
-          <SocketStatus isConnected={isConnected} />
+          <h1 className="text-base font-bold tracking-wide">Tin nhắn</h1>
+          <div className="w-8 h-8 shrink-0" aria-hidden="true" />
         </div>
 
         <div className="flex-1 px-4 py-6 overflow-y-auto space-y-4">

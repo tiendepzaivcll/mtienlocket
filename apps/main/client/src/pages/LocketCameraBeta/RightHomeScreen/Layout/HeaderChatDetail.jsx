@@ -64,8 +64,9 @@ const ChatDetailHeader = ({ selectedChat, onBack }) => {
         background: "var(--surface-dock)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
+        paddingTop: "calc(env(safe-area-inset-top) + 10px)",
       }}
-      className="flex items-center justify-between px-4 py-2.5 border-b border-[var(--border-subtle)] text-[var(--text-primary)]"
+      className="flex items-center justify-between px-4 pb-2.5 border-b border-[var(--border-subtle)] text-[var(--text-primary)]"
     >
       {/* Left */}
       <div className="flex items-center">

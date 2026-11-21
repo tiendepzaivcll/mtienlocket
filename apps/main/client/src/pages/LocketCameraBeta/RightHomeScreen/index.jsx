@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import ChatDetail from "./View/ChatDetail";
-import SocketStatus from "./View/SocketStatus";
 import { ConversationItem } from "./View/Conversation/ConversationItem";
 import { GroupConversationItem } from "./View/Conversation/GroupConversationItem";
 import { markReadMessage } from "@/services";
@@ -20,7 +19,7 @@ const RightHomeScreen = ({ setIsHomeOpen }) => {
   const { navigation } = useApp();
   const { isHomeOpen, setIsChatDetailOpen } = navigation;
 
-  const { socket, isConnected, connectionInfo, reconnect } = useSocket();
+  const { socket } = useSocket();
   const [selectedChat, setSelectedChat] = useState(null); // conversation đang mở
   useEffect(() => {
     setIsChatDetailOpen(isHomeOpen && Boolean(selectedChat));
@@ -318,8 +317,9 @@ const RightHomeScreen = ({ setIsHomeOpen }) => {
             background: "var(--surface-dock)",
             backdropFilter: "blur(16px)",
             WebkitBackdropFilter: "blur(16px)",
+            paddingTop: "calc(env(safe-area-inset-top) + 10px)",
           }}
-          className="sticky top-0 z-20 flex items-center justify-between px-4 py-2.5 border-b border-[var(--border-subtle)] text-[var(--text-primary)]"
+          className="sticky top-0 z-20 flex items-center justify-between px-4 pb-2.5 border-b border-[var(--border-subtle)] text-[var(--text-primary)]"
         >
           <button
             onClick={() => {
@@ -331,11 +331,10 @@ const RightHomeScreen = ({ setIsHomeOpen }) => {
           >
             <ChevronLeft size={24} />
           </button>
-          <SocketStatus
-            isConnected={isConnected}
-            connectionInfo={connectionInfo}
-            reconnect={reconnect}
-          />
+          <h1 className="text-base font-bold text-white tracking-wide">
+            Tin nhắn
+          </h1>
+          <div className="w-10 h-10 shrink-0" aria-hidden="true" />
         </div>
 
         <div
