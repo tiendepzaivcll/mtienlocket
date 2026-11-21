@@ -161,41 +161,46 @@ export default function MainHomeScreen() {
             <MediaSizeInfo />
           </div>
 
-          <div className="flex-1 flex flex-col justify-evenly items-center w-full min-h-0 px-4">
-            <div className="w-full flex justify-center items-center shrink-0">
+          <div className="flex-1 flex flex-col items-center w-full min-h-0">
+            <div
+              className="w-full flex justify-center items-center shrink-0"
+              style={{ marginTop: "44px" }}
+            >
               <ActionControls />
             </div>
 
-            {/* Click để mở lịch sử */}
-            <div className="relative w-full flex justify-center items-center shrink-0">
-              {/* SelectFriendsList */}
-              <div
-                className={`
-                transition-all duration-300 w-full
-                ${
-                  selectedFile
-                    ? "opacity-100 visible"
-                    : "opacity-0 invisible hidden"
-                }
-              `}
-              >
-                <Suspense fallback={null}>
-                  <SelectFriendsList />
-                </Suspense>
-              </div>
+            <div className="flex-1 flex flex-col justify-evenly items-center w-full min-h-0 px-4">
+              {/* Click để mở lịch sử */}
+              <div className="relative w-full flex justify-center items-center shrink-0">
+                {/* SelectFriendsList */}
+                <div
+                  className={`
+                  transition-all duration-300 w-full
+                  ${
+                    selectedFile
+                      ? "opacity-100 visible"
+                      : "opacity-0 invisible hidden"
+                  }
+                `}
+                >
+                  <Suspense fallback={null}>
+                    <SelectFriendsList />
+                  </Suspense>
+                </div>
 
-              {/* HistoryArrow */}
-              <div
-                className={`
-                transition-all duration-300 w-full flex justify-center items-center
-                ${
-                  !selectedFile
-                    ? "opacity-100 visible"
-                    : "opacity-0 invisible hidden"
-                }
-              `}
-              >
-                <HistoryArrow setIsBottomOpen={setIsBottomOpen} />
+                {/* HistoryArrow */}
+                <div
+                  className={`
+                  transition-all duration-300 w-full flex justify-center items-center
+                  ${
+                    !selectedFile
+                      ? "opacity-100 visible"
+                      : "opacity-0 invisible hidden"
+                  }
+                `}
+                >
+                  <HistoryArrow setIsBottomOpen={setIsBottomOpen} />
+                </div>
               </div>
             </div>
           </div>

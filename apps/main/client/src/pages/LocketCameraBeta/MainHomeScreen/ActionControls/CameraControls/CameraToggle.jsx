@@ -69,12 +69,13 @@ const CameraToggle = () => {
     <>
       <button
         type="button"
-        className="cursor-pointer active:scale-90 transition text-[var(--text-primary)] flex items-center justify-center"
+        className="cursor-pointer active:scale-90 transition text-[var(--text-primary)] flex items-center justify-center w-[46px] h-[46px]"
         onClick={handleRotateCamera}
         aria-label="Đổi camera"
       >
         <RefreshCcw
-          size={32}
+          size={34}
+          strokeWidth={2.6}
           className="transition-transform duration-500"
           style={{ transform: `rotate(${rotation}deg)` }}
         />

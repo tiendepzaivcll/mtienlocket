@@ -107,7 +107,7 @@ const GenerateAiButton = () => {
       onClick={generate}
       disabled={uploadLoading || isAiGenerating}
       aria-label="Tạo ảnh AI Filter"
-      className="group relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-base-300/50 text-base-content backdrop-blur-4xl outline-base-300 transition-all duration-300 ease-out hover:scale-105 hover:border-white/40 hover:bg-base-300/70 active:scale-95 disabled:cursor-wait disabled:text-amber-500 disabled:opacity-80"
+      className="group relative flex h-[84px] w-[84px] items-center justify-center overflow-hidden rounded-full border border-white/20 bg-base-300/50 text-base-content backdrop-blur-4xl outline-base-300 transition-all duration-300 ease-out hover:scale-105 hover:border-white/40 hover:bg-base-300/70 active:scale-95 disabled:cursor-wait disabled:text-amber-500 disabled:opacity-80"
     >
       {isAiGenerating ? (
         <LoaderCircle

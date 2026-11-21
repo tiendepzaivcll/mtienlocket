@@ -102,10 +102,10 @@ const UploadFile = () => {
       />
       <label htmlFor="file-upload" className="cursor-pointer active:scale-95 block">
         {latestThumb ? (
-          <div className="relative w-[44px] h-[44px] flex items-center justify-center select-none">
+          <div className="relative w-[46px] h-[46px] flex items-center justify-center select-none">
             {/* Lớp 1 (sau cùng): xoay -6deg */}
             <div
-              className="absolute w-[44px] h-[44px] rounded-[10px] overflow-hidden border border-[var(--border-subtle)] shadow-xs pointer-events-none z-0"
+              className="absolute w-[46px] h-[46px] rounded-[13px] overflow-hidden shadow-xs pointer-events-none z-0"
               style={{
                 transformOrigin: "bottom center",
                 transform: "rotate(-6deg)",
@@ -117,7 +117,7 @@ const UploadFile = () => {
             />
             {/* Lớp 2 (ở giữa): xoay +5deg */}
             <div
-              className="absolute w-[44px] h-[44px] rounded-[10px] overflow-hidden border border-[var(--border-subtle)] shadow-xs pointer-events-none z-5"
+              className="absolute w-[46px] h-[46px] rounded-[13px] overflow-hidden shadow-xs pointer-events-none z-5"
               style={{
                 transformOrigin: "bottom center",
                 transform: "rotate(5deg)",
@@ -128,7 +128,7 @@ const UploadFile = () => {
               }}
             />
             {/* Lớp 3 (trên cùng): ảnh chính thẳng 0deg */}
-            <div className="relative w-[44px] h-[44px] rounded-[10px] overflow-hidden border border-white/20 shadow-md bg-[var(--surface-pill)] z-10">
+            <div className="relative w-[46px] h-[46px] rounded-[13px] overflow-hidden shadow-md bg-[var(--surface-pill)] z-10">
               <img
                 src={latestThumb}
                 alt="Ảnh mới nhất"
@@ -137,26 +137,10 @@ const UploadFile = () => {
             </div>
           </div>
         ) : (
-          <div className="relative w-[44px] h-[44px] flex items-center justify-center select-none">
-            {/* Lớp 1 (sau cùng): xoay -6deg */}
-            <div
-              className="absolute w-[44px] h-[44px] rounded-[10px] bg-[var(--surface-pill)] border border-[var(--border-subtle)] opacity-30 pointer-events-none z-0"
-              style={{
-                transformOrigin: "bottom center",
-                transform: "rotate(-6deg)",
-              }}
-            />
-            {/* Lớp 2 (ở giữa): xoay +5deg */}
-            <div
-              className="absolute w-[44px] h-[44px] rounded-[10px] bg-[var(--surface-pill)] border border-[var(--border-subtle)] opacity-50 pointer-events-none z-5"
-              style={{
-                transformOrigin: "bottom center",
-                transform: "rotate(5deg)",
-              }}
-            />
-            {/* Lớp 3 (trên cùng): icon tải ảnh */}
-            <div className="relative w-[44px] h-[44px] rounded-[10px] bg-[var(--surface-pill)] backdrop-blur-md border border-[var(--border-subtle)] flex items-center justify-center text-[var(--text-primary)] shadow-md z-10">
-              <ImageUp size={20} />
+          <div className="relative w-[46px] h-[46px] flex items-center justify-center select-none">
+            {/* Nút icon tải ảnh full kích thước 46x46 bo góc 13px không khung viền thừa */}
+            <div className="relative w-[46px] h-[46px] rounded-[13px] bg-[var(--surface-pill)] backdrop-blur-md flex items-center justify-center text-[var(--text-primary)] shadow-md z-10">
+              <ImageUp size={24} strokeWidth={2.2} />
             </div>
           </div>
         )}

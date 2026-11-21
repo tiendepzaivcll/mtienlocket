@@ -36,14 +36,17 @@ const ActionControls = () => {
   };
 
   return (
-    <div className="relative flex justify-between items-center w-full px-0">
+    <div
+      className="relative flex justify-between items-center w-full"
+      style={{ paddingInline: "52px" }}
+    >
       {/* SLOT 1 */}
-      <div className="relative flex items-center justify-center w-[44px] h-[44px]">
+      <div className="relative flex items-center justify-center w-[46px] h-[46px]">
         {showPhotobooth && !hasFile ? (
           <button
             type="button"
             onClick={handleCancelPhotobooth}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] shadow-lg backdrop-blur-md transition active:scale-90 hover:opacity-80"
+            className="inline-flex h-[46px] w-[46px] items-center justify-center rounded-[13px] bg-[var(--surface-pill)] text-[var(--text-primary)] shadow-lg backdrop-blur-md transition active:scale-90 hover:opacity-80"
             aria-label="Thoát Photobooth"
             title="Thoát Photobooth"
           >
@@ -78,7 +81,7 @@ const ActionControls = () => {
       </div>
 
       {/* SLOT 3 */}
-      <div className="relative flex items-center justify-center w-[44px] h-[44px]">
+      <div className="relative flex items-center justify-center w-[46px] h-[46px]">
         {/* Toggle camera */}
         <div className={`${baseBtn} ${!hasFile ? showClass : hideClass}`}>
           <CameraToggle />

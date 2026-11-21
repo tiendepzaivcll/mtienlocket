@@ -237,7 +237,7 @@ const SendButton = () => {
       <button
         onClick={handleSubmit}
         disabled={uploadLoading || Boolean(restoreFlow.pendingDate)}
-        className={`rounded-full w-24 h-24 duration-500 backdrop-blur-2xl text-center flex items-center justify-center disabled:opacity-50 transition-all ease-in-out active:scale-95 shadow-xl text-white ${
+        className={`rounded-full w-[84px] h-[84px] duration-500 backdrop-blur-2xl text-center flex items-center justify-center disabled:opacity-50 transition-all ease-in-out active:scale-95 shadow-xl text-white ${
           hasNoData
             ? "bg-yellow-500/20 border border-yellow-500/30"
             : isTooBig
