@@ -537,7 +537,7 @@ const MediaPreview = () => {
               {/* Nút Zoom góc trên bên phải */}
               <button
                 onClick={handleZoomButtonClick}
-                className="pointer-events-auto min-w-[34px] h-[34px] px-2 text-white font-bold text-xs rounded-full bg-black/45 backdrop-blur-md flex items-center justify-center hover:bg-black/60 active:scale-90 transition shadow-sm"
+                className="pointer-events-auto min-w-[34px] h-[34px] px-2 text-white font-bold text-[13px] rounded-full bg-black/45 backdrop-blur-md flex items-center justify-center hover:bg-black/60 active:scale-90 transition shadow-sm"
                 title={Math.abs(zoomScale - 1) > 0.05 ? "Nhấn để trở về 1x" : `Chế độ Zoom: ${zoomLevel}`}
               >
                 {Math.abs(zoomScale - 1) > 0.05

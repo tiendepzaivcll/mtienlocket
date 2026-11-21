@@ -117,7 +117,7 @@ const HeaderHome = ({
 
           {/* Bạn bè / Mọi người ở giữa */}
           <button
-            className="absolute flex z-90 transition-all justify-center items-center flex-row gap-1.5 left-1/2 transform -translate-x-1/2 h-[38px] px-4 rounded-full font-bold text-sm bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:opacity-90 active:scale-105 select-none shadow-sm cursor-pointer pointer-events-auto"
+            className="absolute flex z-90 transition-all justify-center items-center flex-row gap-1.5 left-1/2 transform -translate-x-1/2 h-[38px] px-4 rounded-full font-semibold text-[16px] tracking-[-0.2px] bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:opacity-90 active:scale-105 select-none shadow-sm cursor-pointer pointer-events-auto"
             onClick={toggleDropdown}
           >
             {isBottomOpen ? (
@@ -127,17 +127,17 @@ const HeaderHome = ({
                   className={`ml-1 w-5 h-5 transition-transform ${
                     isFriendHistoryOpen ? "rotate-180" : ""
                   }`}
-                  strokeWidth={3}
+                  strokeWidth={2.5}
                 />
               </>
             ) : (
               <>
                 <svg
-                  className="w-6 h-6"
+                  className="w-5 h-5 shrink-0"
                   aria-hidden="true"
                   xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
+                  width="20"
+                  height="20"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >

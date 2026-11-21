@@ -24,9 +24,9 @@ const MediaSizeInfo = () => {
   const colorClass = isTooBig ? "text-red-500" : "text-green-500";
 
   return (
-    <div className="transition-opacity duration-300 ease-in-out py-2">
+    <div className="transition-opacity duration-300 ease-in-out">
       {hasMedia && isSizeMedia ? (
-        <div className={`text-sm flex items-center justify-center gap-1.5 ${colorClass}`}>
+        <div className={`py-2 text-sm flex items-center justify-center gap-1.5 ${colorClass}`}>
           Dung lượng {isImage ? "ảnh" : "video"} là{" "}
           <span className="font-semibold underline">{isSizeMedia} MB</span>
           {isTooBig ? (

@@ -36,7 +36,7 @@ const ActionControls = () => {
   };
 
   return (
-    <div className="relative flex justify-between items-center w-full px-4">
+    <div className="relative flex justify-between items-center w-full px-0">
       {/* SLOT 1 */}
       <div className="relative flex items-center justify-center w-[44px] h-[44px]">
         {showPhotobooth && !hasFile ? (

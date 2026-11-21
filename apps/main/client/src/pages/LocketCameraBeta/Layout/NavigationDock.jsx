@@ -130,7 +130,7 @@ export default function NavigationDock({ hidden = false }) {
       className={`pointer-events-none fixed inset-x-0 flex w-full items-center justify-center ${
         isViewingMoment ? "z-80" : "z-60"
       }`}
-      style={{ bottom: "max(1rem, env(safe-area-inset-bottom))" }}
+      style={{ bottom: "calc(14px + env(safe-area-inset-bottom))" }}
     >
       <div
         style={{
