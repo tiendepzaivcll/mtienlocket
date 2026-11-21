@@ -3,8 +3,14 @@ import { useApp } from "@/context/AppContext";
 import { RefreshCcw } from "lucide-react";
 import { CONFIG } from "@/config";
 
-const CameraToggle = () => {
-  const { camera, post, useloading } = useApp();
+const CameraToggle = ({ isPWA: isPWAProp }) => {
+  const { camera, post, useloading, navigation } = useApp();
+  const isPWA =
+    isPWAProp ??
+    (Boolean(navigation?.isPWA) ||
+      (typeof window !== "undefined" &&
+        (window.matchMedia?.("(display-mode: standalone)").matches ||
+          window.navigator?.standalone === true)));
   const {
     videoRef,
     streamRef,
@@ -69,13 +75,15 @@ const CameraToggle = () => {
     <>
       <button
         type="button"
-        className="cursor-pointer active:scale-90 transition text-[var(--text-primary)] flex items-center justify-center w-[46px] h-[46px]"
+        className={`cursor-pointer active:scale-90 transition text-[var(--text-primary)] flex items-center justify-center ${
+          isPWA ? "w-[46px] h-[46px]" : ""
+        }`}
         onClick={handleRotateCamera}
         aria-label="Đổi camera"
       >
         <RefreshCcw
-          size={34}
-          strokeWidth={2.6}
+          size={isPWA ? 34 : 32}
+          strokeWidth={isPWA ? 2.6 : 2}
           className="transition-transform duration-500"
           style={{ transform: `rotate(${rotation}deg)` }}
         />

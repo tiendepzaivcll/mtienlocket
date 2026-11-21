@@ -11,7 +11,7 @@ import { PHOTOBOOTH_FRAMES } from "@/data/photoboothFrames";
 import { capturePhotoboothFrame, composePhotoboothGrid } from "@/utils/photobooth";
 import { defaultPostOverlay } from "@/stores/usePost.js";
 
-const CameraButton = () => {
+const CameraButton = ({ isPWA: isPWAProp }) => {
   const { camera, post, useloading, navigation } = useApp();
   const { showPhotobooth, selectedFrameId, chooseCaptureMode } = useCameraCaptureMode();
   const photoboothPhotos = usePhotoboothStore((state) => state.photos);
@@ -49,10 +49,11 @@ const CameraButton = () => {
   const { setIsCaptionLoading, uploadLoading, setUploadLoading } = useloading;
 
   const isPWA =
-    Boolean(navigation?.isPWA) ||
-    (typeof window !== "undefined" &&
-      (window.matchMedia?.("(display-mode: standalone)").matches ||
-        window.navigator?.standalone === true));
+    isPWAProp ??
+    (Boolean(navigation?.isPWA) ||
+      (typeof window !== "undefined" &&
+        (window.matchMedia?.("(display-mode: standalone)").matches ||
+          window.navigator?.standalone === true)));
 
   const holdStartTimeRef = useRef(null);
   const holdTimeoutRef = useRef(null);
@@ -683,7 +684,9 @@ const CameraButton = () => {
           }
         }}
         onContextMenu={(e) => e.preventDefault()} // Prevent long press menu on iOS
-        className="relative flex items-center justify-center w-[84px] h-[84px] active:scale-95 transition-transform duration-150"
+        className={`relative flex items-center justify-center active:scale-95 transition-transform duration-150 ${
+          isPWA ? "w-[84px] h-[84px]" : "w-20 h-20"
+        }`}
         style={{
           touchAction: "manipulation", // Improve touch response on iOS
           userSelect: "none",
@@ -691,14 +694,16 @@ const CameraButton = () => {
         }}
       >
         <div
-          className={`absolute w-[84px] h-[84px] rounded-full z-10 border-camera-custome pointer-events-none transition-transform duration-300 ${
-            isHolding ? "animate-borderExpand" : ""
-          }`}
-          style={{ padding: "3px" }}
+          className={`absolute rounded-full z-10 border-camera-custome pointer-events-none transition-transform duration-300 ${
+            isPWA ? "w-[84px] h-[84px]" : "w-20 h-20"
+          } ${isHolding ? "animate-borderExpand" : ""}`}
+          style={isPWA ? { padding: "3px" } : undefined}
         ></div>
         <div
-          className={`absolute rounded-full z-0 transition-all duration-300 shadow-md w-[69px] h-[69px] bg-white ${
-            isHolding ? "scale-75 opacity-90" : "scale-100 opacity-100"
+          className={`absolute rounded-full z-0 transition-all duration-300 shadow-md ${
+            isPWA
+              ? `w-[69px] h-[69px] bg-white ${isHolding ? "scale-75 opacity-90" : "scale-100 opacity-100"}`
+              : `btn w-19 h-19 bg-white border-0 ${isHolding ? "scale-77 opacity-90" : "scale-100 opacity-100"}`
           }`}
         ></div>
       </button>

@@ -41,6 +41,11 @@ const activeOffset = {
 
 export default function NavigationDock({ hidden = false }) {
   const { navigation, post } = useApp();
+  const isPWA =
+    Boolean(navigation?.isPWA) ||
+    (typeof window !== "undefined" &&
+      (window.matchMedia?.("(display-mode: standalone)").matches ||
+        window.navigator?.standalone === true));
   const {
     isHomeOpen,
     isChatDetailOpen,
@@ -130,18 +135,24 @@ export default function NavigationDock({ hidden = false }) {
       className={`pointer-events-none fixed inset-x-0 flex w-full items-center justify-center ${
         isViewingMoment ? "z-80" : "z-60"
       }`}
-      style={{ bottom: "calc(14px + env(safe-area-inset-bottom))" }}
+      style={{
+        bottom: isPWA
+          ? "calc(14px + env(safe-area-inset-bottom))"
+          : "max(1rem, env(safe-area-inset-bottom))",
+      }}
     >
       <div
         style={{
           background: "var(--surface-dock)",
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
-          width: "188px",
-          height: "48px",
-          borderRadius: "999px",
+          width: isPWA ? "188px" : undefined,
+          height: isPWA ? "48px" : undefined,
+          borderRadius: isPWA ? "999px" : undefined,
         }}
-        className="pointer-events-auto relative flex items-center justify-between shadow-xl text-[var(--text-primary)] px-2 border border-[var(--border-subtle)]"
+        className={`pointer-events-auto relative flex items-center justify-between text-[var(--text-primary)] border border-[var(--border-subtle)] ${
+          isPWA ? "px-2 shadow-xl" : "w-fit gap-1 rounded-full shadow-xl p-1"
+        }`}
       >
         <div
           aria-hidden="true"

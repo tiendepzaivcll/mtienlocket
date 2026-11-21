@@ -145,65 +145,120 @@ export default function MainHomeScreen() {
           style={{
             display: "flex",
             flexDirection: "column",
-            paddingTop: "calc(env(safe-area-inset-top) + 40px)",
-            paddingBottom: "calc(62px + env(safe-area-inset-bottom))",
+            justifyContent: isPWA ? undefined : "space-between",
+            paddingTop: isPWA
+              ? "calc(env(safe-area-inset-top) + 40px)"
+              : "max(3.2rem, calc(env(safe-area-inset-top) + 3rem))",
+            paddingBottom: isPWA
+              ? "calc(62px + env(safe-area-inset-bottom))"
+              : "max(4.8rem, calc(env(safe-area-inset-bottom) + 4.5rem))",
             height: "100%",
             maxHeight: "100dvh",
             overflow: "hidden",
             overscrollBehavior: "none",
           }}
         >
-          <div
-            className="w-full shrink-0 flex flex-col items-center"
-            style={{ marginTop: "56px" }}
-          >
-            <MediaPreview />
-            <MediaSizeInfo />
-          </div>
+          {isPWA ? (
+            /* Layout chuẩn pixel Locket khi tải app về (PWA / Standalone) */
+            <>
+              <div
+                className="w-full shrink-0 flex flex-col items-center"
+                style={{ marginTop: "56px" }}
+              >
+                <MediaPreview />
+                <MediaSizeInfo />
+              </div>
 
-          <div className="flex-1 flex flex-col items-center w-full min-h-0">
-            <div
-              className="w-full flex justify-center items-center shrink-0"
-              style={{ marginTop: "44px" }}
-            >
-              <ActionControls />
-            </div>
-
-            <div className="flex-1 flex flex-col justify-evenly items-center w-full min-h-0 px-4">
-              {/* Click để mở lịch sử */}
-              <div className="relative w-full flex justify-center items-center shrink-0">
-                {/* SelectFriendsList */}
+              <div className="flex-1 flex flex-col items-center w-full min-h-0">
                 <div
-                  className={`
-                  transition-all duration-300 w-full
-                  ${
-                    selectedFile
-                      ? "opacity-100 visible"
-                      : "opacity-0 invisible hidden"
-                  }
-                `}
+                  className="w-full flex justify-center items-center shrink-0"
+                  style={{ marginTop: "44px" }}
                 >
-                  <Suspense fallback={null}>
-                    <SelectFriendsList />
-                  </Suspense>
+                  <ActionControls isPWA={isPWA} />
                 </div>
 
-                {/* HistoryArrow */}
-                <div
-                  className={`
-                  transition-all duration-300 w-full flex justify-center items-center
-                  ${
-                    !selectedFile
-                      ? "opacity-100 visible"
-                      : "opacity-0 invisible hidden"
-                  }
-                `}
-                >
-                  <HistoryArrow setIsBottomOpen={setIsBottomOpen} />
+                <div className="flex-1 flex flex-col justify-evenly items-center w-full min-h-0 px-4">
+                  {/* Click để mở lịch sử */}
+                  <div className="relative w-full flex justify-center items-center shrink-0">
+                    {/* SelectFriendsList */}
+                    <div
+                      className={`
+                      transition-all duration-300 w-full
+                      ${
+                        selectedFile
+                          ? "opacity-100 visible"
+                          : "opacity-0 invisible hidden"
+                      }
+                    `}
+                    >
+                      <Suspense fallback={null}>
+                        <SelectFriendsList />
+                      </Suspense>
+                    </div>
+
+                    {/* HistoryArrow */}
+                    <div
+                      className={`
+                      transition-all duration-300 w-full flex justify-center items-center
+                      ${
+                        !selectedFile
+                          ? "opacity-100 visible"
+                          : "opacity-0 invisible hidden"
+                      }
+                    `}
+                    >
+                      <HistoryArrow setIsBottomOpen={setIsBottomOpen} />
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </>
+          ) : (
+            /* Layout gốc cho Web thường */
+            <>
+              <div className="flex-1 flex flex-col justify-center items-center w-full min-h-0">
+                <MediaPreview />
+                <MediaSizeInfo />
+              </div>
+
+              <div className="w-full flex flex-col items-center gap-3.5 shrink-0 px-4">
+                <ActionControls isPWA={isPWA} />
+
+                {/* Click để mở lịch sử */}
+                <div className="relative w-full flex justify-center items-center">
+                  {/* SelectFriendsList */}
+                  <div
+                    className={`
+                    transition-all duration-300 w-full
+                    ${
+                      selectedFile
+                        ? "opacity-100 visible"
+                        : "opacity-0 invisible hidden"
+                    }
+                  `}
+                  >
+                    <Suspense fallback={null}>
+                      <SelectFriendsList />
+                    </Suspense>
+                  </div>
+
+                  {/* HistoryArrow */}
+                  <div
+                    className={`
+                    transition-all duration-300 w-full flex justify-center items-center
+                    ${
+                      !selectedFile
+                        ? "opacity-100 visible"
+                        : "opacity-0 invisible hidden"
+                    }
+                  `}
+                  >
+                    <HistoryArrow setIsBottomOpen={setIsBottomOpen} />
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </>

@@ -6,8 +6,14 @@ import { SonnerInfo, SonnerError } from "@/components/ui/SonnerToast";
 import { classifyPhoneMedia, normalizePhoneImage } from "@/utils/imageUtils";
 import { MAX_VIDEO_UPLOAD_MB } from "@/config/uploadLimits";
 
-const UploadFile = () => {
-  const { post, useloading, camera } = useApp();
+const UploadFile = ({ isPWA: isPWAProp }) => {
+  const { post, useloading, camera, navigation } = useApp();
+  const isPWA =
+    isPWAProp ??
+    (Boolean(navigation?.isPWA) ||
+      (typeof window !== "undefined" &&
+        (window.matchMedia?.("(display-mode: standalone)").matches ||
+          window.navigator?.standalone === true)));
   const {
     setSelectedFile,
     setPreview,
@@ -82,12 +88,6 @@ const UploadFile = () => {
     setVideoCropArea,
   ]);
 
-  const { navigation } = useApp();
-  const isPWA = Boolean(
-    navigation?.isPWA ||
-    (typeof window !== "undefined" &&
-      (window.matchMedia?.("(display-mode: standalone)").matches || window.navigator?.standalone === true))
-  );
   const latestMoment = useMomentsStoreV2((s) => s.momentsByUser["all"]?.items?.[0]);
   const latestThumb = latestMoment?.thumbnail_url || latestMoment?.image_url;
 
@@ -101,48 +101,52 @@ const UploadFile = () => {
         id="file-upload"
       />
       <label htmlFor="file-upload" className="cursor-pointer active:scale-95 block">
-        {latestThumb ? (
-          <div className="relative w-[46px] h-[46px] flex items-center justify-center select-none">
-            {/* Lớp 1 (sau cùng): xoay -6deg */}
-            <div
-              className="absolute w-[46px] h-[46px] rounded-[13px] overflow-hidden shadow-xs pointer-events-none z-0"
-              style={{
-                transformOrigin: "bottom center",
-                transform: "rotate(-6deg)",
-                backgroundImage: `url(${latestThumb})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                opacity: 0.5,
-              }}
-            />
-            {/* Lớp 2 (ở giữa): xoay +5deg */}
-            <div
-              className="absolute w-[46px] h-[46px] rounded-[13px] overflow-hidden shadow-xs pointer-events-none z-5"
-              style={{
-                transformOrigin: "bottom center",
-                transform: "rotate(5deg)",
-                backgroundImage: `url(${latestThumb})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                opacity: 0.7,
-              }}
-            />
-            {/* Lớp 3 (trên cùng): ảnh chính thẳng 0deg */}
-            <div className="relative w-[46px] h-[46px] rounded-[13px] overflow-hidden shadow-md bg-[var(--surface-pill)] z-10">
-              <img
-                src={latestThumb}
-                alt="Ảnh mới nhất"
-                className="w-full h-full object-cover"
+        {isPWA ? (
+          latestThumb ? (
+            <div className="relative w-[46px] h-[46px] flex items-center justify-center select-none">
+              {/* Lớp 1 (sau cùng): xoay -6deg */}
+              <div
+                className="absolute w-[46px] h-[46px] rounded-[13px] overflow-hidden shadow-xs pointer-events-none z-0"
+                style={{
+                  transformOrigin: "bottom center",
+                  transform: "rotate(-6deg)",
+                  backgroundImage: `url(${latestThumb})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  opacity: 0.5,
+                }}
               />
+              {/* Lớp 2 (ở giữa): xoay +5deg */}
+              <div
+                className="absolute w-[46px] h-[46px] rounded-[13px] overflow-hidden shadow-xs pointer-events-none z-5"
+                style={{
+                  transformOrigin: "bottom center",
+                  transform: "rotate(5deg)",
+                  backgroundImage: `url(${latestThumb})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  opacity: 0.7,
+                }}
+              />
+              {/* Lớp 3 (trên cùng): ảnh chính thẳng 0deg */}
+              <div className="relative w-[46px] h-[46px] rounded-[13px] overflow-hidden shadow-md bg-[var(--surface-pill)] z-10">
+                <img
+                  src={latestThumb}
+                  alt="Ảnh mới nhất"
+                  className="w-full h-full object-cover"
+                />
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="relative w-[46px] h-[46px] flex items-center justify-center select-none">
+              {/* Nút icon tải ảnh full kích thước 46x46 bo góc 13px không khung viền thừa */}
+              <div className="relative w-[46px] h-[46px] rounded-[13px] bg-[var(--surface-pill)] backdrop-blur-md flex items-center justify-center text-[var(--text-primary)] shadow-md z-10">
+                <ImageUp size={24} strokeWidth={2.2} />
+              </div>
+            </div>
+          )
         ) : (
-          <div className="relative w-[46px] h-[46px] flex items-center justify-center select-none">
-            {/* Nút icon tải ảnh full kích thước 46x46 bo góc 13px không khung viền thừa */}
-            <div className="relative w-[46px] h-[46px] rounded-[13px] bg-[var(--surface-pill)] backdrop-blur-md flex items-center justify-center text-[var(--text-primary)] shadow-md z-10">
-              <ImageUp size={24} strokeWidth={2.2} />
-            </div>
-          </div>
+          <ImageUp size={35} className="text-[var(--text-primary)]" />
         )}
       </label>
     </>

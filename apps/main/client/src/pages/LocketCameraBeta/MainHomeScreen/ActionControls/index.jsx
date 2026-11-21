@@ -12,8 +12,14 @@ import DelButton from "./MediaControls/DelButton";
 import OverlayButton from "./MediaControls/OverlayButton";
 import GenerateAiButton from "./MediaControls/GenerateAiButton";
 
-const ActionControls = () => {
-  const { post } = useApp();
+const ActionControls = ({ isPWA: isPWAProp }) => {
+  const { navigation, post } = useApp();
+  const isPWA =
+    isPWAProp ??
+    (Boolean(navigation?.isPWA) ||
+      (typeof window !== "undefined" &&
+        (window.matchMedia?.("(display-mode: standalone)").matches ||
+          window.navigator?.standalone === true)));
   const { selectedFile, selectedAiFilter } = post;
   const { showPhotobooth, chooseCaptureMode } = useCameraCaptureMode();
   const clearPhotos = usePhotoboothStore((state) => state.clearPhotos);
@@ -35,6 +41,60 @@ const ActionControls = () => {
     chooseCaptureMode(false);
   };
 
+  if (!isPWA) {
+    /* Giao diện web gốc */
+    return (
+      <div className="relative flex justify-center items-center w-full max-w-md">
+        <div className="relative w-full flex justify-evenly items-center">
+          {/* SLOT 1 */}
+          <div className="relative flex items-center justify-center">
+            {showPhotobooth && !hasFile ? (
+              <button
+                type="button"
+                onClick={handleCancelPhotobooth}
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--surface-pill)] text-[var(--text-primary)] border border-[var(--border-subtle)] shadow-lg backdrop-blur-md transition active:scale-90 hover:opacity-80"
+                aria-label="Thoát Photobooth"
+                title="Thoát Photobooth"
+              >
+                <X size={24} />
+              </button>
+            ) : (
+              <>
+                <div className={`${baseBtn} ${!hasFile ? showClass : hideClass}`}>
+                  <UploadFile isPWA={false} />
+                </div>
+                <div className={`${baseBtn} ${hasFile ? showClass : hideClass}`}>
+                  <DelButton />
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* SLOT 2 (Center main button) */}
+          <div className="relative flex items-center justify-center">
+            <div className={`${baseBtn} ${!hasFile ? showClass : hideMainClass}`}>
+              <CameraButton isPWA={false} />
+            </div>
+            <div className={`${baseBtn} ${hasFile ? showClass : hideMainClass}`}>
+              {shouldGenerateAiImage ? <GenerateAiButton /> : <SendButton />}
+            </div>
+          </div>
+
+          {/* SLOT 3 */}
+          <div className="relative flex items-center justify-center">
+            <div className={`${baseBtn} ${!hasFile ? showClass : hideClass}`}>
+              <CameraToggle isPWA={false} />
+            </div>
+            <div className={`${baseBtn} ${hasFile ? showClass : hideClass}`}>
+              <OverlayButton />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* Giao diện PWA chuẩn Locket khi tải app về điện thoại */
   return (
     <div
       className="relative flex justify-between items-center w-full"
@@ -56,7 +116,7 @@ const ActionControls = () => {
           <>
             {/* Upload */}
             <div className={`${baseBtn} ${!hasFile ? showClass : hideClass}`}>
-              <UploadFile />
+              <UploadFile isPWA={true} />
             </div>
 
             {/* Delete */}
@@ -71,7 +131,7 @@ const ActionControls = () => {
       <div className="relative flex items-center justify-center">
         {/* Camera */}
         <div className={`${baseBtn} ${!hasFile ? showClass : hideMainClass}`}>
-          <CameraButton />
+          <CameraButton isPWA={true} />
         </div>
 
         {/* Send */}
@@ -84,7 +144,7 @@ const ActionControls = () => {
       <div className="relative flex items-center justify-center w-[46px] h-[46px]">
         {/* Toggle camera */}
         <div className={`${baseBtn} ${!hasFile ? showClass : hideClass}`}>
-          <CameraToggle />
+          <CameraToggle isPWA={true} />
         </div>
 
         {/* Overlay */}

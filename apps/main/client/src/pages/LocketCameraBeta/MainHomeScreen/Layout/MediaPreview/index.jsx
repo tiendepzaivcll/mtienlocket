@@ -490,7 +490,7 @@ const MediaPreview = () => {
         className={`relative ${
           isPWA
             ? "pwa-camera-frame w-[97vw] aspect-square rounded-[62px] mx-auto"
-            : "w-[97vw] max-w-[min(97vw,calc(100dvh-290px),450px)] aspect-square rounded-[62px] mx-auto"
+            : "w-[min(calc(100vw-24px),calc(100dvh-290px),400px)] aspect-square rounded-[48px] mx-auto"
         } bg-gray-900 overflow-hidden transition-all duration-300 touch-none select-none shadow-2xl`}
       >
         {!preview && !selectedFile && cameraActive && (
