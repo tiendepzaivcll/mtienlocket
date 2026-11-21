@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import UserInfo from "../Layout/UserInfoView";
 import { OverlayRenderer } from "@/components/ui";
 import { GetInfoMoment } from "@/services";
+import { useViewedMomentsStore } from "@/stores";
 import FlyingEmojiEffect from "../Modal/FlyingEmojiEffect";
 import { useResilientVideo } from "./useResilientVideo";
 
@@ -35,6 +36,13 @@ const getReactionEmoji = (reaction) =>
 
 const MomentSlide = ({ moment, me, handleClose, isActive = true }) => {
   const [detailMoment, setDetailMoment] = useState(null);
+  const markViewed = useViewedMomentsStore((s) => s.markViewed);
+
+  useEffect(() => {
+    if (isActive && moment?.id) {
+      markViewed(moment);
+    }
+  }, [isActive, moment?.id, markViewed]);
   const momentOwnerId =
     typeof moment?.user === "string" ? moment.user : moment?.user?.uid;
   const currentUserId = me?.uid || me?.localId || null;

@@ -9,7 +9,7 @@ import { Virtual } from "swiper/modules";
 import "swiper/css";
 import MomentSlide from "./MomentsView/MomentSlide";
 import { useSocket } from "@/context/SocketContext";
-import { useAuthStore, useMomentsStoreV2 } from "@/stores";
+import { useAuthStore, useMomentsStoreV2, useViewedMomentsStore } from "@/stores";
 import { getToken } from "@/utils";
 
 const BottomHomeScreen = () => {
@@ -35,6 +35,7 @@ const BottomHomeScreen = () => {
   } = post;
 
   const { user } = useAuthStore();
+  const markViewed = useViewedMomentsStore((s) => s.markViewed);
 
   const { socket, isConnected } = useSocket();
 
@@ -152,6 +153,9 @@ const BottomHomeScreen = () => {
 
                   setSelectedMoment(newIndex);
                   setSelectedMomentId(moments[newIndex]?.id);
+                  if (moments[newIndex]) {
+                    markViewed(moments[newIndex]);
+                  }
                 }}
               >
                 {moments.map((slideContent, index) => (

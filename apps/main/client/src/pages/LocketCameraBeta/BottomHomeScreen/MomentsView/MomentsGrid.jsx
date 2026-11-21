@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { MdSlowMotionVideo } from "react-icons/md";
 import { useApp } from "@/context/AppContext";
-import { useMomentsStoreV2 } from "@/stores";
+import { useMomentsStoreV2, useViewedMomentsStore } from "@/stores";
 import { SonnerSuccess } from "@/components/ui/SonnerToast";
 
 const MomentsGrid = ({
@@ -21,6 +21,7 @@ const MomentsGrid = ({
   } = post;
 
   const reloadMoments = useMomentsStoreV2((s) => s.reloadMoments);
+  const markViewed = useViewedMomentsStore((s) => s.markViewed);
   const [loadingMoments, setLoadingMoments] = useState(false);
 
   const [loadedItems, setLoadedItems] = useState([]);
@@ -129,6 +130,7 @@ const MomentsGrid = ({
               onClick={() => {
                 setSelectedMoment(index);
                 setSelectedMomentId(item.id);
+                markViewed(item);
               }}
               className="aspect-square overflow-hidden cursor-pointer rounded-2xl relative group"
             >
