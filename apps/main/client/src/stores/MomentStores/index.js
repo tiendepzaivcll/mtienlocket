@@ -552,6 +552,100 @@ export const useMomentsStoreV2 = create((set, get) => ({
       },
     }));
   },
+
+  ensureMomentVisible: (momentId, selectedFriendUid = null) => {
+    const key = selectedFriendUid ?? "all";
+    const bucket = get().momentsByUser[key];
+    if (!bucket || !bucket.items) return -1;
+    const index = bucket.items.findIndex(
+      (m) => m?.id === momentId || m?.canonical_uid === momentId || m?.postId === momentId,
+    );
+    if (index === -1) return -1;
+
+    if (index >= bucket.visibleCount) {
+      set((state) => ({
+        momentsByUser: {
+          ...state.momentsByUser,
+          [key]: {
+            ...bucket,
+            visibleCount: Math.min(index + 6, bucket.items.length),
+          },
+        },
+      }));
+    }
+    return index;
+  },
+
+  /* --------------------------------------------------
+   * 6️⃣ Cập nhật mảng seenBy cho moments trong store
+   * -------------------------------------------------- */
+  markMomentsAsSeen: (momentIds, currentUserId) => {
+    if (!momentIds || !currentUserId) return;
+    const rawIds = Array.isArray(momentIds) ? momentIds : [momentIds];
+    const idSet = new Set(
+      rawIds
+        .map((id) => (typeof id === "object" ? id?.id : id))
+        .filter(Boolean),
+    );
+    if (idSet.size === 0) return;
+
+    set((state) => {
+      let anyChanged = false;
+      const nextMomentsByUser = { ...state.momentsByUser };
+
+      for (const [key, bucket] of Object.entries(nextMomentsByUser)) {
+        if (!bucket || !Array.isArray(bucket.items)) continue;
+
+        let bucketChanged = false;
+        const updatedItems = bucket.items.map((m) => {
+          if (!m?.id || !idSet.has(m.id)) return m;
+
+          const currentSeenBy = Array.isArray(m.seenBy)
+            ? [...m.seenBy]
+            : Array.isArray(m.seen_by)
+            ? [...m.seen_by]
+            : [];
+
+          const targetUid = String(currentUserId).trim();
+          const alreadySeen = currentSeenBy.some((item) => {
+            if (typeof item === "string") return item === targetUid;
+            if (item && typeof item === "object") {
+              return (
+                item.uid === targetUid ||
+                item.userId === targetUid ||
+                item.user_uid === targetUid ||
+                item.id === targetUid ||
+                item.user === targetUid
+              );
+            }
+            return false;
+          });
+
+          if (!alreadySeen) {
+            currentSeenBy.push(targetUid);
+            bucketChanged = true;
+            anyChanged = true;
+            return {
+              ...m,
+              seenBy: currentSeenBy,
+              seen_by: currentSeenBy,
+            };
+          }
+
+          return m;
+        });
+
+        if (bucketChanged) {
+          nextMomentsByUser[key] = {
+            ...bucket,
+            items: updatedItems,
+          };
+        }
+      }
+
+      return anyChanged ? { momentsByUser: nextMomentsByUser } : state;
+    });
+  },
 }));
 
 export * from "./useViewedMomentsStore";

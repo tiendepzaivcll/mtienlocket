@@ -13,10 +13,7 @@ const HistoryArrow = ({ setIsBottomOpen }) => {
           className="flex flex-col items-center cursor-pointer transition-transform hover:scale-105 active:scale-95"
           onClick={handleClick}
         >
-          <div className="flex items-center justify-center space-x-2 mb-1">
-            {/* <div className="bg-accent text-base-content font-semibold px-[9px] py-0.5 rounded-lg shadow-md">
-          {recentPosts.length}
-        </div> */}
+          <div className="flex items-center justify-center mb-1">
             <span className="text-xl font-semibold text-base-content">
               Lịch sử
             </span>

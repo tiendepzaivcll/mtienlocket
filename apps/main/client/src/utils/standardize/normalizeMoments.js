@@ -154,6 +154,27 @@ export function normalizeMoment(data) {
     id,
     user: data.user || data.userUid || data.owner || null,
     userUid: data.userUid || data.user || data.owner || null,
+    senderId:
+      data.senderId ||
+      data.sender_id ||
+      data.user ||
+      data.userUid ||
+      data.owner ||
+      null,
+    seenBy: Array.isArray(data.seenBy)
+      ? data.seenBy
+      : Array.isArray(data.seen_by)
+      ? data.seen_by
+      : Array.isArray(data.views)
+      ? data.views
+      : [],
+    seen_by: Array.isArray(data.seen_by)
+      ? data.seen_by
+      : Array.isArray(data.seenBy)
+      ? data.seenBy
+      : Array.isArray(data.views)
+      ? data.views
+      : [],
     image_url: imageUrl,
     imageUrl,
     video_url: videoUrl,

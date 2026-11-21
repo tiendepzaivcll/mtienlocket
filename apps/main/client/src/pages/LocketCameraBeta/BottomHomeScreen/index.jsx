@@ -11,6 +11,7 @@ import MomentSlide from "./MomentsView/MomentSlide";
 import { useSocket } from "@/context/SocketContext";
 import { useAuthStore, useMomentsStoreV2, useViewedMomentsStore } from "@/stores";
 import { getToken } from "@/utils";
+import { isPhotoUnseen } from "@/utils/moment/unseenMoments";
 
 const BottomHomeScreen = () => {
   const { navigation, post } = useApp();
@@ -34,8 +35,11 @@ const BottomHomeScreen = () => {
     setSelectedMomentId,
   } = post;
 
-  const { user } = useAuthStore();
+  const { user, updateLastSeenHistoryAt } = useAuthStore();
+  const currentUserId = user?.uid || user?.localId || null;
+  const viewedIds = useViewedMomentsStore((s) => s.viewedIds);
   const markViewed = useViewedMomentsStore((s) => s.markViewed);
+  const markAllViewed = useViewedMomentsStore((s) => s.markAllViewed);
 
   const { socket, isConnected } = useSocket();
 
@@ -57,7 +61,47 @@ const BottomHomeScreen = () => {
     syncMomentsSnapshot,
     increaseVisibleCount,
     resetVisible,
+    markMomentsAsSeen,
   } = useMomentsStoreV2();
+
+  // Quy tắc cập nhật trạng thái "Đã xem" (Mark as seen):
+  // Ngay khi user vuốt xuống / bấm vào "Lịch sử" và lướt xem các ảnh mới,
+  // hãy cập nhật ngay trạng thái đã xem lên Firebase:
+  // - Thêm currentUser.uid vào seenBy của các ảnh hiển thị trên màn hình
+  // - Cập nhật lastSeenHistoryAt = serverTimestamp() / Date.now()
+  useEffect(() => {
+    if (!isBottomOpen || !currentUserId || !moments.length) return;
+
+    // Lấy danh sách ảnh đang hiển thị trên màn hình (theo visibleCount hoặc 12 ảnh ban đầu)
+    const displayedCount = Math.max(visibleCount || 0, 12);
+    const displayedMoments = moments.slice(0, displayedCount);
+
+    // Lọc ra các ảnh do người khác gửi mà user chưa xem
+    const unseenDisplayed = displayedMoments.filter((m) =>
+      isPhotoUnseen(m, currentUserId, viewedIds, user?.lastSeenHistoryAt),
+    );
+
+    if (unseenDisplayed.length > 0) {
+      markAllViewed(unseenDisplayed);
+      markMomentsAsSeen?.(
+        unseenDisplayed.map((m) => m.id),
+        currentUserId,
+      );
+      updateLastSeenHistoryAt?.(Date.now());
+    } else if (!user?.lastSeenHistoryAt) {
+      updateLastSeenHistoryAt?.(Date.now());
+    }
+  }, [
+    isBottomOpen,
+    visibleCount,
+    moments,
+    currentUserId,
+    viewedIds,
+    user?.lastSeenHistoryAt,
+    markAllViewed,
+    markMomentsAsSeen,
+    updateLastSeenHistoryAt,
+  ]);
 
   useEffect(() => {
     resetVisible(selectedFriendUid);
@@ -155,6 +199,10 @@ const BottomHomeScreen = () => {
                   setSelectedMomentId(moments[newIndex]?.id);
                   if (moments[newIndex]) {
                     markViewed(moments[newIndex]);
+                    if (currentUserId && moments[newIndex]?.id) {
+                      markMomentsAsSeen?.([moments[newIndex].id], currentUserId);
+                    }
+                    updateLastSeenHistoryAt?.(Date.now());
                   }
                 }}
               >

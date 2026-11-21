@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useApp } from "@/context/AppContext";
 import HeaderOne from "./Layout/HeaderOne";
 import InfoUser from "./Layout/InfoUser";
 import SegmentedToggle from "./Layout/SegmentedToggle";
 import RollcallsPost from "./Views/RollcallsPage";
 import StreakLocket from "./Views/CalenderStreak";
-import { useAuthStore, useUploadQueueStore } from "@/stores";
+import { useAuthStore, useMomentsStoreV2, useUploadQueueStore } from "@/stores";
 
 const LeftHomeScreen = ({ setIsProfileOpen }) => {
   const { user } = useAuthStore();
@@ -13,11 +13,15 @@ const LeftHomeScreen = ({ setIsProfileOpen }) => {
   const { isProfileOpen, profileSection, setProfileSection } = navigation;
   const [posts, setPosts] = useState([]);
 
-  // useEffect(() => {
-  //   document.body.classList.toggle("overflow-hidden", isProfileOpen);
-  //   return () => document.body.classList.remove("overflow-hidden");
-  // }, [isProfileOpen]);
   const postedMoments = useUploadQueueStore((s) => s.postedMoments);
+  const allMoments = useMomentsStoreV2((s) => s.momentsByUser["all"]?.items || []);
+  const fetchMoments = useMomentsStoreV2((s) => s.fetchMoments);
+
+  useEffect(() => {
+    if (isProfileOpen && profileSection === "lockets" && user && (!allMoments || allMoments.length === 0)) {
+      fetchMoments(user, null);
+    }
+  }, [isProfileOpen, profileSection, user, allMoments, fetchMoments]);
   // handle toggle bằng true/false
   return (
     <div
@@ -50,7 +54,7 @@ const LeftHomeScreen = ({ setIsProfileOpen }) => {
           />
         )}
         {profileSection === "lockets" && (
-          <StreakLocket recentPosts={postedMoments} />
+          <StreakLocket recentPosts={postedMoments} allMoments={allMoments} />
         )}
       </div>
       {/* ==== Bottom Segmented Toggle ==== */}

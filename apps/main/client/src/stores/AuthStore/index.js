@@ -125,6 +125,24 @@ export const useAuthStore = create((set) => ({
     return aiFilterEnabled;
   },
 
+  updateLastSeenHistoryAt: (timestamp = Date.now()) => {
+    set((state) => {
+      if (!state.user) return state;
+      const ts = typeof timestamp === "number" ? timestamp : Date.now();
+      const currentUid = state.user.uid || state.user.localId || "guest";
+      const updatedUser = {
+        ...state.user,
+        lastSeenHistoryAt: ts,
+        last_seen_history_at: ts,
+      };
+      try {
+        saveUserCache(updatedUser);
+        localStorage.setItem(`last_seen_history_${currentUid}`, String(ts));
+      } catch {}
+      return { user: updatedUser };
+    });
+  },
+
   refreshAccessRole: async () => {
     const { idToken, localId } = getToken();
     if (!idToken) return null;

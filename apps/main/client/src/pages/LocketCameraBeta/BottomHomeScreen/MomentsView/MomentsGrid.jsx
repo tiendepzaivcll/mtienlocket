@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { MdSlowMotionVideo } from "react-icons/md";
 import { useApp } from "@/context/AppContext";
-import { useMomentsStoreV2, useViewedMomentsStore } from "@/stores";
+import { useAuthStore, useMomentsStoreV2, useViewedMomentsStore } from "@/stores";
 import { SonnerSuccess } from "@/components/ui/SonnerToast";
 
 const MomentsGrid = ({
@@ -20,7 +20,10 @@ const MomentsGrid = ({
     selectedFriendUid,
   } = post;
 
+  const { user, updateLastSeenHistoryAt } = useAuthStore();
+  const currentUserId = user?.uid || user?.localId || null;
   const reloadMoments = useMomentsStoreV2((s) => s.reloadMoments);
+  const markMomentsAsSeen = useMomentsStoreV2((s) => s.markMomentsAsSeen);
   const markViewed = useViewedMomentsStore((s) => s.markViewed);
   const [loadingMoments, setLoadingMoments] = useState(false);
 
@@ -126,11 +129,16 @@ const MomentsGrid = ({
           return (
             <div
               key={item.id}
+              id={`moment-${item.id}`}
               ref={isLastItem ? lastElementRef : null}
               onClick={() => {
                 setSelectedMoment(index);
                 setSelectedMomentId(item.id);
                 markViewed(item);
+                if (currentUserId && item?.id) {
+                  markMomentsAsSeen?.([item.id], currentUserId);
+                }
+                updateLastSeenHistoryAt?.(Date.now());
               }}
               className="aspect-square overflow-hidden cursor-pointer rounded-2xl relative group"
             >

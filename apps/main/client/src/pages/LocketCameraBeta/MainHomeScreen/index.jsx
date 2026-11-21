@@ -88,10 +88,47 @@ export default function MainHomeScreen() {
   } = navigation;
   const { selectedFile } = post;
 
+  const touchStartY = React.useRef(null);
+  const touchStartX = React.useRef(null);
+
+  const handleContainerTouchStart = (e) => {
+    if (e.touches?.length === 1) {
+      touchStartY.current = e.touches[0].clientY;
+      touchStartX.current = e.touches[0].clientX;
+    }
+  };
+
+  const handleContainerTouchEnd = (e) => {
+    if (touchStartY.current === null || touchStartX.current === null) return;
+    const touchEndY = e.changedTouches?.[0]?.clientY;
+    const touchEndX = e.changedTouches?.[0]?.clientX;
+    if (typeof touchEndY !== "number" || typeof touchEndX !== "number") return;
+
+    const deltaY = touchEndY - touchStartY.current;
+    const deltaX = touchEndX - touchStartX.current;
+
+    touchStartY.current = null;
+    touchStartX.current = null;
+
+    // Vuốt xuống từ màn hình camera chính để mở lịch sử
+    if (
+      !isBottomOpen &&
+      !isProfileOpen &&
+      !isHomeOpen &&
+      !selectedFile &&
+      deltaY > 60 &&
+      Math.abs(deltaY) > Math.abs(deltaX) * 1.3
+    ) {
+      setIsBottomOpen(true);
+    }
+  };
+
   return (
     <>
       <div
         id="camera-screen-container"
+        onTouchStart={handleContainerTouchStart}
+        onTouchEnd={handleContainerTouchEnd}
         style={{
           background: "var(--bg-app)",
           color: "var(--text-primary)",

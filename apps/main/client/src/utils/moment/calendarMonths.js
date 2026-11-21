@@ -8,12 +8,16 @@ const previousMonthKey = (date) =>
 
 export function getVisibleCalendarMonths(
   monthKeys = [],
-  { referenceDate = new Date(), preferredMonthKey = null } = {},
+  { referenceDate = new Date(), preferredMonthKey = null, showAll = false } = {},
 ) {
   const currentMonthKey = toCalendarMonthKey(referenceDate);
   const validKeys = [...new Set(monthKeys)].filter((key) =>
     MONTH_KEY_PATTERN.test(key),
   );
+
+  if (showAll) {
+    return [...new Set([...validKeys, currentMonthKey])].sort();
+  }
 
   let companionMonth = null;
   if (
